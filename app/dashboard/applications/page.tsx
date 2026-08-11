@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
+import { SubmissionCard } from "./SubmissionCard";
 
 export const metadata = { title: "응모 — 루비AI" };
 
@@ -97,11 +98,21 @@ export default async function ApplicationsPage() {
     }
 
     const ids = apps.map((a) => a.campaign_id);
-    const { data: campaigns } = await supabase
-      .from("campaigns")
-      .select("id, title, business_name, recruit_end")
-      .in("id", ids);
+    const [{ data: campaigns }, { data: submissions }] = await Promise.all([
+      supabase
+        .from("campaigns")
+        .select("id, title, business_name, recruit_end, point_amount")
+        .in("id", ids),
+      supabase
+        .from("submissions")
+        .select("id, application_id, status, content_url, note, feedback, submitted_at")
+        .in(
+          "application_id",
+          apps.map((a) => a.id)
+        ),
+    ]);
     const campaignById = new Map((campaigns ?? []).map((c) => [c.id, c]));
+    const submissionByApp = new Map((submissions ?? []).map((s) => [s.application_id, s]));
 
     return (
       <div>
@@ -109,21 +120,29 @@ export default async function ApplicationsPage() {
         <div className="mt-8 space-y-2">
           {apps.map((a) => {
             const c = campaignById.get(a.campaign_id);
-            const info = STATUS_LABEL[a.status] ?? STATUS_LABEL.pending;
+            const s = submissionByApp.get(a.id);
             return (
-              <Link
+              <SubmissionCard
                 key={a.id}
-                href={`/dashboard/campaigns/${a.campaign_id}`}
-                className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-background p-4 transition-colors hover:bg-muted/40"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="line-clamp-1 text-sm font-medium">{c?.title ?? "—"}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">{c?.business_name ?? ""}</div>
-                </div>
-                <span className={`rounded-full px-3 py-1 text-[11px] font-medium ${info.tone}`}>
-                  {info.label}
-                </span>
-              </Link>
+                applicationId={a.id}
+                applicationStatus={a.status}
+                campaignId={a.campaign_id}
+                campaignTitle={c?.title ?? "—"}
+                businessName={c?.business_name ?? ""}
+                pointAmount={c?.point_amount ?? 0}
+                submission={
+                  s
+                    ? {
+                        id: s.id,
+                        status: s.status,
+                        contentUrl: s.content_url,
+                        note: s.note,
+                        feedback: s.feedback,
+                        submittedAt: s.submitted_at,
+                      }
+                    : null
+                }
+              />
             );
           })}
         </div>

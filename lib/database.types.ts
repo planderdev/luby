@@ -755,6 +755,53 @@ export type Database = {
         }
         Relationships: []
       }
+      submissions: {
+        Row: {
+          application_id: string
+          content_url: string
+          created_at: string
+          feedback: string | null
+          id: string
+          note: string | null
+          reviewed_at: string | null
+          status: string
+          submitted_at: string
+          updated_at: string
+        }
+        Insert: {
+          application_id: string
+          content_url: string
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          note?: string | null
+          reviewed_at?: string | null
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+        }
+        Update: {
+          application_id?: string
+          content_url?: string
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          note?: string | null
+          reviewed_at?: string | null
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submissions_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: true
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           advertiser_id: string
@@ -808,11 +855,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_submission: {
+        Args: { p_submission_id: string }
+        Returns: undefined
+      }
       is_advertiser_owner: {
         Args: { advertiser_uuid: string }
         Returns: boolean
       }
       is_operator: { Args: never; Returns: boolean }
+      request_submission_revision: {
+        Args: { p_feedback: string; p_submission_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       application_status:

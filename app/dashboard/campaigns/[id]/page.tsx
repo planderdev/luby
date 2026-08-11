@@ -137,6 +137,14 @@ export default async function CampaignDetailPage({
             initialStatus={myApplicationStatus}
           />
         )}
+        {isInfluencer && myApplicationStatus === "selected" && (
+          <Link
+            href="/dashboard/applications"
+            className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background hover:bg-foreground/90"
+          >
+            콘텐츠 제출하러 가기 →
+          </Link>
+        )}
       </header>
 
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
