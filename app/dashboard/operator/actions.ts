@@ -74,3 +74,27 @@ export async function decideCampaign(
   revalidatePath(`/dashboard/campaigns/${campaignId}`);
   return { ok: true };
 }
+
+// 출금 처리는 SECURITY DEFINER 함수가 운영자 권한 검증 + 지급/환불을 원자적으로 수행
+export async function processWithdrawal(
+  withdrawalId: string,
+  approve: boolean,
+  rejectReason?: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const guard = await ensureOperator();
+  if (!guard.ok) return { ok: false, error: guard.error };
+
+  const { error } = await guard.supabase.rpc("process_point_withdrawal", {
+    p_withdrawal_id: withdrawalId,
+    p_approve: approve,
+    p_reject_reason: rejectReason?.trim().slice(0, 500),
+  });
+
+  if (error) {
+    return { ok: false, error: "처리에 실패했습니다. 이미 처리된 신청인지 확인해주세요." };
+  }
+
+  revalidatePath("/dashboard/operator/withdrawals");
+  revalidatePath("/dashboard/points");
+  return { ok: true };
+}

@@ -645,6 +645,62 @@ export type Database = {
         }
         Relationships: []
       }
+      point_withdrawals: {
+        Row: {
+          account_holder: string
+          account_number: string
+          amount: number
+          bank_name: string
+          created_at: string
+          id: string
+          influencer_id: string
+          processed_at: string | null
+          processed_by: string | null
+          reject_reason: string | null
+          requested_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          account_holder: string
+          account_number: string
+          amount: number
+          bank_name: string
+          created_at?: string
+          id?: string
+          influencer_id: string
+          processed_at?: string | null
+          processed_by?: string | null
+          reject_reason?: string | null
+          requested_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          account_holder?: string
+          account_number?: string
+          amount?: number
+          bank_name?: string
+          created_at?: string
+          id?: string
+          influencer_id?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          reject_reason?: string | null
+          requested_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "point_withdrawals_influencer_id_fkey"
+            columns: ["influencer_id"]
+            isOneToOne: false
+            referencedRelation: "influencers"
+            referencedColumns: ["profile_id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           approved: boolean
@@ -858,6 +914,23 @@ export type Database = {
       approve_submission: {
         Args: { p_submission_id: string }
         Returns: undefined
+      }
+      process_point_withdrawal: {
+        Args: {
+          p_approve: boolean
+          p_reject_reason?: string
+          p_withdrawal_id: string
+        }
+        Returns: undefined
+      }
+      request_point_withdrawal: {
+        Args: {
+          p_account_holder: string
+          p_account_number: string
+          p_amount: number
+          p_bank_name: string
+        }
+        Returns: string
       }
       is_advertiser_owner: {
         Args: { advertiser_uuid: string }

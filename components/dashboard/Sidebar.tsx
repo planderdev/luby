@@ -9,6 +9,8 @@ import {
   Users,
   ShieldCheck,
   Star,
+  Coins,
+  Banknote,
 } from "lucide-react";
 import type { UserRole } from "@/lib/supabase/queries";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -27,6 +29,7 @@ const itemsByRole: Record<UserRole, NavItem[]> = {
     { href: "/dashboard", label: "개요", icon: LayoutDashboard },
     { href: "/dashboard/campaigns", label: "캠페인 둘러보기", icon: Star },
     { href: "/dashboard/applications", label: "내 응모", icon: Inbox },
+    { href: "/dashboard/points", label: "포인트", icon: Coins },
     { href: "/dashboard/settings", label: "설정·채널", icon: Settings },
   ],
   operator: [
@@ -34,6 +37,7 @@ const itemsByRole: Record<UserRole, NavItem[]> = {
     { href: "/dashboard/operator/users", label: "회원 관리", icon: Users },
     { href: "/dashboard/operator/campaigns", label: "캠페인 검수", icon: ShieldCheck },
     { href: "/dashboard/operator/payments", label: "결제 내역", icon: CreditCard },
+    { href: "/dashboard/operator/withdrawals", label: "정산 관리", icon: Banknote },
     { href: "/dashboard/operator/stats", label: "통계", icon: LayoutDashboard },
   ],
 };
