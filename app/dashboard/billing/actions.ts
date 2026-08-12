@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getAdminSupabase } from "@/lib/supabase/admin";
 import { confirmTossPayment } from "@/lib/payments/toss";
@@ -186,9 +185,8 @@ export async function confirmBusinessPayment(params: {
     };
   }
 
-  revalidatePath("/dashboard/billing");
-  revalidatePath("/dashboard");
-
+  // revalidatePath 금지: 이 함수는 success 페이지가 렌더링 중에 직접 호출하므로
+  // (렌더링 중 revalidatePath는 Next.js가 예외를 던짐), 대시보드는 전부 동적 렌더링이라 불필요.
   return {
     ok: true,
     alreadyPaid: false,
