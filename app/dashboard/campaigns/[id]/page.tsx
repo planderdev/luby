@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, Calendar, Users, MapPin, Tag, Coins } from "lucide-react";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
+import { getEntitlements } from "@/lib/plans/entitlements";
 import { ApplyButton } from "./ApplyButton";
 import { ApplicantList } from "./ApplicantList";
 import { AIMatches } from "./AIMatches";
@@ -59,6 +60,9 @@ export default async function CampaignDetailPage({
   if (!isOwner && !isOperator && !(isInfluencer && isPublic)) {
     redirect("/dashboard/campaigns");
   }
+
+  // 플랜 권한 (소유 광고주의 AI 매칭·응모자 열람 제한에만 사용)
+  const entitlements = await getEntitlements(profile.id);
 
   const [region, category, promotion, channelLinks, missions, keywords, offerings, schedules] =
     await Promise.all([
@@ -292,7 +296,7 @@ export default async function CampaignDetailPage({
       {/* Advertiser: AI influencer matching + applicants */}
       {isOwner && (
         <>
-          <AIMatches campaignId={id} />
+          <AIMatches campaignId={id} locked={!entitlements.aiMatching} />
           <Suspense
             fallback={
               <div className="mt-10 space-y-2">
@@ -303,7 +307,7 @@ export default async function CampaignDetailPage({
             }
           >
             <div className="mt-10">
-              <ApplicantList campaignId={id} />
+              <ApplicantList campaignId={id} maxVisible={entitlements.maxApplicantViews} />
             </div>
           </Suspense>
         </>

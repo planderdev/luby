@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
-import { Sparkles, Loader2, Star } from "lucide-react";
+import Link from "next/link";
+import { Sparkles, Loader2, Star, Lock } from "lucide-react";
 import { matchInfluencers, type InfluencerMatch } from "./ai-match-actions";
 import { createClient } from "@/lib/supabase/client";
 
 type Profile = { id: string; name: string; avatar_url: string | null };
 
-export function AIMatches({ campaignId }: { campaignId: string }) {
+export function AIMatches({ campaignId, locked = false }: { campaignId: string; locked?: boolean }) {
   const [matches, setMatches] = useState<InfluencerMatch[] | null>(null);
   const [profiles, setProfiles] = useState<Map<string, Profile>>(new Map());
   const [pending, startTransition] = useTransition();
@@ -41,6 +42,33 @@ export function AIMatches({ campaignId }: { campaignId: string }) {
         setProfiles(m);
       }
     });
+  }
+
+  if (locked) {
+    return (
+      <section className="mt-10 rounded-3xl border border-accent/30 bg-accent-soft/40 p-6 lg:p-8">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="flex size-10 items-center justify-center rounded-xl bg-background">
+              <Lock className="size-5 text-accent-ink" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold tracking-tight">AI 추천 인플루언서</h3>
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                AI가 이 캠페인에 꼭 맞는 인플루언서를 골라주는 BUSINESS 전용 기능입니다.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/dashboard/billing"
+            className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background"
+          >
+            <Sparkles className="size-4" />
+            BUSINESS 업그레이드
+          </Link>
+        </div>
+      </section>
+    );
   }
 
   return (

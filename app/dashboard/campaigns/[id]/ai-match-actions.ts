@@ -3,6 +3,7 @@
 import { getAnthropic, AI_MODEL } from "@/lib/ai/client";
 import { buildSystemBlocks, fetchCatalog } from "@/lib/ai/system";
 import { createClient } from "@/lib/supabase/server";
+import { getEntitlements } from "@/lib/plans/entitlements";
 
 export type InfluencerMatch = {
   influencer_id: string;
@@ -49,6 +50,15 @@ async function matchInfluencersInner(campaignId: string): Promise<MatchResult> {
   if (campaign.advertiser_id !== user.id) {
     // Operators can also see; for now restrict to owner
     return { ok: false, error: "권한이 없습니다." };
+  }
+
+  // 플랜 게이트: AI 매칭은 BUSINESS 전용 (토큰 비용이 드는 기능이라 서버에서 차단)
+  const ent = await getEntitlements(user.id);
+  if (!ent.aiMatching) {
+    return {
+      ok: false,
+      error: "AI 매칭은 BUSINESS 플랜 전용 기능입니다. 요금제 페이지에서 업그레이드해주세요.",
+    };
   }
 
   // Load campaign channels (we want influencers active on at least one)

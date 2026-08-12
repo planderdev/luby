@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getEntitlements } from "@/lib/plans/entitlements";
 
 export type CampaignDraft = {
   // Step 1
@@ -50,6 +51,21 @@ export async function createCampaign(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
+
+  // 플랜 제한: FREE는 캠페인 1건 (UI만이 아니라 서버에서도 차단)
+  const ent = await getEntitlements(user.id);
+  if (ent.maxCampaigns !== null) {
+    const { count } = await supabase
+      .from("campaigns")
+      .select("id", { count: "exact", head: true })
+      .eq("advertiser_id", user.id);
+    if ((count ?? 0) >= ent.maxCampaigns) {
+      return {
+        ok: false,
+        error: `${ent.planName} 플랜은 캠페인을 ${ent.maxCampaigns}건까지 등록할 수 있습니다. BUSINESS 플랜으로 업그레이드하면 무제한 등록이 가능합니다.`,
+      };
+    }
+  }
 
   // 1. Insert campaign root
   const { data: campaign, error: campErr } = await supabase

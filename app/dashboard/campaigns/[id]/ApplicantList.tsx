@@ -1,14 +1,28 @@
+import Link from "next/link";
+import { Lock } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ApplicantRow } from "./ApplicantRow";
 
-export async function ApplicantList({ campaignId }: { campaignId: string }) {
+export async function ApplicantList({
+  campaignId,
+  maxVisible = null,
+}: {
+  campaignId: string;
+  /** null = 무제한. FREE 플랜은 10명까지만 서버에서 렌더링. */
+  maxVisible?: number | null;
+}) {
   const supabase = await createClient();
 
-  const { data: applications } = await supabase
+  const { data: allApplications, count: totalCount } = await supabase
     .from("applications")
-    .select("id, message, status, created_at, influencer_id")
+    .select("id, message, status, created_at, influencer_id", { count: "exact" })
     .eq("campaign_id", campaignId)
     .order("created_at", { ascending: false });
+
+  const applications =
+    maxVisible !== null ? (allApplications ?? []).slice(0, maxVisible) : allApplications;
+  const hiddenCount =
+    maxVisible !== null ? Math.max(0, (totalCount ?? 0) - maxVisible) : 0;
 
   if (!applications || applications.length === 0) {
     return (
@@ -62,7 +76,7 @@ export async function ApplicantList({ campaignId }: { campaignId: string }) {
 
   return (
     <section>
-      <h3 className="display text-2xl font-semibold">응모자 ({applications.length})</h3>
+      <h3 className="display text-2xl font-semibold">응모자 ({totalCount ?? applications.length})</h3>
       <div className="mt-4 space-y-2">
         {applications.map((a) => {
           const profile = profileById.get(a.influencer_id);
@@ -101,6 +115,24 @@ export async function ApplicantList({ campaignId }: { campaignId: string }) {
           );
         })}
       </div>
+
+      {hiddenCount > 0 && (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-accent/30 bg-accent-soft/40 px-5 py-4">
+          <div className="flex items-center gap-2 text-sm">
+            <Lock className="size-4 shrink-0 text-accent-ink" />
+            <span>
+              응모자 <strong>{hiddenCount}명</strong>이 더 있습니다. FREE 플랜은 10명까지 열람할
+              수 있어요.
+            </span>
+          </div>
+          <Link
+            href="/dashboard/billing"
+            className="rounded-full bg-foreground px-4 py-2 text-xs font-medium text-background"
+          >
+            BUSINESS로 전체 열람
+          </Link>
+        </div>
+      )}
     </section>
   );
 }
