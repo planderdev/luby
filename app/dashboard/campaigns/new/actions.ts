@@ -67,6 +67,12 @@ export async function createCampaign(
     }
   }
 
+  // 서버 측 방어 검증: 빈 문자열 날짜가 timestamptz 컬럼에 들어가면
+  // Postgres가 "invalid input syntax for type timestamp" 오류를 낸다.
+  if (!draft.recruit_start || !draft.recruit_end) {
+    return { ok: false, error: "모집 기간(시작일·종료일)을 입력해주세요. (STEP 3 체험 일정)" };
+  }
+
   // 1. Insert campaign root
   const { data: campaign, error: campErr } = await supabase
     .from("campaigns")

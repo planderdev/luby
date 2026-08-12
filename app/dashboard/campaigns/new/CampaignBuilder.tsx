@@ -83,30 +83,63 @@ export function CampaignBuilder({
   }
 
   /** Called by Step 1 when "AI에게 전부 맡기기" finishes */
+  function toLocalInput(d: Date): string {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
+      d.getHours()
+    )}:${pad(d.getMinutes())}`;
+  }
+
   function applySuperAndJump(patch: Partial<CampaignDraft>) {
-    applyPatch(patch);
+    // AI는 실제 달력 날짜를 알 수 없으므로, 모집 기간이 비어있으면
+    // 기본값(내일 00:00부터 2주)을 채워 Step 5 점프 후 바로 저장 가능하게 한다.
+    const withDates = { ...patch };
+    if (!draft.recruit_start && !patch.recruit_start) {
+      const start = new Date();
+      start.setDate(start.getDate() + 1);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 14);
+      withDates.recruit_start = toLocalInput(start);
+      withDates.recruit_end = toLocalInput(end);
+    }
+    applyPatch(withDates);
     setError(null);
     setStep(5);
   }
 
-  function canProceed(): string | null {
-    if (step === 1) {
+  function validateStep(s: number): string | null {
+    if (s === 1) {
       if (!draft.title.trim()) return "캠페인 제목을 입력해주세요.";
       if (!draft.business_name.trim()) return "상호명을 입력해주세요.";
       if (!draft.region_id) return "활동 지역을 선택해주세요.";
     }
-    if (step === 2) {
+    if (s === 2) {
       if (!draft.promotion_type_id) return "홍보유형을 선택해주세요.";
       if (!draft.category_id) return "카테고리를 선택해주세요.";
       if (draft.channel_type_ids.length === 0) return "최소 1개 채널을 선택해주세요.";
     }
-    if (step === 3) {
+    if (s === 3) {
       if (!draft.recruit_start || !draft.recruit_end) return "모집 기간을 모두 입력해주세요.";
       if (new Date(draft.recruit_start) >= new Date(draft.recruit_end))
         return "모집 종료일은 시작일 이후여야 합니다.";
     }
-    if (step === 4) {
+    if (s === 4) {
       if (draft.recruit_count < 1) return "모집 인원은 1명 이상이어야 합니다.";
+    }
+    return null;
+  }
+
+  function canProceed(): string | null {
+    return validateStep(step);
+  }
+
+  // 저장·검수요청은 현재 스텝만이 아니라 전체 스텝을 검증 —
+  // AI 전부 맡기기로 Step 5에 바로 점프한 경우에도 빠진 항목을 잡아낸다.
+  function validateAll(): { step: number; error: string } | null {
+    for (let s = 1; s <= 4; s++) {
+      const err = validateStep(s);
+      if (err) return { step: s, error: err };
     }
     return null;
   }
@@ -127,9 +160,10 @@ export function CampaignBuilder({
   }
 
   function save(submit: boolean) {
-    const err = canProceed();
-    if (err) {
-      setError(err);
+    const invalid = validateAll();
+    if (invalid) {
+      setStep(invalid.step);
+      setError(invalid.error);
       return;
     }
     setError(null);
