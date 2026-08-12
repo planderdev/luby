@@ -72,6 +72,7 @@ export function CampaignBuilder({
   // is consistent. canProceed() enforces it before moving to Step 2.
   const [draft, setDraft] = useState<CampaignDraft>(() => initialDraft(""));
   const [error, setError] = useState<string | null>(null);
+  const [modalError, setModalError] = useState<{ step: number; error: string } | null>(null);
   const [pending, startTransition] = useTransition();
 
   function update<K extends keyof CampaignDraft>(key: K, value: CampaignDraft[K]) {
@@ -83,27 +84,10 @@ export function CampaignBuilder({
   }
 
   /** Called by Step 1 when "AI에게 전부 맡기기" finishes */
-  function toLocalInput(d: Date): string {
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
-      d.getHours()
-    )}:${pad(d.getMinutes())}`;
-  }
-
   function applySuperAndJump(patch: Partial<CampaignDraft>) {
-    // AI는 실제 달력 날짜를 알 수 없으므로, 모집 기간이 비어있으면
-    // 기본값(내일 00:00부터 2주)을 채워 Step 5 점프 후 바로 저장 가능하게 한다.
-    const withDates = { ...patch };
-    if (!draft.recruit_start && !patch.recruit_start) {
-      const start = new Date();
-      start.setDate(start.getDate() + 1);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(start);
-      end.setDate(end.getDate() + 14);
-      withDates.recruit_start = toLocalInput(start);
-      withDates.recruit_end = toLocalInput(end);
-    }
-    applyPatch(withDates);
+    // 모집 기간은 광고주가 직접 정해야 하는 필수값 — AI가 임의로 채우지 않는다.
+    // 비어있으면 저장 시 모달로 안내하고 Step 3로 이동시킨다.
+    applyPatch(patch);
     setError(null);
     setStep(5);
   }
@@ -120,7 +104,7 @@ export function CampaignBuilder({
       if (draft.channel_type_ids.length === 0) return "최소 1개 채널을 선택해주세요.";
     }
     if (s === 3) {
-      if (!draft.recruit_start || !draft.recruit_end) return "모집 기간을 모두 입력해주세요.";
+      if (!draft.recruit_start || !draft.recruit_end) return "체험단 모집기간은 필수입니다.";
       if (new Date(draft.recruit_start) >= new Date(draft.recruit_end))
         return "모집 종료일은 시작일 이후여야 합니다.";
     }
@@ -162,8 +146,8 @@ export function CampaignBuilder({
   function save(submit: boolean) {
     const invalid = validateAll();
     if (invalid) {
-      setStep(invalid.step);
-      setError(invalid.error);
+      // 모달로 안내 → 확인 시 해당 스텝으로 이동
+      setModalError(invalid);
       return;
     }
     setError(null);
@@ -192,7 +176,13 @@ export function CampaignBuilder({
         </div>
       </header>
 
-      <StepIndicator current={step} />
+      <StepIndicator
+        current={step}
+        onSelect={(s) => {
+          setError(null);
+          setStep(s);
+        }}
+      />
 
       <div className="mt-8 rounded-3xl border border-border bg-background p-6 lg:p-10">
         {step === 1 && (
@@ -274,20 +264,62 @@ export function CampaignBuilder({
           )}
         </div>
       </div>
+
+      {/* 필수값 누락 안내 모달 — 확인 시 해당 스텝으로 이동 */}
+      {modalError && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setModalError(null)}
+        >
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            className="w-full max-w-sm rounded-3xl border border-border bg-background p-6 text-center shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-accent-soft">
+              <span className="text-xl">⚠️</span>
+            </div>
+            <h3 className="mt-4 text-lg font-semibold">{modalError.error}</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              STEP {modalError.step}에서 입력을 완료한 뒤 다시 시도해주세요.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setStep(modalError.step);
+                setError(null);
+                setModalError(null);
+              }}
+              className="mt-6 w-full rounded-full bg-foreground px-5 py-3 text-sm font-medium text-background hover:bg-foreground/90"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function StepIndicator({ current }: { current: number }) {
+function StepIndicator({
+  current,
+  onSelect,
+}: {
+  current: number;
+  onSelect: (step: number) => void;
+}) {
   return (
     <div className="mt-8 flex flex-wrap gap-2">
       {STEPS.map((s) => {
         const state =
           s.n < current ? "done" : s.n === current ? "active" : "pending";
         return (
-          <div
+          <button
             key={s.n}
-            className={`flex flex-1 min-w-[140px] items-center gap-3 rounded-2xl border px-4 py-3 ${
+            type="button"
+            onClick={() => onSelect(s.n)}
+            className={`flex flex-1 min-w-[140px] items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-colors hover:border-foreground/40 ${
               state === "active"
                 ? "border-foreground bg-muted"
                 : state === "done"
@@ -312,7 +344,7 @@ function StepIndicator({ current }: { current: number }) {
               </div>
               <div className="text-sm font-medium">{s.label}</div>
             </div>
-          </div>
+          </button>
         );
       })}
     </div>
