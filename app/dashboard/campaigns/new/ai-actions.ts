@@ -28,16 +28,23 @@ async function callAI<T>(opts: {
   userPrompt: string;
   schema: Record<string, unknown>;
   maxTokens?: number;
+  /** true = adaptive thinking + effort medium (전체 초안 등 무거운 작업 전용) */
+  deep?: boolean;
 }): Promise<AIResult<T>> {
   try {
     const client = getAnthropic();
     const catalog = await fetchCatalog();
     const response = await client.messages.create({
       model: AI_MODEL,
-      max_tokens: opts.maxTokens ?? 2048,
-      thinking: { type: "adaptive" },
+      // max_tokens는 thinking + 응답 JSON의 "합산" 상한 — 낮으면 JSON이 중간에 잘려
+      // "Unterminated string in JSON" 파싱 오류가 난다. 넉넉히 잡을 것.
+      max_tokens: opts.maxTokens ?? 8192,
+      // 짧은 카피 생성은 thinking 비활성 + effort low가 빠르고 안정적 (Sonnet 4.6 권장).
+      // effort 기본값이 high라 명시하지 않으면 생각이 길어져 함수 타임아웃(504) 위험.
+      thinking: { type: opts.deep ? "adaptive" : "disabled" },
       system: buildSystemBlocks(catalog),
       output_config: {
+        effort: opts.deep ? "medium" : "low",
         format: {
           type: "json_schema",
           schema: opts.schema,
@@ -45,6 +52,10 @@ async function callAI<T>(opts: {
       },
       messages: [{ role: "user", content: opts.userPrompt }],
     });
+
+    if (response.stop_reason === "max_tokens") {
+      return { ok: false, error: "AI 응답이 길이 제한에 걸렸습니다. 다시 시도해주세요." };
+    }
 
     // Extract first text block — output_config.format constrains it to valid JSON
     const textBlock = response.content.find((b) => b.type === "text");
@@ -268,7 +279,9 @@ export async function suggestEverything(input: {
     return { ok: false, error: "업종 설명과 상호명이 필요합니다." };
   }
 
-  const r = await callAI<FullDraftSuggestion>({    maxTokens: 4096,
+  const r = await callAI<FullDraftSuggestion>({
+    maxTokens: 16000,
+    deep: true,
     userPrompt: `상호명: ${input.businessName}
 업종 설명: ${input.industryBrief}
 

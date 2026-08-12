@@ -166,10 +166,12 @@ ${influencerSummaries}
     const client = getAnthropic();
     const response = await client.messages.create({
       model: AI_MODEL,
-      max_tokens: 2048,
+      // max_tokens는 thinking + 응답 JSON의 합산 상한 — 부족하면 JSON이 잘린다
+      max_tokens: 8192,
       thinking: { type: "adaptive" },
       system: buildSystemBlocks(catalog),
       output_config: {
+        effort: "medium",
         format: {
           type: "json_schema",
           schema: {
@@ -198,6 +200,10 @@ ${influencerSummaries}
       },
       messages: [{ role: "user", content: userPrompt }],
     });
+
+    if (response.stop_reason === "max_tokens") {
+      return { ok: false, error: "AI 응답이 길이 제한에 걸렸습니다. 다시 시도해주세요." };
+    }
 
     const textBlock = response.content.find((b) => b.type === "text");
     if (!textBlock || textBlock.type !== "text") {
