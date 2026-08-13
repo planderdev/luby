@@ -27,6 +27,12 @@ export default function LoginPage() {
           회원가입
         </Link>
       </p>
+      <p className="mt-2 text-center text-sm text-muted-foreground">
+        비밀번호를 잊으셨나요?{" "}
+        <Link href="/forgot-password" className="font-medium text-foreground hover:text-accent-ink">
+          비밀번호 재설정
+        </Link>
+      </p>
     </AuthShell>
   );
 }
