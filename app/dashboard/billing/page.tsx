@@ -157,14 +157,15 @@ export default async function BillingPage() {
                   </li>
                 ))}
               </ul>
-              {isCurrent ? (
-                <div
-                  className={`mt-8 w-full rounded-full border px-6 py-3 text-center text-sm font-medium ${
-                    isBusiness
-                      ? "border-background/30 text-background/70"
-                      : "border-border text-muted-foreground"
-                  }`}
+              {isCurrent && plan.tier === "business" ? (
+                <a
+                  href="/dashboard/billing/checkout"
+                  className="mt-8 block w-full rounded-full bg-background px-6 py-3 text-center text-sm font-medium text-foreground transition-colors hover:bg-background/90"
                 >
+                  갱신하기 (+30일 연장)
+                </a>
+              ) : isCurrent ? (
+                <div className="mt-8 w-full rounded-full border border-border px-6 py-3 text-center text-sm font-medium text-muted-foreground">
                   현재 사용중
                 </div>
               ) : plan.tier === "business" ? (

@@ -152,8 +152,19 @@ export async function confirmBusinessPayment(params: {
   }
 
   // 4. service_role로 결제 확정 + 구독 업그레이드
+  // 만료 전 갱신이면 잔여 기간을 이어서 +30일 (잔여일 손실 방지)
   const now = new Date();
-  const expiresAt = new Date(now.getTime() + SUBSCRIPTION_DAYS * 24 * 60 * 60 * 1000);
+  const { data: currentSub } = await supabase
+    .from("subscriptions")
+    .select("expires_at, plan_id")
+    .eq("advertiser_id", user.id)
+    .maybeSingle();
+  const isRenewal =
+    currentSub?.plan_id === plan.id &&
+    currentSub?.expires_at &&
+    new Date(currentSub.expires_at) > now;
+  const base = isRenewal ? new Date(currentSub!.expires_at!) : now;
+  const expiresAt = new Date(base.getTime() + SUBSCRIPTION_DAYS * 24 * 60 * 60 * 1000);
 
   const { error: payErr } = await admin
     .from("payments")

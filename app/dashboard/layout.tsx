@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { NotificationBell } from "@/components/dashboard/NotificationBell";
+import { SubscriptionBanner } from "@/components/dashboard/SubscriptionBanner";
 
 // Dashboard is private — exclude from search engines
 export const metadata: Metadata = {
@@ -25,6 +26,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </div>
         </div>
         <div className="mx-auto w-full max-w-6xl px-5 pb-10 pt-4 md:px-8 lg:px-12 lg:pb-14">
+          {profile.role === "advertiser" && <SubscriptionBanner userId={profile.id} />}
           {children}
         </div>
       </div>
