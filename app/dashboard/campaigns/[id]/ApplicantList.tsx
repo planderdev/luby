@@ -93,6 +93,7 @@ export async function ApplicantList({
               message={a.message}
               createdAt={a.created_at}
               name={profile?.name ?? "—"}
+              influencerId={a.influencer_id}
               region={region ? `${region.flag} ${region.name}` : "—"}
               points={inf?.total_points ?? 0}
               channels={(chs ?? []).map((c) => ({

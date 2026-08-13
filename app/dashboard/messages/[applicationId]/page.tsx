@@ -77,7 +77,17 @@ export default async function MessageThreadPage({
           <ArrowLeft className="size-4" />
         </Link>
         <div className="min-w-0">
-          <h1 className="truncate text-lg font-semibold tracking-tight">{counterpart}</h1>
+          {profile.role === "advertiser" ? (
+            <Link
+              href={`/dashboard/creators/${app.influencer_id}`}
+              className="block truncate text-lg font-semibold tracking-tight hover:underline underline-offset-2"
+              title="크리에이터 프로필 보기"
+            >
+              {counterpart}
+            </Link>
+          ) : (
+            <h1 className="truncate text-lg font-semibold tracking-tight">{counterpart}</h1>
+          )}
           <Link
             href={`/dashboard/campaigns/${campaign.id}`}
             className="block truncate text-xs text-muted-foreground hover:text-foreground"

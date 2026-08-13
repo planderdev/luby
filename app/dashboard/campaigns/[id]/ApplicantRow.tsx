@@ -28,6 +28,7 @@ export function ApplicantRow({
   message,
   createdAt,
   name,
+  influencerId,
   region,
   points,
   channels,
@@ -38,6 +39,7 @@ export function ApplicantRow({
   status: string;
   message: string | null;
   createdAt: string;
+  influencerId: string;
   name: string;
   region: string;
   points: number;
@@ -113,7 +115,13 @@ export function ApplicantRow({
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-semibold">{name}</span>
+            <a
+              href={`/dashboard/creators/${influencerId}`}
+              className="text-sm font-semibold hover:underline underline-offset-2"
+              title="크리에이터 프로필 보기"
+            >
+              {name}
+            </a>
             <span className="text-xs text-muted-foreground">{region}</span>
             <span className="text-xs text-muted-foreground">· {points.toLocaleString()}P</span>
           </div>

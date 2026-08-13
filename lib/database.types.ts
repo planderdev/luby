@@ -1020,6 +1020,10 @@ export type Database = {
         Returns: boolean
       }
       is_operator: { Args: never; Returns: boolean }
+      get_creator_portfolio: {
+        Args: { p_profile_id: string }
+        Returns: Json
+      }
       is_message_participant: {
         Args: { p_application_id: string }
         Returns: boolean
