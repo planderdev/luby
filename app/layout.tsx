@@ -45,7 +45,7 @@ export const metadata: Metadata = {
         url: "/og.png",
         width: 1280,
         height: 720,
-        alt: `Ruby AI — ${SITE.tagline}`,
+        alt: `Luby AI — ${SITE.tagline}`,
         type: "image/png",
       },
     ],

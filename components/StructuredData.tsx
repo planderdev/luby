@@ -33,7 +33,7 @@ export function StructuredData({ locale }: { locale: Locale }) {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name,
-    alternateName: ["Ruby AI", "루비AI", "루비 AI"],
+    alternateName: ["Luby", "Luby AI", "루비AI", "루비 AI"],
     url,
     description,
     inLanguage,

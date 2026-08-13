@@ -24,10 +24,10 @@ export function LegalDocument({
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 w-full max-w-3xl items-center justify-between px-5 md:px-8">
-          <Link href="/" className="flex items-center gap-2" aria-label="Ruby AI">
+          <Link href="/" className="flex items-center gap-2" aria-label="Luby AI">
             <Image
               src="/logo.png"
-              alt="Ruby AI"
+              alt="Luby AI"
               width={1298}
               height={410}
               className="h-6 w-auto invert dark:invert-0"

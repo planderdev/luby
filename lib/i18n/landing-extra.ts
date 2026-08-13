@@ -139,7 +139,7 @@ const en: ExtraDict = {
     label: "AI does the work",
     heading1: "From campaign brief to casting,",
     heading2: "let the AI handle it.",
-    sub: "Ruby AI's assistant isn't a demo — it's a working teammate. Give it one line about your business and it drafts the entire campaign, then shortlists the best-fit creators from the pool.",
+    sub: "Luby AI's assistant isn't a demo — it's a working teammate. Give it one line about your business and it drafts the entire campaign, then shortlists the best-fit creators from the pool.",
     writer: {
       badge: "AI Campaign Writer",
       title: "One line in → full campaign out",
@@ -169,7 +169,7 @@ const en: ExtraDict = {
   useCases: {
     label: "Use cases",
     heading1: "Teams like these",
-    heading2: "start with Ruby AI.",
+    heading2: "start with Luby AI.",
     cases: [
       {
         emoji: "💄",
@@ -202,7 +202,7 @@ const en: ExtraDict = {
       },
       {
         title: "Payments by Toss Payments",
-        desc: "Checkout runs in Toss Payments' certified window. Card details never touch Ruby AI servers.",
+        desc: "Checkout runs in Toss Payments' certified window. Card details never touch Luby AI servers.",
       },
       {
         title: "3-step verification",
@@ -222,7 +222,7 @@ const zh: ExtraDict = {
     label: "AI 替你工作",
     heading1: "从策划到选人，",
     heading2: "交给 AI 完成。",
-    sub: "Ruby AI 的 AI 不是演示功能，而是真正干活的同事。只需一句话描述你的业务，它就能写出完整的活动方案，并从达人库中挑选最合适的人选。",
+    sub: "Luby AI 的 AI 不是演示功能，而是真正干活的同事。只需一句话描述你的业务，它就能写出完整的活动方案，并从达人库中挑选最合适的人选。",
     writer: {
       badge: "AI 活动撰写",
       title: "一句话输入 → 完整活动方案",
@@ -252,7 +252,7 @@ const zh: ExtraDict = {
   useCases: {
     label: "应用场景",
     heading1: "这些团队",
-    heading2: "正在用 Ruby AI 起步。",
+    heading2: "正在用 Luby AI 起步。",
     cases: [
       {
         emoji: "💄",
@@ -285,7 +285,7 @@ const zh: ExtraDict = {
       },
       {
         title: "Toss Payments 支付",
-        desc: "支付在 Toss Payments 认证窗口中完成，卡片信息不会经过 Ruby AI 服务器。",
+        desc: "支付在 Toss Payments 认证窗口中完成，卡片信息不会经过 Luby AI 服务器。",
       },
       {
         title: "三重审核体系",

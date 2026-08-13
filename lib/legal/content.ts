@@ -296,7 +296,7 @@ const en: LegalContent = {
     effectiveLabel: "Effective",
     effectiveDate: "July 13, 2026",
     disclaimer:
-      "These terms govern the rights and obligations between the company and members regarding use of the Ruby AI service. By using the service, you agree to these terms. The Korean version is the legally binding original.",
+      "These terms govern the rights and obligations between the company and members regarding use of the Luby AI service. By using the service, you agree to these terms. The Korean version is the legally binding original.",
     companyLabel: "Business information",
     company: [
       { label: "Company", value: "Plander Inc." },
@@ -307,7 +307,7 @@ const en: LegalContent = {
       {
         heading: "1. Purpose",
         body: [
-          "These terms set out the basic rights, obligations, responsibilities, conditions and procedures between Plander Inc. ('Company') and members regarding the use of 'Ruby AI' ('Service'), a global reviewer marketing platform.",
+          "These terms set out the basic rights, obligations, responsibilities, conditions and procedures between Plander Inc. ('Company') and members regarding the use of 'Luby AI' ('Service'), a global reviewer marketing platform.",
         ],
       },
       {
@@ -508,7 +508,7 @@ const zh: LegalContent = {
     effectiveLabel: "生效日",
     effectiveDate: "2026年7月13日",
     disclaimer:
-      "本条款规定了公司与会员之间关于使用 Ruby AI 服务的权利与义务。使用本服务即视为同意本条款。韩文版为具有法律约束力的正式文本。",
+      "本条款规定了公司与会员之间关于使用 Luby AI 服务的权利与义务。使用本服务即视为同意本条款。韩文版为具有法律约束力的正式文本。",
     companyLabel: "企业信息",
     company: [
       { label: "公司", value: "Plander Inc.（株式会社 Plander）" },
@@ -519,7 +519,7 @@ const zh: LegalContent = {
       {
         heading: "第1条（目的）",
         body: [
-          "本条款旨在规定 Plander Inc.（以下称「公司」）提供的全球体验官营销平台「Ruby AI」（以下称「服务」）使用相关的公司与会员之间的权利、义务、责任及使用条件与程序等基本事项。",
+          "本条款旨在规定 Plander Inc.（以下称「公司」）提供的全球体验官营销平台「Luby AI」（以下称「服务」）使用相关的公司与会员之间的权利、义务、责任及使用条件与程序等基本事项。",
         ],
       },
       {

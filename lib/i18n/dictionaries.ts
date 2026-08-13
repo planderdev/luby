@@ -286,16 +286,16 @@ export type Dict = typeof ko;
 
 const en: Dict = {
   meta: {
-    brand: "Ruby AI",
-    title: "Ruby AI — Global creator marketing platform",
+    brand: "Luby AI",
+    title: "Luby AI — Global creator marketing platform",
     description:
-      "Ruby AI is a marketing platform that AI-matches global influencers and reviewers. From campaign setup to selection and content delivery, all in one place.",
+      "Luby AI is a marketing platform that AI-matches global influencers and reviewers. From campaign setup to selection and content delivery, all in one place.",
     ogLocale: "en_US",
-    ogImageAlt: "Ruby AI — Global creator marketing platform",
+    ogImageAlt: "Luby AI — Global creator marketing platform",
   },
   audience: ["Advertisers", "Creators", "Marketers"],
   nav: {
-    home: "Ruby AI home",
+    home: "Luby AI home",
     menu: [
       { label: "AI", href: "#ai" },
       { label: "Product", href: "#features" },
@@ -312,7 +312,7 @@ const en: Dict = {
     headlineLine1: "Reach creators worldwide",
     headlineHighlight: "in one campaign",
     headlineSuffix: ".",
-    sub1: "Ruby AI is a marketing platform that AI-matches global influencers and reviewers.",
+    sub1: "Luby AI is a marketing platform that AI-matches global influencers and reviewers.",
     sub2: "From campaign setup to selection and content delivery — finish it all in one place.",
     ctaPrimary: "Start as an advertiser",
     ctaSecondary: "Sign up as a creator",
@@ -409,7 +409,7 @@ const en: Dict = {
     headingHighlight: "scale to 12 markets",
     headingSuffix: ".",
     paragraph:
-      "Multilingual campaign pages, local payments, automatic currency conversion. Going global isn't an option — it's the Ruby AI default.",
+      "Multilingual campaign pages, local payments, automatic currency conversion. Going global isn't an option — it's the Luby AI default.",
     bullets: [
       "Auto-translation in 8 languages (KO/EN/JA/CN/TH/VI/ID/MS)",
       "Local-currency payment & auto-settlement",
@@ -467,12 +467,12 @@ const en: Dict = {
   faq: {
     heading: "Frequently asked questions",
     paragraph:
-      "Still have questions? Get answers straight from the Ruby AI team and other marketers in our Discord community.",
+      "Still have questions? Get answers straight from the Luby AI team and other marketers in our Discord community.",
     communityTitle: "5,000+ marketers",
     communitySub: "Already in the community",
     items: [
       {
-        q: "What kind of companies is Ruby AI for?",
+        q: "What kind of companies is Luby AI for?",
         a: "It fits any brand running reviewer or influencer marketing — from D2C beauty, F&B, and fashion brands to startups preparing to go global, regardless of campaign size.",
       },
       {
@@ -548,7 +548,7 @@ const en: Dict = {
         ],
       },
     ],
-    copyright: "© 2026 Ruby AI (Plander Inc.). All rights reserved.",
+    copyright: "© 2026 Luby AI (Plander Inc.). All rights reserved.",
     madeWith: "Made with care in Seoul · Tokyo · Bangkok",
   },
   comingSoon: {
@@ -564,16 +564,16 @@ const en: Dict = {
 
 const zh: Dict = {
   meta: {
-    brand: "Ruby AI",
-    title: "Ruby AI — 全球达人营销平台",
+    brand: "Luby AI",
+    title: "Luby AI — 全球达人营销平台",
     description:
-      "Ruby AI 是用 AI 匹配全球网红与体验官的营销平台。从活动创建到甄选、内容发布，一站式完成。",
+      "Luby AI 是用 AI 匹配全球网红与体验官的营销平台。从活动创建到甄选、内容发布，一站式完成。",
     ogLocale: "zh_CN",
-    ogImageAlt: "Ruby AI — 全球达人营销平台",
+    ogImageAlt: "Luby AI — 全球达人营销平台",
   },
   audience: ["广告主", "达人", "营销人员"],
   nav: {
-    home: "Ruby AI 首页",
+    home: "Luby AI 首页",
     menu: [
       { label: "AI 功能", href: "#ai" },
       { label: "产品", href: "#features" },
@@ -590,7 +590,7 @@ const zh: Dict = {
     headlineLine1: "全球体验官，",
     headlineHighlight: "一次活动",
     headlineSuffix: "搞定。",
-    sub1: "Ruby AI 是用 AI 匹配全球网红与体验官的营销平台。",
+    sub1: "Luby AI 是用 AI 匹配全球网红与体验官的营销平台。",
     sub2: "从活动创建到甄选、内容发布，一站式完成。",
     ctaPrimary: "以广告主身份开始",
     ctaSecondary: "注册成为达人",
@@ -687,7 +687,7 @@ const zh: Dict = {
     headingHighlight: "拓展至 12 个市场",
     headingSuffix: "。",
     paragraph:
-      "多语言活动页面、本地支付、汇率自动换算。全球化不是可选项，而是 Ruby AI 的默认配置。",
+      "多语言活动页面、本地支付、汇率自动换算。全球化不是可选项，而是 Luby AI 的默认配置。",
     bullets: [
       "8 种语言自动翻译 (KO/EN/JA/CN/TH/VI/ID/MS)",
       "本地货币支付与自动结算",
@@ -745,12 +745,12 @@ const zh: Dict = {
   faq: {
     heading: "常见问题",
     paragraph:
-      "还有疑问？在我们的 Discord 社区，直接获得 Ruby AI 团队和其他营销人的解答。",
+      "还有疑问？在我们的 Discord 社区，直接获得 Luby AI 团队和其他营销人的解答。",
     communityTitle: "5,000+ 营销人",
     communitySub: "已加入的社区",
     items: [
       {
-        q: "Ruby AI 适合什么样的公司？",
+        q: "Luby AI 适合什么样的公司？",
         a: "适合所有开展体验官/达人营销的品牌。无论是 D2C 美妆、餐饮、时尚品牌，还是准备出海的初创公司，不限活动规模均可使用。",
       },
       {
@@ -826,7 +826,7 @@ const zh: Dict = {
         ],
       },
     ],
-    copyright: "© 2026 Ruby AI (Plander Inc.). 保留所有权利。",
+    copyright: "© 2026 Luby AI (Plander Inc.). 保留所有权利。",
     madeWith: "用心打造于 首尔 · 东京 · 曼谷",
   },
   comingSoon: {

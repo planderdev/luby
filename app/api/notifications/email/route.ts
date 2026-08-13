@@ -58,7 +58,7 @@ export async function POST(request: Request) {
   const html = `<!DOCTYPE html>
 <html lang="ko"><body style="margin:0;padding:0;background:#0a0a0a;font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">
   <div style="max-width:520px;margin:0 auto;padding:40px 24px;">
-    <div style="font-size:20px;font-weight:700;color:#ffffff;margin-bottom:28px;">Ruby<span style="color:#f43f8e;">AI</span></div>
+    <div style="font-size:20px;font-weight:700;color:#ffffff;margin-bottom:28px;">Luby<span style="color:#f43f8e;"> AI</span></div>
     <div style="background:#171717;border:1px solid #262626;border-radius:20px;padding:28px;">
       <h1 style="margin:0 0 12px;font-size:18px;color:#ffffff;">${payload.title}</h1>
       ${payload.body ? `<p style="margin:0 0 24px;font-size:14px;line-height:1.7;color:#a3a3a3;">${payload.body}</p>` : ""}
@@ -75,9 +75,9 @@ export async function POST(request: Request) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "루비AI <notify@luby.im>",
+      from: "Luby AI <notify@luby.im>",
       to: [profile.email],
-      subject: `[루비AI] ${payload.title}`,
+      subject: `[Luby AI] ${payload.title}`,
       html,
     }),
   });
