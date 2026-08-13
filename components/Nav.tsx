@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { ThemeToggle } from "./ThemeToggle";
-import { ComingSoonAction } from "./ComingSoon";
 import { LangSwitcher } from "./LangSwitcher";
 import type { Dict } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
@@ -59,9 +58,12 @@ export function Nav({ dict, locale }: { dict: Dict["nav"]; locale: Locale }) {
           >
             {dict.login}
           </a>
-          <ComingSoonAction className="rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-transform hover:scale-[1.02] active:scale-[0.98]">
+          <a
+            href="/signup"
+            className="rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-transform hover:scale-[1.02] active:scale-[0.98]"
+          >
             {dict.cta}
-          </ComingSoonAction>
+          </a>
         </div>
       </div>
     </header>

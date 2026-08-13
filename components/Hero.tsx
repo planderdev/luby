@@ -1,7 +1,6 @@
 "use client";
 
 import { ArrowRight, Sparkles } from "lucide-react";
-import { ComingSoonAction } from "./ComingSoon";
 import type { Dict } from "@/lib/i18n";
 
 export function Hero({ dict }: { dict: Dict["hero"] }) {
@@ -61,13 +60,19 @@ export function Hero({ dict }: { dict: Dict["hero"] }) {
 
         {/* CTAs */}
         <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <ComingSoonAction className="btn-neon group inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold">
+          <a
+            href="/signup?role=advertiser"
+            className="btn-neon group inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold"
+          >
             {dict.ctaPrimary}
             <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-          </ComingSoonAction>
-          <ComingSoonAction className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-7 py-3.5 text-sm font-medium text-foreground transition-colors hover:bg-muted">
+          </a>
+          <a
+            href="/signup?role=influencer"
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-7 py-3.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+          >
             {dict.ctaSecondary}
-          </ComingSoonAction>
+          </a>
         </div>
 
         {/* visual: floating campaign cards */}

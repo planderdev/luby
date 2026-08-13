@@ -1,5 +1,4 @@
 import { ArrowRight } from "lucide-react";
-import { ComingSoonAction } from "./ComingSoon";
 import type { Dict } from "@/lib/i18n";
 
 export function CTA({ dict }: { dict: Dict["cta"] }) {
@@ -37,10 +36,13 @@ export function CTA({ dict }: { dict: Dict["cta"] }) {
               {dict.sub}
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <ComingSoonAction className="group inline-flex items-center gap-2 rounded-full bg-background px-7 py-3.5 text-sm font-medium text-foreground transition-transform hover:scale-[1.02] active:scale-[0.98]">
+              <a
+                href="/signup"
+                className="group inline-flex items-center gap-2 rounded-full bg-background px-7 py-3.5 text-sm font-medium text-foreground transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              >
                 {dict.ctaPrimary}
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-              </ComingSoonAction>
+              </a>
               <a
                 href="/login"
                 className="inline-flex items-center gap-2 rounded-full border border-background/20 px-7 py-3.5 text-sm font-medium text-background transition-colors hover:bg-background/10"

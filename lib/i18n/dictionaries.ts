@@ -102,7 +102,7 @@ const ko = {
       badge: "FOR BRANDS",
       title: "광고주",
       desc: "제품을 알리고 싶은 브랜드라면",
-      cta: "광고주 데모 보기",
+      cta: "광고주로 시작하기",
       steps: [
         { title: "캠페인 등록", desc: "5단계 빌더로 평균 7분 안에 오픈" },
         { title: "응모자 검토", desc: "AI 매칭 점수와 함께 한눈에 비교" },
@@ -114,7 +114,7 @@ const ko = {
       badge: "FOR CREATORS",
       title: "인플루언서",
       desc: "체험을 즐기는 크리에이터라면",
-      cta: "크리에이터 가이드",
+      cta: "크리에이터로 지원하기",
       steps: [
         { title: "SNS 채널 등록", desc: "인스타·유튜브·틱톡·블로그" },
         { title: "캠페인 둘러보기", desc: "내 카테고리에 맞춰 자동 추천" },
@@ -168,7 +168,7 @@ const ko = {
           "응모자 무제한 열람",
           "전용 채팅 지원",
         ],
-        cta: "데모 신청",
+        cta: "바로 시작하기",
       },
       {
         period: "맞춤",
@@ -382,7 +382,7 @@ const en: Dict = {
       badge: "FOR BRANDS",
       title: "Advertisers",
       desc: "For brands that want to get noticed",
-      cta: "See the advertiser demo",
+      cta: "Start as an advertiser",
       steps: [
         { title: "Create a campaign", desc: "Open in ~7 min with the 5-step builder" },
         { title: "Review applicants", desc: "Compare at a glance with AI match scores" },
@@ -394,7 +394,7 @@ const en: Dict = {
       badge: "FOR CREATORS",
       title: "Creators",
       desc: "For creators who love to try things",
-      cta: "Creator guide",
+      cta: "Apply as a creator",
       steps: [
         { title: "Connect SNS channels", desc: "Instagram · YouTube · TikTok · Blog" },
         { title: "Browse campaigns", desc: "Auto-recommended for your categories" },
@@ -448,7 +448,7 @@ const en: Dict = {
           "Unlimited applicant views",
           "Dedicated chat support",
         ],
-        cta: "Request a demo",
+        cta: "Get started",
       },
       {
         period: "custom",
@@ -660,7 +660,7 @@ const zh: Dict = {
       badge: "FOR BRANDS",
       title: "广告主",
       desc: "想要推广产品的品牌",
-      cta: "查看广告主演示",
+      cta: "以广告主身份开始",
       steps: [
         { title: "创建活动", desc: "用五步构建器约 7 分钟上线" },
         { title: "审核报名者", desc: "结合 AI 匹配分一目了然地比较" },
@@ -672,7 +672,7 @@ const zh: Dict = {
       badge: "FOR CREATORS",
       title: "达人",
       desc: "喜爱体验的创作者",
-      cta: "创作者指南",
+      cta: "以创作者身份加入",
       steps: [
         { title: "绑定社交渠道", desc: "Instagram · YouTube · TikTok · 博客" },
         { title: "浏览活动", desc: "根据你的品类自动推荐" },
@@ -726,7 +726,7 @@ const zh: Dict = {
           "无限查看报名者",
           "专属聊天支持",
         ],
-        cta: "申请演示",
+        cta: "立即开始",
       },
       {
         period: "定制",

@@ -1,13 +1,17 @@
 import { Check } from "lucide-react";
 import { SectionLabel } from "./Features";
-import { ComingSoonAction } from "./ComingSoon";
 import type { Dict } from "@/lib/i18n";
 
 // Plan name / price / layout are locale-independent; text comes from the dictionary.
 const planLayout = [
-  { name: "FREE", price: "₩0", primary: false },
-  { name: "BUSINESS", price: "₩1,800,000", primary: true },
-  { name: "ENTERPRISE", price: "Custom", primary: false },
+  { name: "FREE", price: "₩0", primary: false, href: "/signup?role=advertiser" },
+  { name: "BUSINESS", price: "₩1,800,000", primary: true, href: "/signup?role=advertiser" },
+  {
+    name: "ENTERPRISE",
+    price: "Custom",
+    primary: false,
+    href: "mailto:contact@plander.io?subject=%5BLuby%20AI%5D%20ENTERPRISE%20%ED%94%8C%EB%9E%9C%20%EC%83%81%EB%8B%B4%20%EB%AC%B8%EC%9D%98",
+  },
 ];
 
 export function Pricing({ dict }: { dict: Dict["pricing"] }) {
@@ -34,6 +38,7 @@ export function Pricing({ dict }: { dict: Dict["pricing"] }) {
               desc={plan.desc}
               features={plan.features}
               cta={plan.cta}
+              href={planLayout[i].href}
               badge={planLayout[i].primary ? dict.recommendedBadge : undefined}
             />
           ))}
@@ -52,6 +57,7 @@ function PlanCard({
   desc,
   features,
   cta,
+  href,
   primary,
   badge,
 }: {
@@ -61,6 +67,7 @@ function PlanCard({
   desc: string;
   features: string[];
   cta: string;
+  href: string;
   primary?: boolean;
   badge?: string;
 }) {
@@ -117,15 +124,16 @@ function PlanCard({
         ))}
       </ul>
 
-      <ComingSoonAction
-        className={`mt-10 w-full rounded-full px-6 py-3 text-sm font-medium transition-colors ${
+      <a
+        href={href}
+        className={`mt-10 block w-full rounded-full px-6 py-3 text-center text-sm font-medium transition-colors ${
           primary
             ? "bg-background text-foreground hover:bg-background/90"
             : "border border-border bg-background text-foreground hover:bg-muted"
         }`}
       >
         {cta}
-      </ComingSoonAction>
+      </a>
     </div>
   );
 }

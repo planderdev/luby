@@ -11,7 +11,6 @@ import { Pricing } from "@/components/Pricing";
 import { FAQ } from "@/components/FAQ";
 import { CTA } from "@/components/CTA";
 import { Footer } from "@/components/Footer";
-import { ComingSoonProvider } from "@/components/ComingSoon";
 import { StructuredData } from "@/components/StructuredData";
 import { HtmlLang } from "@/components/HtmlLang";
 import { dictionaries, type Locale } from "@/lib/i18n";
@@ -21,7 +20,7 @@ export function Landing({ locale }: { locale: Locale }) {
   const dict = dictionaries[locale];
   const extra = extraDictionaries[locale];
   return (
-    <ComingSoonProvider dict={dict.comingSoon}>
+    <>
       <HtmlLang locale={locale} />
       <StructuredData locale={locale} />
       <main className="relative">
@@ -39,6 +38,6 @@ export function Landing({ locale }: { locale: Locale }) {
         <CTA dict={dict.cta} />
         <Footer dict={dict.footer} locale={locale} />
       </main>
-    </ComingSoonProvider>
+    </>
   );
 }

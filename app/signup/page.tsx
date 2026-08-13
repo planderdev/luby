@@ -16,7 +16,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function SignupPage() {
+export default async function SignupPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ role?: string }>;
+}) {
+  const { role } = await searchParams;
+  const initialRole =
+    role === "advertiser" || role === "influencer" ? role : null;
+
   const supabase = await createClient();
 
   const [{ data: regions }, { data: channelTypes }] = await Promise.all([
@@ -30,7 +38,11 @@ export default async function SignupPage() {
 
   return (
     <AuthShell title="루비AI에 합류하세요" subtitle="역할을 선택하고 30초 안에 가입을 마쳐요.">
-      <SignupForm regions={regions ?? []} channelTypes={channelTypes ?? []} />
+      <SignupForm
+        regions={regions ?? []}
+        channelTypes={channelTypes ?? []}
+        initialRole={initialRole}
+      />
       <p className="mt-6 text-center text-sm text-muted-foreground">
         이미 계정이 있으신가요?{" "}
         <Link href="/login" className="font-medium text-foreground hover:text-accent-ink">

@@ -13,13 +13,18 @@ type ChannelOption = { id: string; slug: string; name: string };
 export function SignupForm({
   regions,
   channelTypes,
+  initialRole = null,
 }: {
   regions: RegionOption[];
   channelTypes: ChannelOption[];
+  /** 랜딩 CTA에서 역할을 정하고 들어온 경우 — 역할 선택 단계를 건너뛴다 */
+  initialRole?: Role | null;
 }) {
   const router = useRouter();
-  const [role, setRole] = useState<Role>("advertiser");
-  const [step, setStep] = useState<"role" | "form" | "check_email">("role");
+  const [role, setRole] = useState<Role>(initialRole ?? "advertiser");
+  const [step, setStep] = useState<"role" | "form" | "check_email">(
+    initialRole ? "form" : "role"
+  );
 
   return (
     <div>

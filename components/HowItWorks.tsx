@@ -1,6 +1,5 @@
 import { ArrowRight } from "lucide-react";
 import { SectionLabel } from "./Features";
-import { ComingSoonAction } from "./ComingSoon";
 import type { Dict } from "@/lib/i18n";
 
 export function HowItWorks({ dict }: { dict: Dict["howItWorks"] }) {
@@ -15,8 +14,8 @@ export function HowItWorks({ dict }: { dict: Dict["howItWorks"] }) {
         </h2>
 
         <div className="mt-14 grid gap-4 lg:grid-cols-2">
-          <FlowColumn column={dict.advertiser} />
-          <FlowColumn column={dict.creator} mirrored />
+          <FlowColumn column={dict.advertiser} href="/signup?role=advertiser" />
+          <FlowColumn column={dict.creator} href="/signup?role=influencer" mirrored />
         </div>
       </div>
     </section>
@@ -25,9 +24,11 @@ export function HowItWorks({ dict }: { dict: Dict["howItWorks"] }) {
 
 function FlowColumn({
   column,
+  href,
   mirrored,
 }: {
   column: Dict["howItWorks"]["advertiser"];
+  href: string;
   mirrored?: boolean;
 }) {
   return (
@@ -97,7 +98,8 @@ function FlowColumn({
         ))}
       </div>
 
-      <ComingSoonAction
+      <a
+        href={href}
         className={`mt-8 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-colors ${
           mirrored
             ? "bg-background text-foreground hover:bg-background/90"
@@ -106,7 +108,7 @@ function FlowColumn({
       >
         {column.cta}
         <ArrowRight className="size-4" />
-      </ComingSoonAction>
+      </a>
     </div>
   );
 }

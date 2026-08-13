@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Plus, MessagesSquare } from "lucide-react";
 import { SectionLabel } from "./Features";
-import { ComingSoonAction } from "./ComingSoon";
 import type { Dict } from "@/lib/i18n";
 
 export function FAQ({ dict }: { dict: Dict["faq"] }) {
@@ -18,13 +17,16 @@ export function FAQ({ dict }: { dict: Dict["faq"] }) {
             <p className="mt-5 text-sm leading-relaxed text-muted-foreground lg:text-base">
               {dict.paragraph}
             </p>
-            <ComingSoonAction className="mt-8 inline-flex w-fit items-center gap-4 rounded-full bg-background px-6 py-3 text-left transition-colors hover:bg-accent-soft">
+            <a
+              href="mailto:contact@plander.io"
+              className="mt-8 inline-flex w-fit items-center gap-4 rounded-full bg-background px-6 py-3 text-left transition-colors hover:bg-accent-soft"
+            >
               <MessagesSquare className="size-5 text-accent" />
               <span className="flex flex-col">
                 <span className="text-sm font-medium">{dict.communityTitle}</span>
                 <span className="text-xs text-muted-foreground">{dict.communitySub}</span>
               </span>
-            </ComingSoonAction>
+            </a>
           </div>
 
           {/* Right - accordion */}
