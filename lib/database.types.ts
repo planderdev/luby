@@ -543,6 +543,48 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          application_id: string
+          body: string
+          created_at: string
+          id: string
+          read_at: string | null
+          sender_id: string
+        }
+        Insert: {
+          application_id: string
+          body: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_id: string
+        }
+        Update: {
+          application_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string | null
@@ -978,6 +1020,14 @@ export type Database = {
         Returns: boolean
       }
       is_operator: { Args: never; Returns: boolean }
+      is_message_participant: {
+        Args: { p_application_id: string }
+        Returns: boolean
+      }
+      mark_thread_read: {
+        Args: { p_application_id: string }
+        Returns: undefined
+      }
       request_submission_revision: {
         Args: { p_feedback: string; p_submission_id: string }
         Returns: undefined

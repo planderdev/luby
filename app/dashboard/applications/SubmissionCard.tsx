@@ -88,9 +88,19 @@ export function SubmissionCard({
           </div>
           <div className="mt-1 text-xs text-muted-foreground">{businessName}</div>
         </Link>
-        <span className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-medium ${info.tone}`}>
-          {info.label}
-        </span>
+        <div className="flex shrink-0 items-center gap-2">
+          {(appStatus === "selected" || appStatus === "completed") && (
+            <Link
+              href={`/dashboard/messages/${applicationId}`}
+              className="rounded-full border border-border bg-background px-3.5 py-1.5 text-[11px] font-medium hover:bg-muted"
+            >
+              메시지
+            </Link>
+          )}
+          <span className={`rounded-full px-3 py-1 text-[11px] font-medium ${info.tone}`}>
+            {info.label}
+          </span>
+        </div>
       </div>
 
       {/* 승인 완료 */}

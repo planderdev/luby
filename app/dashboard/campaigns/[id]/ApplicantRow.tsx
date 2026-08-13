@@ -137,6 +137,14 @@ export function ApplicantRow({
           <span className={`rounded-full px-3 py-1 text-[11px] font-medium ${info.tone}`}>
             {info.label}
           </span>
+          {(currentStatus === "selected" || currentStatus === "completed") && (
+            <a
+              href={`/dashboard/messages/${applicationId}`}
+              className="rounded-full border border-border bg-background px-3.5 py-1.5 text-[11px] font-medium hover:bg-muted"
+            >
+              메시지
+            </a>
+          )}
           {currentStatus === "pending" && (
             <div className="flex gap-1">
               <button
