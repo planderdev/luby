@@ -3,24 +3,37 @@ import Link from "next/link";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { fetchUICatalog } from "@/lib/cache/ui-catalog";
-import { Plus, Search } from "lucide-react";
+import { Plus } from "lucide-react";
 import { CampaignCard } from "@/components/dashboard/CampaignCard";
+import { CampaignFilters } from "@/components/dashboard/CampaignFilters";
 
 export const metadata = { title: "캠페인 — 루비AI" };
 
 const STATUS_OPTIONS_ADVERTISER = [
-  { value: "", label: "전체" },
+  { value: "", label: "상태 전체" },
   { value: "draft", label: "초안" },
   { value: "pending_approval", label: "검수중" },
   { value: "open", label: "모집중" },
   { value: "closed", label: "마감" },
   { value: "completed", label: "완료" },
-] as const;
+];
+
+const SORT_OPTIONS = [
+  { value: "", label: "최신순" },
+  { value: "deadline", label: "마감 임박순" },
+  { value: "points", label: "포인트 높은순" },
+];
 
 export default async function CampaignsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; q?: string }>;
+  searchParams: Promise<{
+    status?: string;
+    q?: string;
+    category?: string;
+    region?: string;
+    sort?: string;
+  }>;
 }) {
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login?redirect=/dashboard/campaigns");
@@ -28,15 +41,25 @@ export default async function CampaignsPage({
   const params = await searchParams;
   const status = params.status ?? "";
   const q = params.q ?? "";
+  const category = params.category ?? "";
+  const region = params.region ?? "";
+  const sort = params.sort ?? "";
 
   const supabase = await createClient();
 
   let query = supabase
     .from("campaigns")
     .select(
-      "id, title, business_name, thumbnail_url, status, recruit_start, recruit_end, recruit_count, region_id, category_id"
-    )
-    .order("created_at", { ascending: false });
+      "id, title, business_name, thumbnail_url, status, recruit_start, recruit_end, recruit_count, point_amount, region_id, category_id"
+    );
+
+  if (sort === "deadline") {
+    query = query.order("recruit_end", { ascending: true });
+  } else if (sort === "points") {
+    query = query.order("point_amount", { ascending: false });
+  } else {
+    query = query.order("created_at", { ascending: false });
+  }
 
   if (profile.role === "advertiser") {
     query = query.eq("advertiser_id", profile.id);
@@ -48,7 +71,13 @@ export default async function CampaignsPage({
     if (status) query = query.eq("status", status as "draft");
   }
 
-  if (q) query = query.ilike("title", `%${q}%`);
+  if (category) query = query.eq("category_id", category);
+  if (region) query = query.eq("region_id", region);
+  if (q) {
+    // .or() 필터 구문 구분자와 충돌하는 문자는 공백 처리
+    const safe = q.replace(/[,()]/g, " ").trim();
+    if (safe) query = query.or(`title.ilike.%${safe}%,business_name.ilike.%${safe}%`);
+  }
 
   // Fetch the campaigns query and the cached catalog in parallel
   const [{ data: campaigns }, catalog] = await Promise.all([query, fetchUICatalog()]);
@@ -81,36 +110,25 @@ export default async function CampaignsPage({
       </header>
 
       {/* Filters */}
-      <form className="mt-8 flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[240px]">
-          <Search className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder="캠페인 제목으로 검색"
-            className="w-full rounded-full border border-border bg-background py-2.5 pl-11 pr-4 text-sm outline-none focus:border-foreground"
-          />
-        </div>
-        {profile.role !== "influencer" && (
-          <select
-            name="status"
-            defaultValue={status}
-            className="rounded-full border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-foreground"
-          >
-            {STATUS_OPTIONS_ADVERTISER.map((s) => (
-              <option key={s.value} value={s.value}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-        )}
-        <button className="rounded-full border border-border bg-background px-5 py-2.5 text-sm font-medium hover:bg-muted">
-          검색
-        </button>
-      </form>
+      <CampaignFilters
+        categories={catalog.categories.map((c) => ({
+          value: c.id,
+          label: `${c.emoji ?? ""} ${c.name}`.trim(),
+        }))}
+        regions={catalog.regions.map((r) => ({
+          value: r.id,
+          label: `${r.flag} ${r.name}`.trim(),
+        }))}
+        statusOptions={profile.role === "influencer" ? null : STATUS_OPTIONS_ADVERTISER}
+        sortOptions={SORT_OPTIONS}
+      />
+
+      <p className="mt-6 text-xs text-muted-foreground">
+        총 {(campaigns ?? []).length}개 캠페인
+      </p>
 
       {/* List */}
-      <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-3 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {(campaigns ?? []).map((c) => {
           const region = regionsById.get(c.region_id);
           const category = categoriesById.get(c.category_id);
@@ -125,6 +143,7 @@ export default async function CampaignsPage({
               recruitStart={c.recruit_start}
               recruitEnd={c.recruit_end}
               recruitCount={c.recruit_count}
+              pointAmount={c.point_amount}
               regionFlag={region?.flag ?? ""}
               regionName={region?.name ?? ""}
               categoryEmoji={category?.emoji ?? ""}

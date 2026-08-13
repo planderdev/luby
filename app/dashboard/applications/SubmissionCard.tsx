@@ -7,8 +7,8 @@ import { submitContent } from "./actions";
 
 const STATUS_LABEL: Record<string, { label: string; tone: string }> = {
   pending: { label: "응모 대기", tone: "bg-muted text-foreground" },
-  selected: { label: "선정됨", tone: "bg-accent-soft text-accent-ink" },
-  rejected: { label: "미선정", tone: "bg-muted text-muted-foreground" },
+  selected: { label: "선정됨", tone: "bg-success-soft text-success" },
+  rejected: { label: "미선정", tone: "bg-danger-soft text-danger" },
   cancelled: { label: "취소", tone: "bg-muted text-muted-foreground" },
   completed: { label: "체험 완료", tone: "bg-foreground text-background" },
 };

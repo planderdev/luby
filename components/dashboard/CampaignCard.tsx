@@ -1,18 +1,19 @@
 import Link from "next/link";
-import { Calendar, Users } from "lucide-react";
+import { Calendar, Coins, Users } from "lucide-react";
 
-const STATUS_LABEL: Record<string, { label: string; tone: "neutral" | "active" | "muted" | "ink" }> = {
+const STATUS_LABEL: Record<string, { label: string; tone: "success" | "warning" | "danger" | "muted" | "ink" }> = {
   draft: { label: "초안", tone: "muted" },
-  pending_approval: { label: "검수중", tone: "neutral" },
-  open: { label: "모집중", tone: "active" },
+  pending_approval: { label: "검수중", tone: "warning" },
+  open: { label: "모집중", tone: "success" },
   closed: { label: "마감", tone: "muted" },
-  completed: { label: "완료", tone: "muted" },
-  cancelled: { label: "취소", tone: "muted" },
+  completed: { label: "완료", tone: "ink" },
+  cancelled: { label: "취소", tone: "danger" },
 };
 
 const TONE_CLASS: Record<string, string> = {
-  active: "bg-accent-soft text-accent-ink",
-  neutral: "bg-muted text-foreground",
+  success: "bg-success-soft text-success",
+  warning: "bg-warning-soft text-warning",
+  danger: "bg-danger-soft text-danger",
   muted: "bg-muted text-muted-foreground",
   ink: "bg-foreground text-background",
 };
@@ -31,6 +32,7 @@ export function CampaignCard({
   recruitStart,
   recruitEnd,
   recruitCount,
+  pointAmount,
   regionFlag,
   regionName,
   categoryEmoji,
@@ -44,6 +46,7 @@ export function CampaignCard({
   recruitStart: string;
   recruitEnd: string;
   recruitCount: number;
+  pointAmount?: number;
   regionFlag: string;
   regionName: string;
   categoryEmoji: string;
@@ -88,6 +91,12 @@ export function CampaignCard({
             <Users className="size-3.5" />
             {recruitCount}명
           </span>
+          {typeof pointAmount === "number" && pointAmount > 0 && (
+            <span className="ml-auto inline-flex items-center gap-1 font-semibold text-accent-ink">
+              <Coins className="size-3.5" />
+              {pointAmount.toLocaleString()}P
+            </span>
+          )}
         </div>
       </div>
     </Link>

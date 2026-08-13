@@ -6,9 +6,9 @@ import { createClient } from "@/lib/supabase/server";
 export const metadata = { title: "결제 내역 — 루비AI" };
 
 const STATUS_META: Record<string, { label: string; tone: string }> = {
-  paid: { label: "결제 완료", tone: "bg-accent-soft text-accent-ink" },
-  ready: { label: "대기중", tone: "bg-muted text-muted-foreground" },
-  failed: { label: "실패", tone: "bg-muted text-muted-foreground" },
+  paid: { label: "결제 완료", tone: "bg-success-soft text-success" },
+  ready: { label: "대기중", tone: "bg-warning-soft text-warning" },
+  failed: { label: "실패", tone: "bg-danger-soft text-danger" },
   cancelled: { label: "취소", tone: "bg-muted text-muted-foreground" },
 };
 

@@ -5,9 +5,9 @@ import { Check, X, Loader2, ExternalLink, CheckCircle2, MessageSquareWarning } f
 import { selectApplicant, approveSubmission, requestSubmissionRevision } from "./actions";
 
 const STATUS_LABEL: Record<string, { label: string; tone: string }> = {
-  pending: { label: "대기", tone: "bg-muted text-foreground" },
-  selected: { label: "선정", tone: "bg-accent-soft text-accent-ink" },
-  rejected: { label: "미선정", tone: "bg-muted text-muted-foreground" },
+  pending: { label: "대기", tone: "bg-warning-soft text-warning" },
+  selected: { label: "선정", tone: "bg-success-soft text-success" },
+  rejected: { label: "미선정", tone: "bg-danger-soft text-danger" },
   cancelled: { label: "취소됨", tone: "bg-muted text-muted-foreground" },
   completed: { label: "완료", tone: "bg-foreground text-background" },
 };

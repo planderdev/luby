@@ -10,13 +10,13 @@ import { ApplicantList } from "./ApplicantList";
 import { AIMatches } from "./AIMatches";
 import { Skeleton } from "@/components/dashboard/Skeleton";
 
-const STATUS_LABEL: Record<string, string> = {
-  draft: "초안",
-  pending_approval: "검수중",
-  open: "모집중",
-  closed: "마감",
-  completed: "완료",
-  cancelled: "취소",
+const STATUS_LABEL: Record<string, { label: string; tone: string }> = {
+  draft: { label: "초안", tone: "bg-muted text-muted-foreground" },
+  pending_approval: { label: "검수중", tone: "bg-warning-soft text-warning" },
+  open: { label: "모집중", tone: "bg-success-soft text-success" },
+  closed: { label: "마감", tone: "bg-muted text-muted-foreground" },
+  completed: { label: "완료", tone: "bg-foreground text-background" },
+  cancelled: { label: "취소", tone: "bg-danger-soft text-danger" },
 };
 
 function fmtDateTime(iso: string) {
@@ -127,8 +127,12 @@ export default async function CampaignDetailPage({
 
       <header className="mt-3 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium">
-            {STATUS_LABEL[campaign.status] ?? campaign.status}
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-medium ${
+              STATUS_LABEL[campaign.status]?.tone ?? "bg-muted text-muted-foreground"
+            }`}
+          >
+            {STATUS_LABEL[campaign.status]?.label ?? campaign.status}
           </span>
           <h1 className="display mt-3 text-3xl font-semibold lg:text-4xl">{campaign.title}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{campaign.business_name}</p>

@@ -5,9 +5,9 @@ import { Check, Loader2, X } from "lucide-react";
 import { processWithdrawal } from "../actions";
 
 const STATUS_LABEL: Record<string, { label: string; tone: string }> = {
-  requested: { label: "처리 대기", tone: "bg-accent-soft text-accent-ink" },
-  paid: { label: "지급 완료", tone: "bg-foreground text-background" },
-  rejected: { label: "반려", tone: "bg-muted text-muted-foreground" },
+  requested: { label: "처리 대기", tone: "bg-warning-soft text-warning" },
+  paid: { label: "지급 완료", tone: "bg-success-soft text-success" },
+  rejected: { label: "반려", tone: "bg-danger-soft text-danger" },
 };
 
 export function WithdrawalRow({

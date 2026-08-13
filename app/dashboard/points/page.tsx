@@ -7,9 +7,9 @@ import { WithdrawalForm } from "./WithdrawalForm";
 export const metadata = { title: "포인트 — 루비AI" };
 
 const STATUS_LABEL: Record<string, { label: string; tone: string }> = {
-  requested: { label: "처리 대기", tone: "bg-muted text-foreground" },
-  paid: { label: "지급 완료", tone: "bg-accent-soft text-accent-ink" },
-  rejected: { label: "반려", tone: "bg-muted text-muted-foreground" },
+  requested: { label: "처리 대기", tone: "bg-warning-soft text-warning" },
+  paid: { label: "지급 완료", tone: "bg-success-soft text-success" },
+  rejected: { label: "반려", tone: "bg-danger-soft text-danger" },
 };
 
 export default async function PointsPage() {
