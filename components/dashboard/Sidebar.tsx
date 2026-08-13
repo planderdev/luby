@@ -62,8 +62,8 @@ export function Sidebar({
           <Image
             src="/logo.png"
             alt="루비AI"
-            width={510}
-            height={160}
+            width={1298}
+            height={410}
             className="h-6 w-auto invert dark:invert-0"
           />
         </Link>

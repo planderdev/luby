@@ -31,8 +31,8 @@ export function Nav({ dict, locale }: { dict: Dict["nav"]; locale: Locale }) {
           <Image
             src="/logo.png"
             alt={dict.home}
-            width={510}
-            height={160}
+            width={1298}
+            height={410}
             priority
             className="h-7 w-auto invert dark:invert-0"
           />

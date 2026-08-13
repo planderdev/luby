@@ -11,8 +11,8 @@ export function Footer({ dict, locale }: { dict: Dict["footer"]; locale: Locale 
             <Image
               src="/logo.png"
               alt="Ruby AI"
-              width={510}
-              height={160}
+              width={1298}
+              height={410}
               className="h-8 w-auto invert dark:invert-0"
             />
             <p className="mt-5 max-w-xs text-sm leading-relaxed text-muted-foreground">
