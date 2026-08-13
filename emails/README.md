@@ -53,7 +53,7 @@ Supabase Auth 가 보내는 5종 트랜잭션 이메일을 루비AI 브랜드에
 
 ## 테스트 방법
 
-1. **회원가입 확인 메일**: https://ruby-ai.kr/signup 에서 가입 → 받은 메일 확인
+1. **회원가입 확인 메일**: https://luby.im/signup 에서 가입 → 받은 메일 확인
 2. **매직링크**: `/login` 또는 코드로 트리거
 3. **비밀번호 재설정**: `/login` → 비밀번호 찾기 (구현 필요 시)
 4. **초대**: Supabase 대시보드 → Authentication → Users → **Invite User** 버튼
@@ -64,4 +64,4 @@ Supabase Auth 가 보내는 5종 트랜잭션 이메일을 루비AI 브랜드에
 기본 SMTP는 **시간당 4통** 까지만 발송됩니다 (개발/테스트용).
 운영 시에는 **Custom SMTP** 설정 권장 (Resend / SendGrid 등).
 
-Resend 연동 시: `hello@ruby-ai.kr` 같은 도메인 발송자 사용 가능 + 무료 3,000통/월.
+Resend 연동 시: `hello@luby.im` 같은 도메인 발송자 사용 가능 + 무료 3,000통/월.

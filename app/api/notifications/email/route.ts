@@ -53,7 +53,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ skipped: true, reason: "test account" });
   }
 
-  const link = payload.link ? `https://ruby-ai.kr${payload.link}` : "https://ruby-ai.kr/dashboard";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://luby.im";
+  const link = payload.link ? `${siteUrl}${payload.link}` : `${siteUrl}/dashboard`;
   const html = `<!DOCTYPE html>
 <html lang="ko"><body style="margin:0;padding:0;background:#0a0a0a;font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">
   <div style="max-width:520px;margin:0 auto;padding:40px 24px;">
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "루비AI <notify@ruby-ai.kr>",
+      from: "루비AI <notify@luby.im>",
       to: [profile.email],
       subject: `[루비AI] ${payload.title}`,
       html,

@@ -1,6 +1,6 @@
 # 루비AI (Ruby AI) — 서비스 기획서
 
-> 글로벌 체험단 마케팅 양면 플랫폼 · https://ruby-ai.kr
+> 글로벌 체험단 마케팅 양면 플랫폼 · https://luby.im
 > 최종 갱신: 2026-08-13 · 프로덕션 가동 중
 
 ---
@@ -29,7 +29,7 @@ AI가 캠페인 기획을 대신 작성하고 적합한 크리에이터를 추�
 | 인증 | Supabase Auth (이메일/비밀번호, 가입 트리거로 역할별 프로필 자동 생성) |
 | AI | Anthropic Claude (Sonnet) — 구조화 출력(JSON Schema), 프롬프트 캐싱 |
 | 결제 | 토스페이먼츠 결제위젯 v2 (샌드박스 검증 완료) |
-| 배포 | Vercel (GitHub 푸시 자동 배포, 서울 리전 icn1), 도메인 ruby-ai.kr |
+| 배포 | Vercel (GitHub 푸시 자동 배포, 서울 리전 icn1), 도메인 luby.im (구 ruby-ai.kr → 308 리다이렉트) |
 | 디자인 | 모노톤 + 핑크 포인트 (sentient.xyz 레퍼런스), 다크/라이트 모드 |
 
 ## 3. 역할별 기능 명세
