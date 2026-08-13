@@ -61,7 +61,7 @@ export function Hero({ dict }: { dict: Dict["hero"] }) {
 
         {/* CTAs */}
         <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <ComingSoonAction className="group inline-flex items-center gap-2 rounded-full bg-foreground px-7 py-3.5 text-sm font-medium text-background transition-transform hover:scale-[1.02] active:scale-[0.98]">
+          <ComingSoonAction className="btn-neon group inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold">
             {dict.ctaPrimary}
             <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
           </ComingSoonAction>

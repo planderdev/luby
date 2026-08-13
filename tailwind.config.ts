@@ -25,8 +25,18 @@ const config: Config = {
         },
       },
       borderRadius: {
+        // RUBY 디자인 시스템 라디우스 스케일 (xs 8 / sm 12 / md 18 / lg 28)
+        xl: "12px",
+        "2xl": "18px",
+        "3xl": "28px",
         "4xl": "2rem",
         "5xl": "2.5rem",
+      },
+      boxShadow: {
+        // 네온 핑크 글로우
+        "pink-sm": "0 12px 34px rgba(255, 42, 167, 0.32)",
+        pink: "0 24px 80px rgba(255, 42, 167, 0.24)",
+        "pink-glow": "0 18px 54px rgba(255, 42, 167, 0.32), 0 0 34px rgba(255, 42, 167, 0.52)",
       },
       maxWidth: {
         "360": "90rem",
