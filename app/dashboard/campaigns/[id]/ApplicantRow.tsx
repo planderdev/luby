@@ -1,8 +1,20 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Check, X, Loader2, ExternalLink, CheckCircle2, MessageSquareWarning } from "lucide-react";
+import {
+  Check,
+  X,
+  Loader2,
+  ExternalLink,
+  CheckCircle2,
+  MessageSquareWarning,
+  Sparkles,
+  HelpCircle,
+  XCircle,
+} from "lucide-react";
 import { selectApplicant, approveSubmission, requestSubmissionRevision } from "./actions";
+import { aiReviewSubmission } from "./ai-review-actions";
+import type { ContentReview } from "@/lib/ai/content-review";
 
 const STATUS_LABEL: Record<string, { label: string; tone: string }> = {
   pending: { label: "대기", tone: "bg-warning-soft text-warning" },
@@ -19,6 +31,7 @@ type SubmissionInfo = {
   note: string | null;
   feedback: string | null;
   submittedAt: string;
+  aiReview?: ContentReview | null;
 } | null;
 
 export function ApplicantRow({
@@ -33,6 +46,7 @@ export function ApplicantRow({
   points,
   channels,
   submission = null,
+  canAiReview = false,
 }: {
   applicationId: string;
   campaignId: string;
@@ -45,6 +59,7 @@ export function ApplicantRow({
   points: number;
   channels: { handle: string; followers: number }[];
   submission?: SubmissionInfo;
+  canAiReview?: boolean;
 }) {
   const [currentStatus, setCurrentStatus] = useState(status);
   const [sub, setSub] = useState(submission);
@@ -52,6 +67,22 @@ export function ApplicantRow({
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [pending, startTransition] = useTransition();
+  const [aiReview, setAiReview] = useState<ContentReview | null>(submission?.aiReview ?? null);
+  const [aiPending, setAiPending] = useState(false);
+
+  async function runAiReview() {
+    if (!sub || aiPending) return;
+    setError(null);
+    setAiPending(true);
+    try {
+      const result = await aiReviewSubmission(sub.id);
+      if (result.ok) setAiReview(result.review);
+      else setError(result.error);
+    } catch {
+      setError("AI 검수 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    }
+    setAiPending(false);
+  }
 
   function decide(decision: "selected" | "rejected") {
     setError(null);
@@ -210,6 +241,75 @@ export function ApplicantRow({
             <p className="mt-2 rounded-lg bg-background px-3 py-2 text-xs text-muted-foreground">
               보낸 피드백: {sub.feedback}
             </p>
+          )}
+
+          {/* AI 사전 검수 (BUSINESS) */}
+          {canAiReview && !approved && (
+            <div className="mt-3">
+              {aiReview ? (
+                <div className="rounded-lg border border-border bg-background p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                        aiReview.verdict === "approve_recommended"
+                          ? "bg-success-soft text-success"
+                          : "bg-warning-soft text-warning"
+                      }`}
+                    >
+                      <Sparkles className="size-3" />
+                      {aiReview.verdict === "approve_recommended"
+                        ? "AI 승인 추천"
+                        : "AI 확인 필요"}
+                    </span>
+                    <button
+                      onClick={runAiReview}
+                      disabled={aiPending}
+                      className="text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground disabled:opacity-50"
+                    >
+                      {aiPending ? "다시 검수 중…" : "다시 검수"}
+                    </button>
+                  </div>
+                  <p className="mt-2 text-xs text-muted-foreground">{aiReview.summary}</p>
+                  <ul className="mt-2 space-y-1">
+                    {aiReview.checklist.map((c, i) => (
+                      <li key={i} className="flex items-start gap-1.5 text-xs">
+                        {c.status === "pass" ? (
+                          <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-success" />
+                        ) : c.status === "fail" ? (
+                          <XCircle className="mt-0.5 size-3.5 shrink-0 text-danger" />
+                        ) : (
+                          <HelpCircle className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+                        )}
+                        <span>
+                          {c.item}
+                          {c.note && (
+                            <span className="text-muted-foreground"> — {c.note}</span>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  {aiReview.advertiser_actions.length > 0 && (
+                    <div className="mt-2 rounded-lg bg-muted/50 px-3 py-2 text-[11px] text-muted-foreground">
+                      직접 확인할 것: {aiReview.advertiser_actions.join(" · ")}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={runAiReview}
+                  disabled={aiPending}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft/60 px-4 py-2 text-xs font-medium text-accent-ink hover:bg-accent-soft disabled:opacity-50"
+                >
+                  {aiPending ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="size-3.5" />
+                  )}
+                  {aiPending ? "AI가 미션과 대조하는 중…" : "AI 사전 검수"}
+                </button>
+              )}
+            </div>
           )}
 
           {reviewable && !feedbackOpen && (

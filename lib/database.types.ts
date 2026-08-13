@@ -896,6 +896,8 @@ export type Database = {
       }
       submissions: {
         Row: {
+          ai_review: Json | null
+          ai_reviewed_at: string | null
           application_id: string
           content_url: string
           created_at: string
@@ -908,6 +910,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ai_review?: Json | null
+          ai_reviewed_at?: string | null
           application_id: string
           content_url: string
           created_at?: string
@@ -920,6 +924,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ai_review?: Json | null
+          ai_reviewed_at?: string | null
           application_id?: string
           content_url?: string
           created_at?: string

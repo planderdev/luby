@@ -6,10 +6,13 @@ import { ApplicantRow } from "./ApplicantRow";
 export async function ApplicantList({
   campaignId,
   maxVisible = null,
+  canAiReview = false,
 }: {
   campaignId: string;
   /** null = 무제한. FREE 플랜은 10명까지만 서버에서 렌더링. */
   maxVisible?: number | null;
+  /** BUSINESS 이상: 제출물 AI 사전 검수 버튼 노출 */
+  canAiReview?: boolean;
 }) {
   const supabase = await createClient();
 
@@ -46,7 +49,7 @@ export async function ApplicantList({
       .in("influencer_id", ids),
     supabase
       .from("submissions")
-      .select("id, application_id, status, content_url, note, feedback, submitted_at")
+      .select("id, application_id, status, content_url, note, feedback, submitted_at, ai_review")
       .in(
         "application_id",
         applications.map((a) => a.id)
@@ -100,6 +103,7 @@ export async function ApplicantList({
                 handle: c.handle ?? c.url,
                 followers: c.followers,
               }))}
+              canAiReview={canAiReview}
               submission={
                 sub
                   ? {
@@ -109,6 +113,7 @@ export async function ApplicantList({
                       note: sub.note,
                       feedback: sub.feedback,
                       submittedAt: sub.submitted_at,
+                      aiReview: (sub.ai_review as never) ?? null,
                     }
                   : null
               }

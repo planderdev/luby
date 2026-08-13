@@ -311,7 +311,11 @@ export default async function CampaignDetailPage({
             }
           >
             <div className="mt-10">
-              <ApplicantList campaignId={id} maxVisible={entitlements.maxApplicantViews} />
+              <ApplicantList
+                campaignId={id}
+                maxVisible={entitlements.maxApplicantViews}
+                canAiReview={entitlements.aiMatching}
+              />
             </div>
           </Suspense>
         </>
