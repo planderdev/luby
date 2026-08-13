@@ -24,6 +24,18 @@ export function ResetForm() {
     let done = false;
 
     async function establish() {
+      // implicit 링크(#access_token) — PKCE 클라이언트는 해시를 자동 소비하지 않으므로 명시 처리
+      const hashParams = new URLSearchParams(window.location.hash.slice(1));
+      const accessToken = hashParams.get("access_token");
+      const refreshToken = hashParams.get("refresh_token");
+      if (accessToken && refreshToken) {
+        await supabase.auth
+          .setSession({ access_token: accessToken, refresh_token: refreshToken })
+          .catch(() => null);
+        // 토큰이 URL에 남지 않도록 제거
+        window.history.replaceState(null, "", window.location.pathname);
+      }
+
       const code = new URLSearchParams(window.location.search).get("code");
       if (code) {
         await supabase.auth.exchangeCodeForSession(code).catch(() => null);
