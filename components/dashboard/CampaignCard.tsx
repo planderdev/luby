@@ -54,7 +54,7 @@ export function CampaignCard({
   return (
     <Link
       href={`/dashboard/campaigns/${id}`}
-      className="group flex flex-col overflow-hidden rounded-3xl border border-border bg-background transition-colors hover:bg-muted/40"
+      className="group flex flex-col overflow-hidden rounded-3xl glass-card transition-colors hover:bg-muted/40"
     >
       <div className="relative aspect-[16/9] w-full bg-muted">
         {thumbnail ? (

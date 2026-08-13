@@ -103,7 +103,7 @@ export function AIMatches({ campaignId, locked = false }: { campaignId: string; 
       )}
 
       {pending && matches === null && (
-        <div className="mt-6 rounded-2xl border border-border bg-background px-6 py-12 text-center">
+        <div className="mt-6 rounded-2xl glass-card px-6 py-12 text-center">
           <Loader2 className="mx-auto size-6 animate-spin text-muted-foreground" />
           <p className="mt-3 text-sm text-muted-foreground">
             인플루언서 풀 분석 중... (보통 5~10초)
@@ -128,7 +128,7 @@ export function AIMatches({ campaignId, locked = false }: { campaignId: string; 
             return (
               <div
                 key={m.influencer_id}
-                className="flex items-start gap-4 rounded-2xl border border-border bg-background p-4"
+                className="flex items-start gap-4 rounded-2xl glass-card p-4"
               >
                 <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-foreground text-background text-xs font-semibold">
                   {i + 1}

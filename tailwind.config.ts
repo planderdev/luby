@@ -23,6 +23,18 @@ const config: Config = {
           soft: "rgb(var(--accent-soft) / <alpha-value>)",
           ink: "rgb(var(--accent-ink) / <alpha-value>)",
         },
+        success: {
+          DEFAULT: "rgb(var(--success) / <alpha-value>)",
+          soft: "rgb(var(--success-soft) / <alpha-value>)",
+        },
+        warning: {
+          DEFAULT: "rgb(var(--warning) / <alpha-value>)",
+          soft: "rgb(var(--warning-soft) / <alpha-value>)",
+        },
+        danger: {
+          DEFAULT: "rgb(var(--danger) / <alpha-value>)",
+          soft: "rgb(var(--danger-soft) / <alpha-value>)",
+        },
       },
       borderRadius: {
         // RUBY 디자인 시스템 라디우스 스케일 (xs 8 / sm 12 / md 18 / lg 28)

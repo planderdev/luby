@@ -53,7 +53,7 @@ export function AdvertiserOverview({
         />
       </div>
 
-      <div className="mt-10 rounded-3xl border border-border bg-background p-8">
+      <div className="mt-10 rounded-3xl glass-card p-8">
         <h3 className="text-lg font-semibold">시작 가이드</h3>
         <p className="mt-2 text-sm text-muted-foreground">
           첫 캠페인을 만들어 글로벌 인플루언서 풀에 노출하세요. 평균 7분이면 준비가 끝납니다.
@@ -82,7 +82,7 @@ function StatCard({
   hint: string;
 }) {
   return (
-    <div className="rounded-3xl border border-border bg-background p-6">
+    <div className="rounded-3xl glass-card p-6">
       <div className="flex items-center justify-between">
         <span className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{label}</span>
         <span className="flex size-9 items-center justify-center rounded-xl bg-accent-soft text-accent-ink">

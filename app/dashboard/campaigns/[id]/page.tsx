@@ -326,7 +326,7 @@ function Stat({
   value: string;
 }) {
   return (
-    <div className="rounded-3xl border border-border bg-background p-5">
+    <div className="rounded-3xl glass-card p-5">
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         {icon}
         {label}
@@ -338,7 +338,7 @@ function Stat({
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-3xl border border-border bg-background p-6">
+    <section className="rounded-3xl glass-card p-6">
       <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {title}
       </h3>

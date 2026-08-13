@@ -61,7 +61,7 @@ export function WithdrawalRow({
   const info = STATUS_LABEL[currentStatus] ?? STATUS_LABEL.requested;
 
   return (
-    <div className="rounded-2xl border border-border bg-background p-4">
+    <div className="rounded-2xl glass-card p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">

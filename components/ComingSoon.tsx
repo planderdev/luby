@@ -62,7 +62,7 @@ export function ComingSoonProvider({
             onClick={close}
             className="absolute inset-0 cursor-default bg-black/60 backdrop-blur-sm"
           />
-          <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-border bg-background p-8 shadow-2xl animate-fade-up">
+          <div className="relative w-full max-w-md overflow-hidden rounded-3xl glass-card p-8 shadow-2xl animate-fade-up">
             {/* pink glow */}
             <div
               aria-hidden

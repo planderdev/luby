@@ -43,7 +43,7 @@ export function WithdrawalForm({ balance }: { balance: number }) {
   }
 
   return (
-    <div className="rounded-3xl border border-border bg-background p-6">
+    <div className="rounded-3xl glass-card p-6">
       <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
         출금 신청
       </h3>

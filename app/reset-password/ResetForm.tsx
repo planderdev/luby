@@ -106,7 +106,7 @@ export function ResetForm() {
 
   if (phase === "no-session") {
     return (
-      <div className="rounded-3xl border border-border bg-background p-8 text-center">
+      <div className="rounded-3xl glass-card p-8 text-center">
         <h2 className="text-lg font-semibold">링크가 유효하지 않아요</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           재설정 링크가 만료되었거나 이미 사용되었습니다.
@@ -125,7 +125,7 @@ export function ResetForm() {
 
   if (phase === "done") {
     return (
-      <div className="rounded-3xl border border-border bg-background p-8 text-center">
+      <div className="rounded-3xl glass-card p-8 text-center">
         <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-accent-soft">
           <CheckCircle2 className="size-7 text-accent-ink" />
         </div>
@@ -161,7 +161,7 @@ export function ResetForm() {
           required
           minLength={8}
           placeholder="8자 이상"
-          className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-foreground"
+          className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none transition-colors focus:border-foreground"
         />
       </div>
       <div>
@@ -176,7 +176,7 @@ export function ResetForm() {
           required
           minLength={8}
           placeholder="한 번 더 입력"
-          className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-foreground"
+          className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none transition-colors focus:border-foreground"
         />
       </div>
       {error && (

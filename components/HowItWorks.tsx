@@ -32,7 +32,7 @@ function FlowColumn({
 }) {
   return (
     <div
-      className={`relative overflow-hidden rounded-3xl border border-border bg-background p-7 lg:p-10 ${
+      className={`relative overflow-hidden rounded-3xl glass-card p-7 lg:p-10 ${
         mirrored ? "lg:bg-foreground lg:text-background" : ""
       }`}
     >

@@ -21,7 +21,7 @@ export function UseCases({ dict }: { dict: ExtraDict["useCases"] }) {
           {dict.cases.map((c) => (
             <div
               key={c.title}
-              className="flex flex-col rounded-3xl border border-border bg-background p-7 transition-colors hover:bg-muted/40"
+              className="flex flex-col rounded-3xl glass-card p-7 transition-colors hover:bg-muted/40"
             >
               <div className="flex size-12 items-center justify-center rounded-2xl bg-muted text-2xl">
                 {c.emoji}

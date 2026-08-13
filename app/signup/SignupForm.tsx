@@ -341,7 +341,7 @@ function Field({
         required={required}
         minLength={minLength}
         placeholder={placeholder}
-        className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-foreground"
+        className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none transition-colors focus:border-foreground"
       />
     </label>
   );
@@ -364,7 +364,7 @@ function SelectField({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-foreground"
+        className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none transition-colors focus:border-foreground"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>

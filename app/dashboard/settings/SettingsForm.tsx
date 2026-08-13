@@ -54,7 +54,7 @@ export function SettingsForm({
   return (
     <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
       {/* Avatar column */}
-      <div className="rounded-3xl border border-border bg-background p-6">
+      <div className="rounded-3xl glass-card p-6">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           프로필 사진
         </h3>
@@ -69,7 +69,7 @@ export function SettingsForm({
       </div>
 
       {/* Form column */}
-      <div className="rounded-3xl border border-border bg-background p-6 lg:p-8">
+      <div className="rounded-3xl glass-card p-6 lg:p-8">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           기본 정보
         </h3>
@@ -95,7 +95,7 @@ export function SettingsForm({
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-foreground"
+              className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none focus:border-foreground"
             />
           </div>
 
@@ -108,7 +108,7 @@ export function SettingsForm({
                 <select
                   value={regionId}
                   onChange={(e) => setRegionId(e.target.value)}
-                  className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-foreground"
+                  className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none focus:border-foreground"
                 >
                   <option value="">선택해주세요</option>
                   {regions.map((r) => (
@@ -129,7 +129,7 @@ export function SettingsForm({
                   onChange={(e) => setBio(e.target.value)}
                   placeholder="어떤 콘텐츠를 만드시나요? 주력 카테고리·톤을 간단히 적어주세요."
                   rows={4}
-                  className="w-full resize-none rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-foreground"
+                  className="w-full resize-none rounded-2xl glass-card px-4 py-3 text-sm outline-none focus:border-foreground"
                 />
               </div>
             </>

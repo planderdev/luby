@@ -23,7 +23,7 @@ export function AICapability({ dict }: { dict: ExtraDict["aiCapability"] }) {
 
         <div className="mt-14 grid gap-4 lg:grid-cols-2">
           {/* Panel 1 — AI Campaign Writer */}
-          <div className="flex flex-col overflow-hidden rounded-3xl border border-border bg-background p-7 lg:p-9">
+          <div className="flex flex-col overflow-hidden rounded-3xl glass-card p-7 lg:p-9">
             <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-[11px] font-semibold tracking-wide text-accent-ink">
               <Wand2 className="size-3" />
               {dict.writer.badge}
@@ -65,7 +65,7 @@ export function AICapability({ dict }: { dict: ExtraDict["aiCapability"] }) {
           </div>
 
           {/* Panel 2 — AI Matcher */}
-          <div className="flex flex-col overflow-hidden rounded-3xl border border-border bg-background p-7 lg:p-9">
+          <div className="flex flex-col overflow-hidden rounded-3xl glass-card p-7 lg:p-9">
             <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-[11px] font-semibold tracking-wide text-accent-ink">
               <Sparkles className="size-3" />
               {dict.matcher.badge}
@@ -109,7 +109,7 @@ export function AICapability({ dict }: { dict: ExtraDict["aiCapability"] }) {
         </div>
 
         {/* Bottom stats strip */}
-        <div className="mt-6 grid gap-4 rounded-3xl border border-border bg-background p-7 sm:grid-cols-3 lg:p-9">
+        <div className="mt-6 grid gap-4 rounded-3xl glass-card p-7 sm:grid-cols-3 lg:p-9">
           {dict.stats.map((s) => (
             <div key={s.label} className="text-center sm:text-left">
               <div className="display text-3xl font-semibold text-accent-ink lg:text-4xl">

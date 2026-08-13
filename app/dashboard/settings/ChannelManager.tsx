@@ -61,7 +61,7 @@ export function ChannelManager({
   }
 
   return (
-    <div className="rounded-3xl border border-border bg-background p-6 lg:p-8">
+    <div className="rounded-3xl glass-card p-6 lg:p-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -140,7 +140,7 @@ export function ChannelManager({
               <select
                 value={typeId}
                 onChange={(e) => setTypeId(e.target.value)}
-                className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-foreground"
+                className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none focus:border-foreground"
               >
                 {channelTypes.map((t) => (
                   <option key={t.id} value={t.id}>
@@ -158,7 +158,7 @@ export function ChannelManager({
                 value={handle}
                 onChange={(e) => setHandle(e.target.value)}
                 placeholder="@myhandle"
-                className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-foreground"
+                className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none focus:border-foreground"
               />
             </div>
           </div>
@@ -172,7 +172,7 @@ export function ChannelManager({
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://instagram.com/myhandle"
-                className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-foreground"
+                className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none focus:border-foreground"
               />
             </div>
             <div>
@@ -185,7 +185,7 @@ export function ChannelManager({
                 value={followers || ""}
                 onChange={(e) => setFollowers(Number(e.target.value || 0))}
                 placeholder="0"
-                className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-foreground"
+                className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none focus:border-foreground"
               />
             </div>
           </div>

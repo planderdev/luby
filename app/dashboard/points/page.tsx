@@ -72,7 +72,7 @@ export default async function PointsPage() {
               return (
                 <div
                   key={w.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-background p-4"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-2xl glass-card p-4"
                 >
                   <div className="min-w-0">
                     <div className="text-sm font-semibold">{w.amount.toLocaleString()}P</div>

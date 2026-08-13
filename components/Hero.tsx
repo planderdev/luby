@@ -83,7 +83,7 @@ function FloatingCards({ dict }: { dict: Dict["hero"]["card"] }) {
   return (
     <div className="relative grid grid-cols-12 gap-4">
       {/* main central card */}
-      <div className="col-span-12 rounded-3xl border border-border bg-background p-6 shadow-[0_8px_40px_-12px_rgb(0_0_0/0.08)] md:col-span-8 md:col-start-3">
+      <div className="col-span-12 rounded-3xl glass-card p-6 shadow-[0_8px_40px_-12px_rgb(0_0_0/0.08)] md:col-span-8 md:col-start-3">
         <div className="flex items-center justify-between border-b border-border pb-4">
           <div className="flex items-center gap-3">
             <div className="size-10 rounded-2xl bg-accent-soft" />
@@ -119,7 +119,7 @@ function FloatingCards({ dict }: { dict: Dict["hero"]["card"] }) {
       </div>
 
       {/* left mini card */}
-      <div className="col-span-6 -mt-10 hidden rounded-2xl border border-border bg-background p-4 shadow-[0_8px_40px_-12px_rgb(0_0_0/0.08)] md:col-span-3 md:col-start-1 md:block">
+      <div className="col-span-6 -mt-10 hidden rounded-2xl glass-card p-4 shadow-[0_8px_40px_-12px_rgb(0_0_0/0.08)] md:col-span-3 md:col-start-1 md:block">
         <div className="flex items-center gap-2">
           <div className="size-8 rounded-full bg-gradient-to-br from-accent to-accent-ink" />
           <div className="flex-1">
@@ -132,7 +132,7 @@ function FloatingCards({ dict }: { dict: Dict["hero"]["card"] }) {
       </div>
 
       {/* right mini card */}
-      <div className="col-span-6 -mt-6 hidden rounded-2xl border border-border bg-background p-4 shadow-[0_8px_40px_-12px_rgb(0_0_0/0.08)] md:col-span-3 md:col-start-10 md:block">
+      <div className="col-span-6 -mt-6 hidden rounded-2xl glass-card p-4 shadow-[0_8px_40px_-12px_rgb(0_0_0/0.08)] md:col-span-3 md:col-start-10 md:block">
         <div className="flex items-center gap-2">
           <div className="size-8 rounded-full bg-foreground" />
           <div className="flex-1">

@@ -75,7 +75,7 @@ export function LegalDocument({
         </p>
 
         {/* Company / responsible party info */}
-        <div className="mt-4 rounded-2xl border border-border bg-background px-5 py-4">
+        <div className="mt-4 rounded-2xl glass-card px-5 py-4">
           <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             {d.companyLabel}
           </div>

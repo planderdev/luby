@@ -128,3 +128,56 @@ body {
 .btn-neon:active {
   transform: translateY(0);
 }
+
+/* ============================================================
+   RUBY 디자인 시스템 — 유리질 서피스 (glass surfaces)
+   ============================================================ */
+:root {
+  --glass-bg: rgba(21, 18, 23, 0.045);
+  --glass-bg-hover: rgba(255, 42, 167, 0.06);
+  --glass-border: rgba(21, 18, 23, 0.12);
+}
+
+.dark {
+  --glass-bg: rgba(255, 255, 255, 0.055);
+  --glass-bg-hover: rgba(255, 42, 167, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.14);
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+}
+
+a.glass-card:hover,
+button.glass-card:hover {
+  background: var(--glass-bg-hover);
+}
+
+/* 브랜드 포커스 링 — 모든 폼 요소에 네온 핑크 링 */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  border-color: rgba(255, 42, 167, 0.36) !important;
+  box-shadow: 0 0 0 4px rgba(255, 42, 167, 0.14);
+}
+
+/* 네온 상태색 (DS: success/warning/danger) */
+:root {
+  --success: 8 122 69;
+  --success-soft: 209 250 229;
+  --warning: 122 83 0;
+  --warning-soft: 254 243 199;
+  --danger: 163 24 66;
+  --danger-soft: 255 228 236;
+}
+
+.dark {
+  --success: 98 255 174;
+  --success-soft: 6 44 26;
+  --warning: 255 200 61;
+  --warning-soft: 51 38 6;
+  --danger: 255 84 126;
+  --danger-soft: 61 12 26;
+}

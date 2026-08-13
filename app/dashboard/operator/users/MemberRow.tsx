@@ -64,7 +64,7 @@ export function MemberRow({
   });
 
   return (
-    <div className="rounded-2xl border border-border bg-background p-4 lg:p-5">
+    <div className="rounded-2xl glass-card p-4 lg:p-5">
       <div className="flex flex-wrap items-start gap-4">
         <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-foreground text-sm font-semibold text-background">
           {name.slice(0, 1).toUpperCase()}

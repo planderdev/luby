@@ -46,7 +46,7 @@ export function CampaignDecisionRow({
   if (hidden) return null;
 
   return (
-    <div className="rounded-2xl border border-border bg-background p-4">
+    <div className="rounded-2xl glass-card p-4">
       <div className="flex flex-wrap items-start gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">

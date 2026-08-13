@@ -94,7 +94,7 @@ export function CheckoutClient({ clientKey }: { clientKey: string }) {
     <div className="space-y-4">
       {/* 주문 요약 */}
       {order && (
-        <div className="flex items-center justify-between rounded-3xl border border-border bg-background px-6 py-4">
+        <div className="flex items-center justify-between rounded-3xl glass-card px-6 py-4">
           <div>
             <div className="text-sm font-medium">{order.orderName}</div>
             <div className="mt-0.5 text-xs text-muted-foreground">
@@ -108,7 +108,7 @@ export function CheckoutClient({ clientKey }: { clientKey: string }) {
       )}
 
       {/* 토스 위젯 영역 */}
-      <div className="overflow-hidden rounded-3xl border border-border bg-background">
+      <div className="overflow-hidden rounded-3xl glass-card">
         {!widgetsReady && (
           <div className="flex items-center justify-center gap-2 px-6 py-16 text-sm text-muted-foreground">
             <Loader2 className="size-4 animate-spin" />

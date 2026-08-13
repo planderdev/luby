@@ -106,7 +106,7 @@ export function Step4Recruit({
                 }
               }}
               placeholder="예: 봄세럼, 라이트케어, 강남맛집"
-              className="flex-1 rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-foreground"
+              className="flex-1 rounded-2xl glass-card px-4 py-3 text-sm outline-none focus:border-foreground"
             />
             <button
               type="button"

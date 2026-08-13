@@ -55,7 +55,7 @@ function ActionCard({
   return (
     <Link
       href={href}
-      className="group flex items-center gap-6 rounded-3xl border border-border bg-background p-6 transition-colors hover:bg-muted/50"
+      className="group flex items-center gap-6 rounded-3xl glass-card p-6 transition-colors hover:bg-muted/50"
     >
       <span className="flex size-12 items-center justify-center rounded-2xl bg-accent-soft text-accent-ink">
         {icon}

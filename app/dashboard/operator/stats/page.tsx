@@ -97,7 +97,7 @@ export default async function OperatorStatsPage() {
       <div className="mt-8 grid gap-4 lg:grid-cols-2">
         <Link
           href="/dashboard/operator/users"
-          className="group flex items-center justify-between rounded-3xl border border-border bg-background p-6 transition-colors hover:bg-muted/40"
+          className="group flex items-center justify-between rounded-3xl glass-card p-6 transition-colors hover:bg-muted/40"
         >
           <div className="flex items-center gap-4">
             <div className="flex size-11 items-center justify-center rounded-2xl bg-accent-soft text-accent-ink">
@@ -123,7 +123,7 @@ export default async function OperatorStatsPage() {
 
         <Link
           href="/dashboard/operator/campaigns"
-          className="group flex items-center justify-between rounded-3xl border border-border bg-background p-6 transition-colors hover:bg-muted/40"
+          className="group flex items-center justify-between rounded-3xl glass-card p-6 transition-colors hover:bg-muted/40"
         >
           <div className="flex items-center gap-4">
             <div className="flex size-11 items-center justify-center rounded-2xl bg-accent-soft text-accent-ink">
@@ -189,7 +189,7 @@ function StatCard({
   sub: string;
 }) {
   return (
-    <div className="rounded-3xl border border-border bg-background p-6">
+    <div className="rounded-3xl glass-card p-6">
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         {icon}
         {label}
@@ -210,7 +210,7 @@ function BreakdownCard({
   total: number;
 }) {
   return (
-    <div className="rounded-3xl border border-border bg-background p-6">
+    <div className="rounded-3xl glass-card p-6">
       <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {title}
       </h3>

@@ -26,7 +26,7 @@ export async function ApplicantList({
 
   if (!applications || applications.length === 0) {
     return (
-      <section className="rounded-3xl border border-border bg-background p-8 text-center">
+      <section className="rounded-3xl glass-card p-8 text-center">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           응모자
         </h3>

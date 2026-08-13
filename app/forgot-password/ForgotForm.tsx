@@ -31,7 +31,7 @@ export function ForgotForm() {
 
   if (sent) {
     return (
-      <div className="rounded-3xl border border-border bg-background p-8 text-center">
+      <div className="rounded-3xl glass-card p-8 text-center">
         <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-accent-soft">
           <MailCheck className="size-7 text-accent-ink" />
         </div>
@@ -56,7 +56,7 @@ export function ForgotForm() {
           autoComplete="email"
           required
           placeholder="가입한 이메일 주소"
-          className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-foreground"
+          className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none transition-colors focus:border-foreground"
         />
       </div>
       {error && (

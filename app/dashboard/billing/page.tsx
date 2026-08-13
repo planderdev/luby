@@ -69,7 +69,7 @@ export default async function BillingPage() {
       </p>
 
       {/* Current plan summary */}
-      <div className="mt-8 rounded-3xl border border-border bg-background p-6 lg:p-8">
+      <div className="mt-8 rounded-3xl glass-card p-6 lg:p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">

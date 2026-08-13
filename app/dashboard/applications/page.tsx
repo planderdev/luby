@@ -60,7 +60,7 @@ export default async function ApplicationsPage() {
               <Link
                 key={a.id}
                 href={`/dashboard/campaigns/${a.campaign_id}`}
-                className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-background p-4 transition-colors hover:bg-muted/40"
+                className="flex items-center justify-between gap-4 rounded-2xl glass-card p-4 transition-colors hover:bg-muted/40"
               >
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-medium">{nameById.get(a.influencer_id) ?? "—"}</div>

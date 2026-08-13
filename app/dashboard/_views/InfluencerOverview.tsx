@@ -86,7 +86,7 @@ function StatCard({
   hint: string;
 }) {
   return (
-    <div className="rounded-3xl border border-border bg-background p-6">
+    <div className="rounded-3xl glass-card p-6">
       <div className="flex items-center justify-between">
         <span className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{label}</span>
         <span className="flex size-9 items-center justify-center rounded-xl bg-accent-soft text-accent-ink">

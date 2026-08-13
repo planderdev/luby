@@ -40,11 +40,11 @@ export default async function OperatorWithdrawalsPage() {
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        <div className="rounded-3xl border border-border bg-background p-5">
+        <div className="rounded-3xl glass-card p-5">
           <div className="text-xs text-muted-foreground">처리 대기</div>
           <div className="mt-1 text-2xl font-semibold">{pending.length}건</div>
         </div>
-        <div className="rounded-3xl border border-border bg-background p-5">
+        <div className="rounded-3xl glass-card p-5">
           <div className="text-xs text-muted-foreground">대기 중 지급 예정액</div>
           <div className="mt-1 text-2xl font-semibold">₩{totalPending.toLocaleString()}</div>
         </div>

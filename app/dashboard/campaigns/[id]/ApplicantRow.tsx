@@ -106,7 +106,7 @@ export function ApplicantRow({
   const revisionRequested = sub?.status === "revision_requested";
 
   return (
-    <div className="rounded-2xl border border-border bg-background p-4">
+    <div className="rounded-2xl glass-card p-4">
       <div className="flex flex-wrap items-start gap-4">
         <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-foreground text-background text-sm font-semibold">
           {name.slice(0, 1).toUpperCase()}

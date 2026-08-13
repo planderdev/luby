@@ -80,7 +80,7 @@ export function SubmissionCard({
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-background p-4">
+    <div className="rounded-2xl glass-card p-4">
       <div className="flex items-center justify-between gap-4">
         <Link href={`/dashboard/campaigns/${campaignId}`} className="min-w-0 flex-1 group">
           <div className="line-clamp-1 text-sm font-medium group-hover:underline">

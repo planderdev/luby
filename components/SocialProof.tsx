@@ -25,7 +25,7 @@ export function SocialProof({ dict }: { dict: Dict["socialProof"] }) {
               {[...flags, ...flags].map((f, i) => (
                 <span
                   key={i}
-                  className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-border bg-background text-2xl"
+                  className="flex size-12 shrink-0 items-center justify-center rounded-2xl glass-card text-2xl"
                 >
                   {f}
                 </span>

@@ -25,7 +25,7 @@ export function Trust({ dict }: { dict: ExtraDict["trust"] }) {
             return (
               <div
                 key={item.title}
-                className="rounded-3xl border border-border bg-background p-7"
+                className="rounded-3xl glass-card p-7"
               >
                 <div className="flex size-11 items-center justify-center rounded-2xl bg-accent-soft text-accent-ink">
                   <Icon className="size-5" strokeWidth={1.8} />

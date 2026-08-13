@@ -28,7 +28,7 @@ export function FAQ({ dict }: { dict: Dict["faq"] }) {
           </div>
 
           {/* Right - accordion */}
-          <div className="divide-y divide-border rounded-3xl border border-border bg-background">
+          <div className="divide-y divide-border rounded-3xl glass-card">
             {dict.items.map((f, i) => (
               <FAQItem key={i} {...f} />
             ))}

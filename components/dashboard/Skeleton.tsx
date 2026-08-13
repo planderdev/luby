@@ -26,7 +26,7 @@ export function CardGridSkeleton({ count = 6 }: { count?: number }) {
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="overflow-hidden rounded-3xl border border-border bg-background"
+          className="overflow-hidden rounded-3xl glass-card"
         >
           <Skeleton className="aspect-[16/9] rounded-none" />
           <div className="space-y-3 p-5">

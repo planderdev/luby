@@ -64,7 +64,7 @@ function FeatureCard({
 }) {
   return (
     <div
-      className={`group relative flex flex-col overflow-hidden rounded-3xl border border-border bg-background p-7 transition-colors hover:bg-muted/50 ${span ?? ""}`}
+      className={`group relative flex flex-col overflow-hidden rounded-3xl glass-card p-7 transition-colors hover:bg-muted/50 ${span ?? ""}`}
     >
       <div className="flex size-11 items-center justify-center rounded-2xl bg-accent-soft text-accent-ink">
         <Icon className="size-5" strokeWidth={1.8} />

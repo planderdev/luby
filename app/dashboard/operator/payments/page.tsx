@@ -94,7 +94,7 @@ export default async function OperatorPaymentsPage() {
           const buyer = profileById.get(p.advertiser_id);
           const meta = STATUS_META[p.status] ?? STATUS_META.ready;
           return (
-            <div key={p.id} className="rounded-2xl border border-border bg-background p-4 lg:p-5">
+            <div key={p.id} className="rounded-2xl glass-card p-4 lg:p-5">
               <div className="flex flex-wrap items-center gap-3">
                 <span className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${meta.tone}`}>
                   {meta.label}
@@ -148,7 +148,7 @@ function SummaryCard({
   value: string;
 }) {
   return (
-    <div className="rounded-3xl border border-border bg-background p-6">
+    <div className="rounded-3xl glass-card p-6">
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         {icon}
         {label}
