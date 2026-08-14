@@ -47,7 +47,7 @@ export function LangSwitcher({
       {open && (
         <div
           role="menu"
-          className={`absolute top-full z-50 mt-2 w-40 overflow-hidden rounded-2xl glass-card p-1 shadow-[0_8px_40px_-12px_rgb(0_0_0/0.18)] ${
+          className={`absolute top-full z-50 mt-2 w-40 overflow-hidden rounded-2xl border border-border bg-background p-1 shadow-[0_8px_40px_-12px_rgb(0_0_0/0.18)] ${
             align === "right" ? "right-0" : "left-0"
           }`}
         >

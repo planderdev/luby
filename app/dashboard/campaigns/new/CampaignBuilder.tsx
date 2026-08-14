@@ -274,7 +274,7 @@ export function CampaignBuilder({
           <div
             role="alertdialog"
             aria-modal="true"
-            className="w-full max-w-sm rounded-3xl glass-card p-6 text-center shadow-2xl"
+            className="w-full max-w-sm rounded-3xl border border-border bg-background p-6 text-center shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-accent-soft">
