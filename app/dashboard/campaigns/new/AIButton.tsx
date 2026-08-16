@@ -25,10 +25,15 @@ export function AIButton({
       type="button"
       onClick={onClick}
       disabled={pending || disabled}
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${styles}`}
+      aria-busy={pending}
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed ${
+        pending
+          ? "bg-accent text-white opacity-100 shadow-pink-sm"
+          : `disabled:opacity-50 ${styles}`
+      }`}
     >
       {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
-      {pending ? "생성 중..." : label}
+      {pending ? "AI 생성 중…" : label}
     </button>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Wand2, Loader2, Check } from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
+import { Wand2, Loader2, Check, Sparkles } from "lucide-react";
 import type { CampaignDraft } from "../actions";
 import type { Region } from "../CampaignBuilder";
 import { StepHeader, Field, TextInput, Select, TextArea } from "./_shared";
@@ -25,8 +25,29 @@ export function Step1Basic({
   const [titlePending, startTitle] = useTransition();
   const [superPending, startSuper] = useTransition();
   const [aiError, setAiError] = useState<string | null>(null);
+  const [elapsed, setElapsed] = useState(0);
 
   const aiReady = draft.industry_brief.trim().length >= 10 && draft.business_name.trim().length > 0;
+
+  // AI 전체 작성 중 경과 시간(초) — 보통 15~30초 걸리므로 진행감을 준다
+  useEffect(() => {
+    if (!superPending) {
+      setElapsed(0);
+      return;
+    }
+    const t = setInterval(() => setElapsed((s) => s + 1), 1000);
+    return () => clearInterval(t);
+  }, [superPending]);
+
+  const SUPER_STAGES = [
+    "업종을 분석하고 있어요",
+    "캠페인 제목을 고르고 있어요",
+    "홍보 유형과 채널을 정하고 있어요",
+    "채널별 미션을 작성하고 있어요",
+    "혜택과 키워드를 정리하고 있어요",
+    "마무리 중이에요 — 거의 다 됐어요",
+  ];
+  const stageIndex = Math.min(Math.floor(elapsed / 5), SUPER_STAGES.length - 1);
 
   function generateTitles() {
     setAiError(null);
@@ -110,21 +131,58 @@ export function Step1Basic({
                 type="button"
                 onClick={runSuper}
                 disabled={!aiReady || superPending}
-                className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-transform hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
+                className={`inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium transition-transform hover:scale-[1.02] disabled:cursor-not-allowed ${
+                  superPending
+                    ? "bg-accent text-white opacity-100"
+                    : "bg-foreground text-background disabled:opacity-50"
+                }`}
               >
                 {superPending ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (
                   <Wand2 className="size-4" />
                 )}
-                {superPending ? "AI 작성 중..." : "✨ AI에게 전부 맡기기"}
+                {superPending ? `AI 작성 중… ${elapsed}초` : "✨ AI에게 전부 맡기기"}
               </button>
-              <span className="text-xs text-muted-foreground">
-                {aiReady
-                  ? "Step 5까지 한 번에 완성됩니다"
-                  : "상호명과 업종 설명을 입력하면 사용 가능"}
-              </span>
+              {!superPending && (
+                <span className="text-xs text-muted-foreground">
+                  {aiReady
+                    ? "Step 5까지 한 번에 완성됩니다 (약 15~30초)"
+                    : "상호명과 업종 설명을 입력하면 사용 가능"}
+                </span>
+              )}
             </div>
+
+            {superPending && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="mt-4 rounded-2xl border border-accent/40 bg-background p-5"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="relative flex size-12 shrink-0 items-center justify-center">
+                    <span className="absolute inset-0 animate-ping rounded-full bg-accent/20" />
+                    <span className="absolute inset-0 rounded-full border-2 border-accent/30 border-t-accent animate-spin" />
+                    <Sparkles className="relative size-5 text-accent-ink" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold">AI가 캠페인 전체를 작성하고 있어요</div>
+                    <div className="mt-0.5 text-xs text-muted-foreground">
+                      {SUPER_STAGES[stageIndex]} · {elapsed}초 경과 (보통 15~30초)
+                    </div>
+                    <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="h-full rounded-full bg-accent transition-all duration-1000"
+                        style={{ width: `${Math.min(92, 8 + elapsed * 3)}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <p className="mt-3 text-[11px] text-muted-foreground">
+                  완료되면 STEP 5로 자동 이동해요. 이 화면을 벗어나지 말아주세요.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
