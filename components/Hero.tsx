@@ -53,7 +53,7 @@ export function Hero({ dict }: { dict: Dict["hero"] }) {
 
         {/* sub */}
         <p className="mx-auto mt-7 max-w-2xl text-center text-base leading-relaxed text-muted-foreground lg:text-lg">
-          {dict.sub1}
+          {dict.sub1}{" "}
           <br className="hidden md:block" />
           {dict.sub2}
         </p>

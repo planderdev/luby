@@ -49,7 +49,7 @@ export function Footer({ dict, locale }: { dict: Dict["footer"]; locale: Locale 
                     <li key={l.label}>
                       <a
                         href={l.href}
-                        className="text-sm text-foreground/80 transition-colors hover:text-foreground"
+                        className="inline-block py-1.5 text-sm text-foreground/80 transition-colors hover:text-foreground"
                       >
                         {l.label}
                       </a>

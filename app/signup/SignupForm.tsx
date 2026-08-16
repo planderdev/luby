@@ -220,7 +220,7 @@ function FormStep({
         <button
           type="button"
           onClick={onBack}
-          className="text-xs font-medium text-muted-foreground hover:text-foreground"
+          className="-ml-2 rounded-full px-2 py-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           ← 역할 변경
         </button>
@@ -307,7 +307,7 @@ function FormStep({
                             : [...prev, c.id]
                       )
                     }
-                    className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                    className={`rounded-full border px-3.5 py-2 text-xs transition-colors ${
                       on
                         ? "border-accent bg-accent-soft font-medium text-accent-ink"
                         : "border-border bg-background text-muted-foreground hover:bg-muted"

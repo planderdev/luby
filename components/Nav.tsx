@@ -49,18 +49,18 @@ export function Nav({ dict, locale }: { dict: Dict["nav"]; locale: Locale }) {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <LangSwitcher locale={locale} />
           <ThemeToggle />
           <a
             href="/login"
-            className="hidden rounded-full px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline-block"
+            className="inline-block whitespace-nowrap rounded-full px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground sm:px-4"
           >
             {dict.login}
           </a>
           <a
             href="/signup"
-            className="rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-transform hover:scale-[1.02] active:scale-[0.98]"
+            className="whitespace-nowrap rounded-full bg-foreground px-4 py-2.5 text-sm font-medium text-background transition-transform hover:scale-[1.02] active:scale-[0.98] sm:px-5"
           >
             {dict.cta}
           </a>
