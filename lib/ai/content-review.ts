@@ -1,4 +1,4 @@
-import { getAnthropic, AI_MODEL } from "./client";
+import { getAnthropic, AI_MODEL_REASONING, stopReasonError } from "./client";
 
 /**
  * AI 콘텐츠 사전 검수 — 제출된 콘텐츠(URL + 메모)를 캠페인 미션과 대조해
@@ -103,10 +103,11 @@ ${missionLines}
 7. summary는 2문장 이내 한국어.`;
 
     const response = await client.messages.create({
-      model: AI_MODEL,
-      // thinking 비활성 + effort low: 짧은 판정 작업 — 빠르고 안정적
-      max_tokens: 3000,
-      thinking: { type: "disabled" },
+      // 검수는 "확인 가능한 것만 판정" 같은 절제된 판단이 핵심 → Opus 5.
+      // adaptive + low: 5세대에서 disabled 대신 권장되는 저비용 설정.
+      model: AI_MODEL_REASONING,
+      max_tokens: 4000,
+      thinking: { type: "adaptive" },
       output_config: {
         effort: "low",
         format: { type: "json_schema", schema: REVIEW_SCHEMA as Record<string, unknown> },
@@ -114,9 +115,8 @@ ${missionLines}
       messages: [{ role: "user", content: userPrompt }],
     });
 
-    if (response.stop_reason === "max_tokens") {
-      return { ok: false, error: "AI 응답이 길이 제한에 걸렸습니다. 다시 시도해주세요." };
-    }
+    const stopErr = stopReasonError(response.stop_reason);
+    if (stopErr) return { ok: false, error: stopErr };
     const textBlock = response.content.find((b) => b.type === "text");
     if (!textBlock || textBlock.type !== "text") {
       return { ok: false, error: "AI가 응답을 생성하지 못했습니다." };

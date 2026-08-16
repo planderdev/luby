@@ -1,6 +1,6 @@
 "use server";
 
-import { getAnthropic, AI_MODEL } from "@/lib/ai/client";
+import { getAnthropic, AI_MODEL_FAST, stopReasonError } from "@/lib/ai/client";
 import { buildSystemBlocks, fetchCatalog } from "@/lib/ai/system";
 import { createClient } from "@/lib/supabase/server";
 
@@ -35,13 +35,14 @@ async function callAI<T>(opts: {
     const client = getAnthropic();
     const catalog = await fetchCatalog();
     const response = await client.messages.create({
-      model: AI_MODEL,
+      model: AI_MODEL_FAST,
       // max_tokens는 thinking + 응답 JSON의 "합산" 상한 — 낮으면 JSON이 중간에 잘려
-      // "Unterminated string in JSON" 파싱 오류가 난다. 넉넉히 잡을 것.
-      max_tokens: opts.maxTokens ?? 8192,
-      // 짧은 카피 생성은 thinking 비활성 + effort low가 빠르고 안정적 (Sonnet 4.6 권장).
-      // effort 기본값이 high라 명시하지 않으면 생각이 길어져 함수 타임아웃(504) 위험.
-      thinking: { type: opts.deep ? "adaptive" : "disabled" },
+      // "Unterminated string in JSON" 파싱 오류가 난다. 5세대 토크나이저는 한국어를
+      // ~30% 더 세므로 이전(8192)보다 넉넉히.
+      max_tokens: opts.maxTokens ?? 12000,
+      // Sonnet 5: adaptive thinking이 기본. 짧은 카피는 effort low로 빠르게,
+      // 전체 초안은 medium. effort 기본값(high)은 함수 타임아웃(504) 위험이라 항상 명시.
+      thinking: { type: "adaptive" },
       system: buildSystemBlocks(catalog),
       output_config: {
         effort: opts.deep ? "medium" : "low",
@@ -53,9 +54,8 @@ async function callAI<T>(opts: {
       messages: [{ role: "user", content: opts.userPrompt }],
     });
 
-    if (response.stop_reason === "max_tokens") {
-      return { ok: false, error: "AI 응답이 길이 제한에 걸렸습니다. 다시 시도해주세요." };
-    }
+    const stopErr = stopReasonError(response.stop_reason);
+    if (stopErr) return { ok: false, error: stopErr };
 
     // Extract first text block — output_config.format constrains it to valid JSON
     const textBlock = response.content.find((b) => b.type === "text");

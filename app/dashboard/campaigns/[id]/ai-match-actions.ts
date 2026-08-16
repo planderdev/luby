@@ -1,6 +1,6 @@
 "use server";
 
-import { getAnthropic, AI_MODEL } from "@/lib/ai/client";
+import { getAnthropic, AI_MODEL_REASONING, stopReasonError } from "@/lib/ai/client";
 import { buildSystemBlocks, fetchCatalog } from "@/lib/ai/system";
 import { createClient } from "@/lib/supabase/server";
 import { getEntitlements } from "@/lib/plans/entitlements";
@@ -165,9 +165,11 @@ ${influencerSummaries}
   try {
     const client = getAnthropic();
     const response = await client.messages.create({
-      model: AI_MODEL,
-      // max_tokens는 thinking + 응답 JSON의 합산 상한 — 부족하면 JSON이 잘린다
-      max_tokens: 8192,
+      // 매칭은 판단 품질이 핵심 → Opus 5. medium effort로도 이전 세대 high 이상.
+      model: AI_MODEL_REASONING,
+      // max_tokens는 thinking + 응답 JSON의 합산 상한 — 부족하면 JSON이 잘린다.
+      // 최대 50명 × (id+score+reason) + adaptive thinking 여유.
+      max_tokens: 12000,
       thinking: { type: "adaptive" },
       system: buildSystemBlocks(catalog),
       output_config: {
@@ -201,9 +203,8 @@ ${influencerSummaries}
       messages: [{ role: "user", content: userPrompt }],
     });
 
-    if (response.stop_reason === "max_tokens") {
-      return { ok: false, error: "AI 응답이 길이 제한에 걸렸습니다. 다시 시도해주세요." };
-    }
+    const stopErr = stopReasonError(response.stop_reason);
+    if (stopErr) return { ok: false, error: stopErr };
 
     const textBlock = response.content.find((b) => b.type === "text");
     if (!textBlock || textBlock.type !== "text") {
