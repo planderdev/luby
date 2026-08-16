@@ -6,11 +6,13 @@ import { ImageUpload } from "@/components/ImageUpload";
 import { updateProfile, type SettingsPayload } from "./actions";
 
 type Region = { id: string; code: string; name: string; flag: string };
+type Category = { id: string; name: string; emoji: string | null };
 
 export function SettingsForm({
   profile,
   extra,
   regions,
+  categories = [],
 }: {
   profile: {
     id: string;
@@ -19,13 +21,25 @@ export function SettingsForm({
     role: string;
     avatar_url: string | null;
   };
-  extra: { bio?: string | null; region_id?: string | null };
+  extra: {
+    bio?: string | null;
+    region_id?: string | null;
+    company_name?: string | null;
+    description?: string | null;
+    website?: string | null;
+    category_id?: string | null;
+  };
   regions: Region[];
+  categories?: Category[];
 }) {
   const [name, setName] = useState(profile.name ?? "");
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url ?? "");
   const [bio, setBio] = useState(extra.bio ?? "");
   const [regionId, setRegionId] = useState(extra.region_id ?? "");
+  const [companyName, setCompanyName] = useState(extra.company_name ?? "");
+  const [description, setDescription] = useState(extra.description ?? "");
+  const [website, setWebsite] = useState(extra.website ?? "");
+  const [categoryId, setCategoryId] = useState(extra.category_id ?? "");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -39,6 +53,14 @@ export function SettingsForm({
         avatar_url: avatarUrl || null,
         ...(profile.role === "influencer"
           ? { bio: bio || null, region_id: regionId || null }
+          : {}),
+        ...(profile.role === "advertiser"
+          ? {
+              company_name: companyName || null,
+              description: description || null,
+              website: website || null,
+              category_id: categoryId || null,
+            }
           : {}),
       };
       const result = await updateProfile(payload);
@@ -131,6 +153,64 @@ export function SettingsForm({
                   rows={4}
                   className="w-full resize-none rounded-2xl glass-card px-4 py-3 text-sm outline-none focus:border-foreground"
                 />
+              </div>
+            </>
+          )}
+
+          {profile.role === "advertiser" && (
+            <>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                  회사명 · 브랜드명
+                </label>
+                <input
+                  type="text"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none focus:border-foreground"
+                />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">주요 업종</label>
+                  <select
+                    value={categoryId}
+                    onChange={(e) => setCategoryId(e.target.value)}
+                    className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none focus:border-foreground"
+                  >
+                    <option value="">선택해주세요</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.emoji} {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">웹사이트 (선택)</label>
+                  <input
+                    type="url"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    placeholder="https://brand.com"
+                    className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none focus:border-foreground"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                  회사 소개
+                  <span className="ml-2 text-muted-foreground/70">— 크리에이터가 초대·캠페인에서 보게 됩니다</span>
+                </label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  maxLength={600}
+                  placeholder="어떤 브랜드인가요? 주력 제품·고객·크리에이터와 함께하고 싶은 방향을 적어주세요."
+                  rows={4}
+                  className="w-full resize-none rounded-2xl glass-card px-4 py-3 text-sm outline-none focus:border-foreground"
+                />
+                <p className="mt-1 text-[11px] text-muted-foreground">{description.length}/600</p>
               </div>
             </>
           )}

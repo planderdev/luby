@@ -10,6 +10,7 @@ export function InvitationCard({
   campaignId,
   campaignTitle,
   businessName,
+  advertiserId,
   message,
   pointAmount,
   recruitEnd,
@@ -19,6 +20,7 @@ export function InvitationCard({
   campaignId: string;
   campaignTitle: string;
   businessName: string;
+  advertiserId: string;
   message: string | null;
   pointAmount: number;
   recruitEnd: string;
@@ -51,8 +53,14 @@ export function InvitationCard({
             {campaignTitle}
           </Link>
           <div className="mt-1 text-xs text-muted-foreground">
-            {businessName} · {pointAmount.toLocaleString()}P · 모집 마감{" "}
-            {end.toLocaleDateString("ko-KR")}
+            <Link
+              href={`/dashboard/advertisers/${advertiserId}`}
+              className="hover:text-foreground hover:underline underline-offset-2"
+              title="광고주 프로필 보기"
+            >
+              {businessName}
+            </Link>{" "}
+            · {pointAmount.toLocaleString()}P · 모집 마감 {end.toLocaleDateString("ko-KR")}
           </div>
           {message && (
             <p className="mt-3 rounded-xl bg-muted/50 px-3 py-2 text-xs text-foreground">

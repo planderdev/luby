@@ -135,7 +135,15 @@ export default async function CampaignDetailPage({
             {STATUS_LABEL[campaign.status]?.label ?? campaign.status}
           </span>
           <h1 className="display mt-3 text-3xl font-semibold lg:text-4xl">{campaign.title}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">{campaign.business_name}</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            <Link
+              href={`/dashboard/advertisers/${campaign.advertiser_id}`}
+              className="hover:text-foreground hover:underline underline-offset-2"
+              title="광고주 프로필 보기"
+            >
+              {campaign.business_name}
+            </Link>
+          </p>
         </div>
 
         {isInfluencer && campaign.status === "open" && (

@@ -86,7 +86,13 @@ export default async function MessageThreadPage({
               {counterpart}
             </Link>
           ) : (
-            <h1 className="truncate text-lg font-semibold tracking-tight">{counterpart}</h1>
+            <Link
+              href={`/dashboard/advertisers/${campaign.advertiser_id}`}
+              className="block truncate text-lg font-semibold tracking-tight hover:underline underline-offset-2"
+              title="광고주 프로필 보기"
+            >
+              {counterpart}
+            </Link>
           )}
           <Link
             href={`/dashboard/campaigns/${campaign.id}`}

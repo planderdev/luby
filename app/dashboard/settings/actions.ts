@@ -8,6 +8,11 @@ export type SettingsPayload = {
   avatar_url: string | null;
   bio?: string | null;
   region_id?: string | null;
+  // 광고주 공개 프로필
+  company_name?: string | null;
+  description?: string | null;
+  website?: string | null;
+  category_id?: string | null;
 };
 
 export async function updateProfile(
@@ -46,6 +51,23 @@ export async function updateProfile(
       })
       .eq("profile_id", user.id);
     if (infError) return { ok: false, error: `인플루언서 정보 저장 실패: ${infError.message}` };
+  }
+
+  if (profile?.role === "advertiser") {
+    const website = payload.website?.trim() || null;
+    if (website && !/^(https?:\/\/)?[\w.-]+\.[a-z]{2,}(\/\S*)?$/i.test(website)) {
+      return { ok: false, error: "웹사이트 주소 형식이 올바르지 않습니다." };
+    }
+    const { error: advError } = await supabase
+      .from("advertisers")
+      .update({
+        ...(payload.company_name?.trim() ? { company_name: payload.company_name.trim() } : {}),
+        description: payload.description?.trim().slice(0, 600) || null,
+        website: website?.slice(0, 200) ?? null,
+        category_id: payload.category_id || null,
+      })
+      .eq("profile_id", user.id);
+    if (advError) return { ok: false, error: `회사 정보 저장 실패: ${advError.message}` };
   }
 
   revalidatePath("/dashboard/settings");

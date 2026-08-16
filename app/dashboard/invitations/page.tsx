@@ -14,7 +14,7 @@ export default async function InvitationsPage() {
   const { data: invitations } = await supabase
     .from("campaign_invitations")
     .select(
-      "id, status, message, created_at, campaigns!inner(id, title, business_name, point_amount, recruit_end)"
+      "id, status, message, created_at, campaigns!inner(id, title, business_name, point_amount, recruit_end, advertiser_id)"
     )
     .eq("influencer_id", profile.id)
     .order("created_at", { ascending: false });
@@ -40,6 +40,7 @@ export default async function InvitationsPage() {
             business_name: string;
             point_amount: number;
             recruit_end: string;
+            advertiser_id: string;
           };
           return (
             <InvitationCard
@@ -48,6 +49,7 @@ export default async function InvitationsPage() {
               campaignId={c.id}
               campaignTitle={c.title}
               businessName={c.business_name}
+              advertiserId={c.advertiser_id}
               message={inv.message}
               pointAmount={c.point_amount}
               recruitEnd={c.recruit_end}

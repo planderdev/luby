@@ -13,6 +13,7 @@ export default async function SettingsPage() {
 
   const supabase = await createClient();
   const isInfluencer = profile.role === "influencer";
+  const isAdvertiser = profile.role === "advertiser";
 
   // Pull role-specific extra info + channels + categories in parallel
   const [extraRes, regionsRes, channelsRes, channelTypesRes, categoriesRes, myCatsRes] =
@@ -23,7 +24,13 @@ export default async function SettingsPage() {
           .select("bio, region_id")
           .eq("profile_id", profile.id)
           .maybeSingle()
-      : Promise.resolve({ data: null }),
+      : isAdvertiser
+        ? supabase
+            .from("advertisers")
+            .select("company_name, description, website, category_id")
+            .eq("profile_id", profile.id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
     supabase
       .from("regions")
       .select("id, code, name, flag")
@@ -43,7 +50,7 @@ export default async function SettingsPage() {
           .eq("active", true)
           .order("sort_order")
       : Promise.resolve({ data: [] }),
-    isInfluencer
+    isInfluencer || isAdvertiser
       ? supabase
           .from("categories")
           .select("id, name, emoji")
@@ -66,7 +73,9 @@ export default async function SettingsPage() {
       <p className="mt-2 text-sm text-muted-foreground">
         {isInfluencer
           ? "프로필 정보와 SNS 채널을 관리합니다."
-          : "프로필 정보와 사진을 관리합니다."}
+          : isAdvertiser
+            ? "담당자 정보와 크리에이터에게 보여질 회사 프로필을 관리합니다."
+            : "프로필 정보와 사진을 관리합니다."}
       </p>
 
       <div className="mt-8 space-y-4">
@@ -80,6 +89,7 @@ export default async function SettingsPage() {
           }}
           extra={extra}
           regions={regionsRes.data ?? []}
+          categories={categoriesRes.data ?? []}
         />
 
         {isInfluencer && (

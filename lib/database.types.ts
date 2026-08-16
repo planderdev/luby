@@ -17,37 +17,46 @@ export type Database = {
           business_address: string | null
           business_number: string | null
           business_type: Database["public"]["Enums"]["business_type"] | null
+          category_id: string | null
           company_name: string
           contact_email: string | null
           contact_phone: string | null
           created_at: string
+          description: string | null
           profile_id: string
           representative_name: string | null
           updated_at: string
+          website: string | null
         }
         Insert: {
           business_address?: string | null
           business_number?: string | null
           business_type?: Database["public"]["Enums"]["business_type"] | null
+          category_id?: string | null
           company_name: string
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
+          description?: string | null
           profile_id: string
           representative_name?: string | null
           updated_at?: string
+          website?: string | null
         }
         Update: {
           business_address?: string | null
           business_number?: string | null
           business_type?: Database["public"]["Enums"]["business_type"] | null
+          category_id?: string | null
           company_name?: string
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
+          description?: string | null
           profile_id?: string
           representative_name?: string | null
           updated_at?: string
+          website?: string | null
         }
         Relationships: [
           {
@@ -1111,6 +1120,10 @@ export type Database = {
         Returns: boolean
       }
       is_operator: { Args: never; Returns: boolean }
+      get_advertiser_portfolio: {
+        Args: { p_profile_id: string }
+        Returns: Json
+      }
       get_creator_portfolio: {
         Args: { p_profile_id: string }
         Returns: Json
