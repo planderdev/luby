@@ -4,8 +4,8 @@ import type { Locale } from "@/lib/i18n";
  * 법률 문서 콘텐츠 (이용약관 · 개인정보처리방침).
  *
  * ⚠️ 이 문서는 표준 양식을 기반으로 작성된 초안입니다. 정식 서비스 오픈 전
- * 반드시 법률 전문가(변호사)의 검토를 거치고, 아래 [ ] 표시된 항목
- * (사업자등록번호, 대표자, 통신판매업 신고번호 등)을 실제 값으로 채워야 합니다.
+ * 반드시 법률 전문가(변호사)의 검토를 거쳐야 합니다.
+ * 사업자 정보(COMPANY)는 2026-08-17 실제 값으로 반영됨.
  *
  * 한국어가 법적 정본이며, 영어·중국어는 이용자 편의를 위한 참고 번역입니다.
  */
@@ -33,13 +33,13 @@ export type LegalContent = {
   privacy: LegalDoc;
 };
 
-const COMPANY = {
+export const COMPANY = {
   name: "주식회사 플랜더 (Plander Inc.)",
   address: "제주특별자치도 제주시 관덕로 44, 63168",
   email: "contact@plander.io",
-  bizNo: "[사업자등록번호 기입 필요]",
-  ceo: "[대표자명 기입 필요]",
-  mailOrder: "[통신판매업 신고번호 기입 필요]",
+  bizNo: "432-81-02903",
+  ceo: "이동욱",
+  mailOrder: "2023-제주연동-0223",
 };
 
 const ko: LegalContent = {
@@ -300,6 +300,9 @@ const en: LegalContent = {
     companyLabel: "Business information",
     company: [
       { label: "Company", value: "Plander Inc." },
+      { label: "Representative", value: "Dongwook Lee" },
+      { label: "Business registration no.", value: COMPANY.bizNo },
+      { label: "Mail-order business report no.", value: COMPANY.mailOrder },
       { label: "Address", value: "44 Gwandeok-ro, Jeju-si, Jeju, Republic of Korea" },
       { label: "Email", value: COMPANY.email },
     ],
@@ -512,6 +515,9 @@ const zh: LegalContent = {
     companyLabel: "企业信息",
     company: [
       { label: "公司", value: "Plander Inc.（株式会社 Plander）" },
+      { label: "代表", value: "李东旭 (Dongwook Lee)" },
+      { label: "营业执照号", value: COMPANY.bizNo },
+      { label: "通信销售业申报号", value: COMPANY.mailOrder },
       { label: "地址", value: "韩国济州特别自治道济州市观德路44号" },
       { label: "邮箱", value: COMPANY.email },
     ],
@@ -712,3 +718,35 @@ const zh: LegalContent = {
 };
 
 export const legalContent: Record<Locale, LegalContent> = { ko, en, zh };
+
+/** 사이트 푸터용 사업자 정보 (전자상거래법 제10조 표시 의무) */
+export function businessInfo(locale: Locale): { label: string; value: string }[] {
+  if (locale === "ko") {
+    return [
+      { label: "상호", value: COMPANY.name },
+      { label: "대표", value: COMPANY.ceo },
+      { label: "사업자등록번호", value: COMPANY.bizNo },
+      { label: "통신판매업 신고", value: COMPANY.mailOrder },
+      { label: "주소", value: COMPANY.address },
+      { label: "이메일", value: COMPANY.email },
+    ];
+  }
+  if (locale === "zh") {
+    return [
+      { label: "公司", value: "Plander Inc." },
+      { label: "代表", value: "Dongwook Lee" },
+      { label: "营业执照号", value: COMPANY.bizNo },
+      { label: "通信销售业申报号", value: COMPANY.mailOrder },
+      { label: "地址", value: "韩国济州特别自治道济州市观德路44号" },
+      { label: "邮箱", value: COMPANY.email },
+    ];
+  }
+  return [
+    { label: "Company", value: "Plander Inc." },
+    { label: "CEO", value: "Dongwook Lee" },
+    { label: "Business Reg. No.", value: COMPANY.bizNo },
+    { label: "Mail-order Report No.", value: COMPANY.mailOrder },
+    { label: "Address", value: "44 Gwandeok-ro, Jeju-si, Jeju, Republic of Korea" },
+    { label: "Email", value: COMPANY.email },
+  ];
+}

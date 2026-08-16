@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { LangSwitcher } from "./LangSwitcher";
 import type { Dict, Locale } from "@/lib/i18n";
+import { businessInfo } from "@/lib/legal/content";
 
 export function Footer({ dict, locale }: { dict: Dict["footer"]; locale: Locale }) {
   return (
@@ -61,9 +62,19 @@ export function Footer({ dict, locale }: { dict: Dict["footer"]; locale: Locale 
           </div>
         </div>
 
-        <div className="mt-16 flex flex-col items-start justify-between gap-4 border-t border-border pt-8 text-xs text-muted-foreground sm:flex-row sm:items-center">
-          <div>{dict.copyright}</div>
-          <div>{dict.madeWith}</div>
+        <div className="mt-16 border-t border-border pt-8 text-xs text-muted-foreground">
+          <dl className="flex flex-wrap gap-x-4 gap-y-1.5">
+            {businessInfo(locale).map((b) => (
+              <div key={b.label} className="inline-flex gap-1.5">
+                <dt className="text-muted-foreground/70">{b.label}</dt>
+                <dd className="text-foreground/70">{b.value}</dd>
+              </div>
+            ))}
+          </dl>
+          <div className="mt-5 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+            <div>{dict.copyright}</div>
+            <div>{dict.madeWith}</div>
+          </div>
         </div>
       </div>
     </footer>
