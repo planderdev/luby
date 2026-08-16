@@ -1,6 +1,6 @@
-# 루비AI 이메일 템플릿
+# Luby AI 이메일 템플릿
 
-Supabase Auth 가 보내는 5종 트랜잭션 이메일을 루비AI 브랜드에 맞춰 디자인한 HTML 템플릿입니다.
+Supabase Auth 가 보내는 5종 트랜잭션 이메일을 Luby AI 브랜드에 맞춰 디자인한 HTML 템플릿입니다.
 
 ## 파일 구조
 
@@ -27,15 +27,15 @@ Supabase Auth 가 보내는 5종 트랜잭션 이메일을 루비AI 브랜드에
 
 | 템플릿 | 제목 (복붙용) |
 |---|---|
-| Confirm signup | `루비AI 이메일 인증 — 가입을 완료해주세요` |
-| Magic Link | `루비AI 로그인 링크가 도착했어요` |
-| Reset Password | `루비AI 비밀번호 재설정 안내` |
-| Change Email Address | `루비AI 이메일 변경 확인` |
-| Invite user | `루비AI에 초대되었어요` |
+| Confirm signup | `Luby AI 이메일 인증 — 가입을 완료해주세요` |
+| Magic Link | `Luby AI 로그인 링크가 도착했어요` |
+| Reset Password | `Luby AI 비밀번호 재설정 안내` |
+| Change Email Address | `Luby AI 이메일 변경 확인` |
+| Invite user | `Luby AI에 초대되었어요` |
 
 ## 디자인 톤
 
-- 모노톤 + 핑크 포인트 (루비AI 브랜드)
+- 모노톤 + 핑크 포인트 (Luby AI 브랜드)
 - 라이트 + 다크모드 자동 전환 (Apple Mail / iOS Mail)
 - 가로 최대 560px (모바일 친화)
 - 시스템 폰트 폴백 (Pretendard 미로드 시 Apple SD Gothic Neo)
@@ -59,9 +59,27 @@ Supabase Auth 가 보내는 5종 트랜잭션 이메일을 루비AI 브랜드에
 4. **초대**: Supabase 대시보드 → Authentication → Users → **Invite User** 버튼
 5. **이메일 변경**: 대시보드 설정에서 이메일 수정 시 발송
 
-## ⚠️ Supabase 무료 SMTP 제한
+## Custom SMTP (Resend) 설정 — 운영 필수
 
-기본 SMTP는 **시간당 4통** 까지만 발송됩니다 (개발/테스트용).
-운영 시에는 **Custom SMTP** 설정 권장 (Resend / SendGrid 등).
+기본 Supabase SMTP는 **시간당 4통**(개발용)이라 실서비스에선 반드시 Resend로 교체합니다.
+Resend 도메인(luby.im) 인증은 이미 완료된 상태입니다.
 
-Resend 연동 시: `hello@luby.im` 같은 도메인 발송자 사용 가능 + 무료 3,000통/월.
+1. https://supabase.com/dashboard/project/ncyuljyeyuorgsfuzzmw/settings/auth → **SMTP Settings**
+2. **Enable Custom SMTP** 켜기
+3. 아래 값 입력
+
+| 항목 | 값 |
+|---|---|
+| Sender email | `notify@luby.im` |
+| Sender name | `Luby AI` |
+| Host | `smtp.resend.com` |
+| Port | `465` |
+| Username | `resend` |
+| Password | Resend API 키 (`re_…`, 이미 Vercel에 등록한 것과 동일) |
+| Minimum interval | `60` (초, 기본값 유지) |
+
+4. **Save** → 같은 페이지 **Rate Limits** 에서 "Rate limit for sending emails" 를 `30`/h 이상으로 상향
+5. https://luby.im/signup 에서 새 이메일로 가입해 인증 메일이 `Luby AI <notify@luby.im>` 로 오는지 확인
+
+> 앱 알림 메일(캠페인 승인·정산 등)은 이미 `/api/notifications/email` → Resend 로 나가고 있고,
+> 여기서 바꾸는 것은 **Supabase Auth 메일(가입 인증·비밀번호 재설정 등)** 발송 경로입니다.
