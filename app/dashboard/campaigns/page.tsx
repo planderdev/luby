@@ -6,6 +6,12 @@ import { fetchUICatalog } from "@/lib/cache/ui-catalog";
 import { Plus } from "lucide-react";
 import { CampaignCard } from "@/components/dashboard/CampaignCard";
 import { CampaignFilters } from "@/components/dashboard/CampaignFilters";
+import {
+  rankCampaigns,
+  campaignBadges,
+  hasPersonalSignal as hasSignal,
+  type CreatorSignals,
+} from "@/lib/campaign-ranking";
 
 export const metadata = { title: "캠페인 — 루비AI" };
 
@@ -95,35 +101,25 @@ export default async function CampaignsPage({
   const regionsById = new Map(catalog.regions.map((r) => [r.id, r]));
   const categoriesById = new Map(catalog.categories.map((c) => [c.id, c]));
 
-  // 크리에이터 맞춤 신호: 내 분야·지역·응모 여부
-  const myCategoryIds = new Set<string>();
-  let myRegionId: string | null = null;
-  const appliedIds = new Set<string>();
+  // 크리에이터 맞춤 신호: 내 분야·지역·응모 여부 (lib/campaign-ranking과 공유)
+  const signals: CreatorSignals = {
+    categoryIds: new Set<string>(),
+    regionId: null,
+    appliedCampaignIds: new Set<string>(),
+  };
   if (isInfluencer) {
     const [{ data: cats }, { data: inf }, { data: apps }] = await Promise.all([
       supabase.from("influencer_categories").select("category_id").eq("influencer_id", profile.id),
       supabase.from("influencers").select("region_id").eq("profile_id", profile.id).maybeSingle(),
       supabase.from("applications").select("campaign_id").eq("influencer_id", profile.id),
     ]);
-    for (const c of cats ?? []) myCategoryIds.add(c.category_id);
-    myRegionId = inf?.region_id ?? null;
-    for (const a of apps ?? []) appliedIds.add(a.campaign_id);
+    for (const c of cats ?? []) signals.categoryIds.add(c.category_id);
+    signals.regionId = inf?.region_id ?? null;
+    for (const a of apps ?? []) signals.appliedCampaignIds.add(a.campaign_id);
   }
 
-  const now = Date.now();
-  const scoreOf = (c: { id: string; category_id: string; region_id: string; recruit_end: string }) => {
-    let s = 0;
-    if (myCategoryIds.has(c.category_id)) s += 3;
-    if (myRegionId && c.region_id === myRegionId) s += 2;
-    const msLeft = new Date(c.recruit_end).getTime() - now;
-    if (msLeft > 0 && msLeft < 3 * 24 * 60 * 60 * 1000) s += 1;
-    if (appliedIds.has(c.id)) s -= 10;
-    return s;
-  };
-  const campaigns = personalize
-    ? [...(rawCampaigns ?? [])].sort((a, b) => scoreOf(b) - scoreOf(a))
-    : rawCampaigns;
-  const hasPersonalSignal = myCategoryIds.size > 0 || !!myRegionId;
+  const campaigns = personalize ? rankCampaigns(rawCampaigns ?? [], signals) : rawCampaigns;
+  const hasPersonalSignal = hasSignal(signals);
 
   return (
     <div>
@@ -193,15 +189,7 @@ export default async function CampaignsPage({
               recruitEnd={c.recruit_end}
               recruitCount={c.recruit_count}
               pointAmount={c.point_amount}
-              badges={
-                isInfluencer
-                  ? [
-                      ...(appliedIds.has(c.id) ? ["응모함"] : []),
-                      ...(myCategoryIds.has(c.category_id) ? ["내 분야"] : []),
-                      ...(myRegionId && c.region_id === myRegionId ? ["내 지역"] : []),
-                    ]
-                  : []
-              }
+              badges={isInfluencer ? campaignBadges(c, signals) : []}
               regionFlag={region?.flag ?? ""}
               regionName={region?.name ?? ""}
               categoryEmoji={category?.emoji ?? ""}

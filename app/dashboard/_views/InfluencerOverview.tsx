@@ -10,8 +10,23 @@ import {
   MessageSquare,
   Sparkles,
   Mail,
+  Users,
+  ArrowUpRight,
 } from "lucide-react";
 import { TodoList, type TodoItem } from "@/components/dashboard/TodoList";
+
+export type RecommendedCampaign = {
+  id: string;
+  title: string;
+  business_name: string;
+  thumbnail_url: string | null;
+  point_amount: number;
+  recruit_end: string;
+  recruit_count: number;
+  badges: string[];
+  categoryEmoji: string;
+  categoryName: string;
+};
 
 type InfluencerTodo = {
   needSubmitCount: number;
@@ -29,6 +44,7 @@ export function InfluencerOverview({
   totalPoints,
   region,
   todo,
+  recommended = [],
 }: {
   name: string;
   approved: boolean;
@@ -37,6 +53,7 @@ export function InfluencerOverview({
   totalPoints: number;
   region: string;
   todo: InfluencerTodo;
+  recommended?: RecommendedCampaign[];
 }) {
   const todoItems: TodoItem[] = [
     {
@@ -147,6 +164,75 @@ export function InfluencerOverview({
       </div>
 
       {approved && <TodoList items={todoItems} />}
+
+      {approved && recommended.length > 0 && (
+        <section className="mt-10">
+          <div className="flex items-baseline justify-between">
+            <div>
+              <h2 className="text-lg font-semibold tracking-tight">내게 맞는 캠페인</h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                내 전문 분야·활동 지역과 맞는 순으로 골랐어요
+              </p>
+            </div>
+            <Link
+              href="/dashboard/campaigns"
+              className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+            >
+              전체 보기 <ArrowUpRight className="size-3.5" />
+            </Link>
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            {recommended.map((c) => (
+              <Link
+                key={c.id}
+                href={`/dashboard/campaigns/${c.id}`}
+                className="group flex flex-col overflow-hidden rounded-2xl glass-card transition-colors hover:bg-muted/40"
+              >
+                <div className="relative aspect-[16/9] w-full bg-muted">
+                  {c.thumbnail_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={c.thumbnail_url} alt={c.title} className="size-full object-cover" />
+                  ) : (
+                    <div className="flex size-full items-center justify-center text-3xl opacity-40">
+                      {c.categoryEmoji || "🎯"}
+                    </div>
+                  )}
+                  {c.badges.length > 0 && (
+                    <div className="absolute right-2 top-2 flex gap-1">
+                      {c.badges.map((b) => (
+                        <span key={b} className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-white shadow-pink-sm">
+                          {b}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                    {c.categoryEmoji} {c.categoryName} · {c.business_name}
+                  </div>
+                  <h3 className="mt-1.5 line-clamp-2 text-sm font-semibold group-hover:underline underline-offset-2">
+                    {c.title}
+                  </h3>
+                  <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-1">
+                      <Users className="size-3.5" />
+                      {c.recruit_count}명
+                    </span>
+                    <span>~{new Date(c.recruit_end).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" })}</span>
+                    {c.point_amount > 0 && (
+                      <span className="ml-auto inline-flex items-center gap-1 font-semibold text-accent-ink">
+                        <Coins className="size-3.5" />
+                        {c.point_amount.toLocaleString()}P
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

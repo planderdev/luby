@@ -4,6 +4,8 @@ import { AdvertiserOverview } from "./_views/AdvertiserOverview";
 import { InfluencerOverview } from "./_views/InfluencerOverview";
 import { OperatorOverview } from "./_views/OperatorOverview";
 import { redirect } from "next/navigation";
+import { fetchUICatalog } from "@/lib/cache/ui-catalog";
+import { rankCampaigns, campaignBadges, type CreatorSignals } from "@/lib/campaign-ranking";
 
 export const metadata = { title: "대시보드 — 루비AI" };
 
@@ -109,7 +111,7 @@ export default async function DashboardPage() {
 
   if (profile.role === "influencer") {
     const [{ data: myApps }, { data: influencer }, { count: newCampaigns }] = await Promise.all([
-      supabase.from("applications").select("id, status").eq("influencer_id", profile.id),
+      supabase.from("applications").select("id, status, campaign_id").eq("influencer_id", profile.id),
       supabase
         .from("influencers")
         .select("total_points, region_id")
@@ -164,6 +166,41 @@ export default async function DashboardPage() {
     const revisionCount = (subs ?? []).filter((s) => s.status === "revision_requested").length;
     const region = regionRes.data;
 
+    // 추천 캠페인 3개 (승인된 크리에이터만) — 목록 페이지와 같은 랭킹 로직
+    let recommended: {
+      id: string; title: string; business_name: string; thumbnail_url: string | null;
+      point_amount: number; recruit_end: string; recruit_count: number;
+      badges: string[]; categoryEmoji: string; categoryName: string;
+    }[] = [];
+    if (profile.approved) {
+      const [{ data: openCampaigns }, { data: myCats }, catalog] = await Promise.all([
+        supabase
+          .from("campaigns")
+          .select("id, title, business_name, thumbnail_url, point_amount, recruit_end, recruit_count, category_id, region_id")
+          .eq("status", "open")
+          .order("created_at", { ascending: false })
+          .limit(60),
+        supabase.from("influencer_categories").select("category_id").eq("influencer_id", profile.id),
+        fetchUICatalog(),
+      ]);
+      const signals: CreatorSignals = {
+        categoryIds: new Set((myCats ?? []).map((c) => c.category_id)),
+        regionId: influencer?.region_id ?? null,
+        appliedCampaignIds: new Set(apps.map((a) => a.campaign_id)),
+      };
+      const catById = new Map(catalog.categories.map((c) => [c.id, c]));
+      recommended = rankCampaigns(openCampaigns ?? [], signals)
+        .filter((c) => !signals.appliedCampaignIds.has(c.id))
+        .slice(0, 3)
+        .map((c) => ({
+          id: c.id, title: c.title, business_name: c.business_name, thumbnail_url: c.thumbnail_url,
+          point_amount: c.point_amount, recruit_end: c.recruit_end, recruit_count: c.recruit_count,
+          badges: campaignBadges(c, signals),
+          categoryEmoji: catById.get(c.category_id)?.emoji ?? "",
+          categoryName: catById.get(c.category_id)?.name ?? "",
+        }));
+    }
+
     return (
       <InfluencerOverview
         name={profile.name}
@@ -179,6 +216,7 @@ export default async function DashboardPage() {
           newCampaigns: newCampaigns ?? 0,
           pendingInvites: pendingInvites ?? 0,
         }}
+        recommended={recommended}
       />
     );
   }
