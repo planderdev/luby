@@ -300,7 +300,12 @@ export default async function CampaignDetailPage({
       {/* Advertiser: AI influencer matching + applicants */}
       {isOwner && (
         <>
-          <AIMatches campaignId={id} locked={!entitlements.aiMatching} />
+          <AIMatches
+            campaignId={id}
+            campaignTitle={campaign.title}
+            campaignOpen={campaign.status === "open"}
+            locked={!entitlements.aiMatching}
+          />
           <Suspense
             fallback={
               <div className="mt-10 space-y-2">

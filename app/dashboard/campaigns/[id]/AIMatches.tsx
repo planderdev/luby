@@ -5,12 +5,26 @@ import Link from "next/link";
 import { Sparkles, Loader2, Star, Lock } from "lucide-react";
 import { matchInfluencers, type InfluencerMatch } from "./ai-match-actions";
 import { createClient } from "@/lib/supabase/client";
+import { InviteButton } from "@/app/dashboard/creators/InviteButton";
 
 type Profile = { id: string; name: string; avatar_url: string | null };
+type Relation = "applied" | "invited" | null;
 
-export function AIMatches({ campaignId, locked = false }: { campaignId: string; locked?: boolean }) {
+export function AIMatches({
+  campaignId,
+  campaignTitle,
+  campaignOpen,
+  locked = false,
+}: {
+  campaignId: string;
+  campaignTitle: string;
+  /** 모집중일 때만 초대 버튼 노출 */
+  campaignOpen: boolean;
+  locked?: boolean;
+}) {
   const [matches, setMatches] = useState<InfluencerMatch[] | null>(null);
   const [profiles, setProfiles] = useState<Map<string, Profile>>(new Map());
+  const [relations, setRelations] = useState<Map<string, Relation>>(new Map());
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -29,17 +43,30 @@ export function AIMatches({ campaignId, locked = false }: { campaignId: string; 
         return;
       }
       setMatches(r.matches);
-      // Fetch profile info for the returned IDs
+      // Fetch profile info + 이 캠페인과의 관계(응모/초대 여부) for the returned IDs
       if (r.matches.length > 0) {
         const supabase = createClient();
         const ids = r.matches.map((m) => m.influencer_id);
-        const { data } = await supabase
-          .from("profiles")
-          .select("id, name, avatar_url")
-          .in("id", ids);
+        const [{ data }, { data: apps }, { data: invs }] = await Promise.all([
+          supabase.from("profiles").select("id, name, avatar_url").in("id", ids),
+          supabase
+            .from("applications")
+            .select("influencer_id")
+            .eq("campaign_id", campaignId)
+            .in("influencer_id", ids),
+          supabase
+            .from("campaign_invitations")
+            .select("influencer_id")
+            .eq("campaign_id", campaignId)
+            .in("influencer_id", ids),
+        ]);
         const m = new Map<string, Profile>();
         for (const p of data ?? []) m.set(p.id, p);
         setProfiles(m);
+        const rel = new Map<string, Relation>();
+        for (const i of invs ?? []) rel.set(i.influencer_id, "invited");
+        for (const a of apps ?? []) rel.set(a.influencer_id, "applied"); // 응모가 우선
+        setRelations(rel);
       }
     });
   }
@@ -125,26 +152,45 @@ export function AIMatches({ campaignId, locked = false }: { campaignId: string; 
         <div className="mt-5 space-y-2">
           {matches.map((m, i) => {
             const p = profiles.get(m.influencer_id);
+            const rel = relations.get(m.influencer_id) ?? null;
             return (
               <div
                 key={m.influencer_id}
-                className="flex items-start gap-4 rounded-2xl glass-card p-4"
+                className="flex flex-wrap items-start gap-4 rounded-2xl glass-card p-4"
               >
                 <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-foreground text-background text-xs font-semibold">
                   {i + 1}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-semibold">
+                    <Link
+                      href={`/dashboard/creators/${m.influencer_id}`}
+                      className="text-sm font-semibold hover:underline underline-offset-2"
+                      title="크리에이터 프로필 보기"
+                    >
                       {p?.name ?? m.influencer_id.slice(0, 8)}
-                    </span>
+                    </Link>
                     <span className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-medium text-accent-ink">
                       <Star className="size-3 fill-current" />
                       {m.score}
                     </span>
+                    {rel === "applied" && (
+                      <span className="rounded-full bg-success-soft px-2 py-0.5 text-[11px] font-medium text-success">
+                        이미 응모함
+                      </span>
+                    )}
                   </div>
                   <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{m.reason}</p>
                 </div>
+                {campaignOpen && rel !== "applied" && (
+                  <div className="w-full self-center sm:w-auto sm:shrink-0">
+                    <InviteButton
+                      influencerId={m.influencer_id}
+                      campaigns={[{ id: campaignId, title: campaignTitle }]}
+                      alreadyInvited={rel === "invited" ? [campaignId] : []}
+                    />
+                  </div>
+                )}
               </div>
             );
           })}

@@ -74,7 +74,7 @@ export function InviteButton({
   }
 
   return (
-    <div className="mt-3 w-full rounded-xl border border-border bg-background p-3" onClick={(e) => e.preventDefault()}>
+    <div className="mt-3 w-full min-w-[260px] rounded-xl border border-border bg-background p-3" onClick={(e) => e.preventDefault()}>
       <label className="text-[11px] font-medium text-muted-foreground">초대할 캠페인</label>
       <select
         value={campaignId}
