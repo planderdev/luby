@@ -27,13 +27,14 @@ export default async function SignupPage({
 
   const supabase = await createClient();
 
-  const [{ data: regions }, { data: channelTypes }] = await Promise.all([
+  const [{ data: regions }, { data: channelTypes }, { data: categories }] = await Promise.all([
     supabase.from("regions").select("id, code, name, flag").eq("active", true).order("sort_order"),
     supabase
       .from("channel_types")
       .select("id, slug, name")
       .eq("active", true)
       .order("sort_order"),
+    supabase.from("categories").select("id, name, emoji").eq("active", true).order("sort_order"),
   ]);
 
   return (
@@ -41,6 +42,7 @@ export default async function SignupPage({
       <SignupForm
         regions={regions ?? []}
         channelTypes={channelTypes ?? []}
+        categories={categories ?? []}
         initialRole={initialRole}
       />
       <p className="mt-6 text-center text-sm text-muted-foreground">

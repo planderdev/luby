@@ -9,14 +9,17 @@ type Role = "advertiser" | "influencer";
 
 type RegionOption = { id: string; code: string; name: string; flag: string };
 type ChannelOption = { id: string; slug: string; name: string };
+type CategoryOption = { id: string; name: string; emoji: string | null };
 
 export function SignupForm({
   regions,
   channelTypes,
+  categories,
   initialRole = null,
 }: {
   regions: RegionOption[];
   channelTypes: ChannelOption[];
+  categories: CategoryOption[];
   /** 랜딩 CTA에서 역할을 정하고 들어온 경우 — 역할 선택 단계를 건너뛴다 */
   initialRole?: Role | null;
 }) {
@@ -36,6 +39,7 @@ export function SignupForm({
           role={role}
           regions={regions}
           channelTypes={channelTypes}
+          categories={categories}
           onBack={() => setStep("role")}
           onSignedIn={() => router.push("/dashboard")}
           onNeedConfirm={() => setStep("check_email")}
@@ -125,6 +129,7 @@ function FormStep({
   role,
   regions,
   channelTypes,
+  categories,
   onBack,
   onSignedIn,
   onNeedConfirm,
@@ -132,6 +137,7 @@ function FormStep({
   role: Role;
   regions: RegionOption[];
   channelTypes: ChannelOption[];
+  categories: CategoryOption[];
   onBack: () => void;
   onSignedIn: () => void;
   onNeedConfirm: () => void;
@@ -147,6 +153,7 @@ function FormStep({
   const [regionId, setRegionId] = useState(regions[0]?.id ?? "");
   const [channelTypeId, setChannelTypeId] = useState(channelTypes[0]?.id ?? "");
   const [channelUrl, setChannelUrl] = useState("");
+  const [categoryIds, setCategoryIds] = useState<string[]>([]);
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -183,6 +190,7 @@ function FormStep({
       metadata.region_id = regionId;
       metadata.channel_type_id = channelTypeId;
       metadata.channel_url = channelUrl;
+      metadata.category_ids = categoryIds.join(",");
     }
 
     const { data, error } = await supabase.auth.signUp({
@@ -278,6 +286,42 @@ function FormStep({
             onChange={setChannelUrl}
             placeholder="https://instagram.com/..."
           />
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">
+              전문 분야 (최대 3개) · {categoryIds.length}/3
+            </label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {categories.map((c) => {
+                const on = categoryIds.includes(c.id);
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() =>
+                      setCategoryIds((prev) =>
+                        on
+                          ? prev.filter((x) => x !== c.id)
+                          : prev.length >= 3
+                            ? prev
+                            : [...prev, c.id]
+                      )
+                    }
+                    className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                      on
+                        ? "border-accent bg-accent-soft font-medium text-accent-ink"
+                        : "border-border bg-background text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    {c.emoji} {c.name}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-1.5 text-[11px] text-muted-foreground">
+              광고주 검색·AI 매칭에 사용돼요. 나중에 설정에서 바꿀 수 있어요.
+            </p>
+          </div>
         </>
       )}
 

@@ -1119,6 +1119,10 @@ export type Database = {
         Args: { p_invitation_id: string; p_accept: boolean }
         Returns: undefined
       }
+      set_my_categories: {
+        Args: { p_category_ids: string[] }
+        Returns: undefined
+      }
       search_creators: {
         Args: {
           p_query?: string | null

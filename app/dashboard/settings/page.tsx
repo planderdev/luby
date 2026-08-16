@@ -3,6 +3,7 @@ import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { SettingsForm } from "./SettingsForm";
 import { ChannelManager, type ChannelRow } from "./ChannelManager";
+import { CategoryPicker } from "./CategoryPicker";
 
 export const metadata = { title: "설정 — 루비AI" };
 
@@ -13,8 +14,9 @@ export default async function SettingsPage() {
   const supabase = await createClient();
   const isInfluencer = profile.role === "influencer";
 
-  // Pull role-specific extra info + channels in parallel
-  const [extraRes, regionsRes, channelsRes, channelTypesRes] = await Promise.all([
+  // Pull role-specific extra info + channels + categories in parallel
+  const [extraRes, regionsRes, channelsRes, channelTypesRes, categoriesRes, myCatsRes] =
+    await Promise.all([
     isInfluencer
       ? supabase
           .from("influencers")
@@ -41,6 +43,19 @@ export default async function SettingsPage() {
           .eq("active", true)
           .order("sort_order")
       : Promise.resolve({ data: [] }),
+    isInfluencer
+      ? supabase
+          .from("categories")
+          .select("id, name, emoji")
+          .eq("active", true)
+          .order("sort_order")
+      : Promise.resolve({ data: [] }),
+    isInfluencer
+      ? supabase
+          .from("influencer_categories")
+          .select("category_id")
+          .eq("influencer_id", profile.id)
+      : Promise.resolve({ data: [] }),
   ]);
 
   const extra = extraRes.data ?? {};
@@ -66,6 +81,13 @@ export default async function SettingsPage() {
           extra={extra}
           regions={regionsRes.data ?? []}
         />
+
+        {isInfluencer && (
+          <CategoryPicker
+            categories={categoriesRes.data ?? []}
+            selected={(myCatsRes.data ?? []).map((c) => c.category_id)}
+          />
+        )}
 
         {isInfluencer && (
           <ChannelManager

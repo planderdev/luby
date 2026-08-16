@@ -128,3 +128,18 @@ export async function updateChannelFollowers(
   revalidatePath("/dashboard/settings");
   return { ok: true };
 }
+
+/** 크리에이터 전문 분야 저장 (최대 3개, 전체 교체) */
+export async function setMyCategories(categoryIds: string[]): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+
+  const ids = [...new Set(categoryIds)].slice(0, 3);
+  const { error } = await supabase.rpc("set_my_categories", { p_category_ids: ids });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/dashboard/settings");
+  return { ok: true };
+}
