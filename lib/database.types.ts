@@ -1124,6 +1124,19 @@ export type Database = {
         Args: { p_profile_id: string }
         Returns: Json
       }
+      operator_weekly_stats: {
+        Args: { p_weeks?: number }
+        Returns: {
+          week_start: string
+          new_advertisers: number
+          new_influencers: number
+          campaigns_opened: number
+          applications: number
+          submissions_approved: number
+          points_paid: number
+          payments_krw: number
+        }[]
+      }
       get_creator_portfolio: {
         Args: { p_profile_id: string }
         Returns: Json

@@ -38,14 +38,22 @@ export default async function OperatorStatsPage() {
   const supabase = await createClient();
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-  const [profilesRes, campaignsRes, applicationsRes, recentRes, channelsRes] =
+  const [profilesRes, campaignsRes, applicationsRes, recentRes, channelsRes, weeklyRes, paidRes, wdRes] =
     await Promise.all([
       supabase.from("profiles").select("role, approved"),
       supabase.from("campaigns").select("status"),
       supabase.from("applications").select("status"),
       supabase.from("profiles").select("id").gte("created_at", weekAgo),
       supabase.from("influencer_channels").select("id"),
+      supabase.rpc("operator_weekly_stats", { p_weeks: 8 }),
+      supabase.from("payments").select("amount").eq("status", "paid"),
+      supabase.from("point_withdrawals").select("amount, status").in("status", ["paid", "requested"]),
     ]);
+  const weekly = weeklyRes.data ?? [];
+  const revenue = (paidRes.data ?? []).reduce((s, p) => s + (p.amount ?? 0), 0);
+  const withdrawals = wdRes.data ?? [];
+  const paidOut = withdrawals.filter((w) => w.status === "paid").reduce((s, w) => s + (w.amount ?? 0), 0);
+  const pendingOut = withdrawals.filter((w) => w.status === "requested").reduce((s, w) => s + (w.amount ?? 0), 0);
 
   const allProfiles = profilesRes.data ?? [];
   const advertisers = allProfiles.filter((p) => p.role === "advertiser");
@@ -148,6 +156,55 @@ export default async function OperatorStatsPage() {
         </Link>
       </div>
 
+      {/* 재무 요약 */}
+      <div className="mt-8 grid gap-4 md:grid-cols-3">
+        <MoneyCard label="누적 결제 매출" value={`₩${revenue.toLocaleString()}`} hint="BUSINESS 결제 완료 합계" />
+        <MoneyCard label="누적 포인트 지급" value={`${paidOut.toLocaleString()}P`} hint="정산 완료 합계" />
+        <MoneyCard
+          label="정산 대기 금액"
+          value={`${pendingOut.toLocaleString()}P`}
+          hint={pendingOut > 0 ? "처리가 필요해요" : "대기 없음"}
+          warn={pendingOut > 0}
+        />
+      </div>
+
+      {/* 주간 추이 */}
+      <h2 className="mt-12 text-lg font-semibold tracking-tight">최근 8주 추이</h2>
+      <p className="mt-1 text-xs text-muted-foreground">주 단위(월요일 시작) 집계 · 이번 주는 진행 중</p>
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <TrendCard
+          title="신규 가입"
+          series={[
+            { label: "크리에이터", values: weekly.map((w) => Number(w.new_influencers)), tone: "accent" },
+            { label: "광고주", values: weekly.map((w) => Number(w.new_advertisers)), tone: "muted" },
+          ]}
+          weeks={weekly.map((w) => w.week_start)}
+        />
+        <TrendCard
+          title="캠페인 승인 · 응모"
+          series={[
+            { label: "응모", values: weekly.map((w) => Number(w.applications)), tone: "accent" },
+            { label: "캠페인 승인", values: weekly.map((w) => Number(w.campaigns_opened)), tone: "muted" },
+          ]}
+          weeks={weekly.map((w) => w.week_start)}
+        />
+        <TrendCard
+          title="콘텐츠 승인 · 포인트 지급"
+          series={[
+            { label: "콘텐츠 승인(건)", values: weekly.map((w) => Number(w.submissions_approved)), tone: "accent" },
+            { label: "포인트 지급(만P)", values: weekly.map((w) => Math.round(Number(w.points_paid) / 10000)), tone: "muted" },
+          ]}
+          weeks={weekly.map((w) => w.week_start)}
+        />
+        <TrendCard
+          title="결제 매출 (만원)"
+          series={[
+            { label: "결제", values: weekly.map((w) => Math.round(Number(w.payments_krw) / 10000)), tone: "accent" },
+          ]}
+          weeks={weekly.map((w) => w.week_start)}
+        />
+      </div>
+
       {/* Status breakdowns */}
       <div className="mt-8 grid gap-4 lg:grid-cols-2">
         <BreakdownCard
@@ -236,6 +293,77 @@ function BreakdownCard({
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function TrendCard({
+  title,
+  series,
+  weeks,
+}: {
+  title: string;
+  series: { label: string; values: number[]; tone: "accent" | "muted" }[];
+  weeks: string[];
+}) {
+  const max = Math.max(1, ...series.flatMap((s) => s.values));
+  const fmtWeek = (iso: string) => {
+    const d = new Date(iso);
+    return `${d.getMonth() + 1}/${d.getDate()}`;
+  };
+  return (
+    <div className="rounded-3xl glass-card p-6">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h3 className="text-sm font-semibold">{title}</h3>
+        <div className="flex gap-3 text-[11px] text-muted-foreground">
+          {series.map((s) => (
+            <span key={s.label} className="inline-flex items-center gap-1">
+              <span className={`inline-block size-2 rounded-sm ${s.tone === "accent" ? "bg-accent" : "bg-foreground/35"}`} />
+              {s.label}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="mt-4 flex h-32 items-end gap-2">
+        {weeks.map((w, i) => (
+          <div key={w} className="flex flex-1 flex-col items-center gap-1">
+            <div className="flex h-24 w-full items-end justify-center gap-0.5">
+              {series.map((s) => {
+                const v = s.values[i] ?? 0;
+                const h = Math.max(v > 0 ? 3 : 0, (v / max) * 100);
+                return (
+                  <div
+                    key={s.label}
+                    title={`${s.label}: ${v.toLocaleString()}`}
+                    className={`w-full max-w-[14px] rounded-t-sm transition-all ${
+                      s.tone === "accent" ? "bg-accent" : "bg-foreground/35"
+                    }`}
+                    style={{ height: `${h}%` }}
+                  />
+                );
+              })}
+            </div>
+            <span className="text-[10px] text-muted-foreground">{fmtWeek(w)}</span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-2 flex justify-between text-[11px] text-muted-foreground">
+        <span>최근 8주</span>
+        <span>
+          이번 주:{" "}
+          {series.map((s) => `${s.label} ${(s.values[s.values.length - 1] ?? 0).toLocaleString()}`).join(" · ")}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function MoneyCard({ label, value, hint, warn }: { label: string; value: string; hint: string; warn?: boolean }) {
+  return (
+    <div className="rounded-3xl glass-card p-6">
+      <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{label}</div>
+      <div className="display mt-4 text-2xl font-semibold">{value}</div>
+      <div className={`mt-1 text-xs ${warn ? "text-warning" : "text-muted-foreground"}`}>{hint}</div>
     </div>
   );
 }
