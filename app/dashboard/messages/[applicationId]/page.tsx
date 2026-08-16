@@ -67,7 +67,7 @@ export default async function MessageThreadPage({
     .order("created_at", { ascending: true });
 
   return (
-    <div className="flex h-[calc(100dvh-8rem)] flex-col">
+    <div className="flex h-[calc(100dvh-11rem)] flex-col lg:h-[calc(100dvh-8rem)]">
       <div className="flex items-center gap-3">
         <Link
           href="/dashboard/messages"

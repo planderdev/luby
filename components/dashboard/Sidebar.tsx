@@ -1,54 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
-import {
-  LayoutDashboard,
-  Megaphone,
-  Inbox,
-  CreditCard,
-  Settings,
-  Users,
-  ShieldCheck,
-  Star,
-  Coins,
-  Banknote,
-  MessageSquare,
-  UserSearch,
-  Mail,
-} from "lucide-react";
 import type { UserRole } from "@/lib/supabase/queries";
 import { ThemeToggle } from "@/components/ThemeToggle";
-
-type NavItem = { href: string; label: string; icon: React.ComponentType<{ className?: string }> };
-
-const itemsByRole: Record<UserRole, NavItem[]> = {
-  advertiser: [
-    { href: "/dashboard", label: "개요", icon: LayoutDashboard },
-    { href: "/dashboard/campaigns", label: "내 캠페인", icon: Megaphone },
-    { href: "/dashboard/applications", label: "응모자", icon: Inbox },
-    { href: "/dashboard/creators", label: "크리에이터 찾기", icon: UserSearch },
-    { href: "/dashboard/messages", label: "메시지", icon: MessageSquare },
-    { href: "/dashboard/billing", label: "구독·결제", icon: CreditCard },
-    { href: "/dashboard/settings", label: "설정", icon: Settings },
-  ],
-  influencer: [
-    { href: "/dashboard", label: "개요", icon: LayoutDashboard },
-    { href: "/dashboard/campaigns", label: "캠페인 둘러보기", icon: Star },
-    { href: "/dashboard/applications", label: "내 응모", icon: Inbox },
-    { href: "/dashboard/invitations", label: "받은 초대", icon: Mail },
-    { href: "/dashboard/messages", label: "메시지", icon: MessageSquare },
-    { href: "/dashboard/points", label: "포인트", icon: Coins },
-    { href: "/dashboard/settings", label: "설정·채널", icon: Settings },
-  ],
-  operator: [
-    { href: "/dashboard", label: "개요", icon: LayoutDashboard },
-    { href: "/dashboard/operator/users", label: "회원 관리", icon: Users },
-    { href: "/dashboard/creators", label: "크리에이터 풀", icon: UserSearch },
-    { href: "/dashboard/operator/campaigns", label: "캠페인 검수", icon: ShieldCheck },
-    { href: "/dashboard/operator/payments", label: "결제 내역", icon: CreditCard },
-    { href: "/dashboard/operator/withdrawals", label: "정산 관리", icon: Banknote },
-    { href: "/dashboard/operator/stats", label: "통계", icon: LayoutDashboard },
-  ],
-};
+import { dashboardNav, roleLabel } from "@/lib/dashboard-nav";
 
 export function Sidebar({
   role,
@@ -59,7 +13,7 @@ export function Sidebar({
   name: string;
   avatarUrl?: string | null;
 }) {
-  const items = itemsByRole[role];
+  const items = dashboardNav[role];
   return (
     <aside className="hidden w-60 shrink-0 border-r border-border bg-background lg:flex lg:flex-col">
       <div className="flex h-16 items-center justify-between px-6">
@@ -106,7 +60,7 @@ export function Sidebar({
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-medium">{name}</div>
             <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-              {role === "advertiser" ? "광고주" : role === "influencer" ? "인플루언서" : "운영자"}
+              {roleLabel[role]}
             </div>
           </div>
         </div>
