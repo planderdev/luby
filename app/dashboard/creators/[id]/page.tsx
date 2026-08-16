@@ -21,6 +21,7 @@ type Portfolio = {
   bio: string | null;
   region_name: string | null;
   region_flag: string | null;
+  categories: { name: string; emoji: string | null }[];
   channels: {
     type_name: string;
     type_slug: string;
@@ -125,6 +126,18 @@ export default async function CreatorProfilePage({
             </div>
             {portfolio.bio && (
               <p className="mt-3 max-w-2xl text-sm text-muted-foreground">{portfolio.bio}</p>
+            )}
+            {(portfolio.categories ?? []).length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {portfolio.categories.map((c, i) => (
+                  <span
+                    key={i}
+                    className="rounded-full bg-accent-soft px-2.5 py-1 text-[11px] font-medium text-accent-ink"
+                  >
+                    {c.emoji} {c.name}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
         </div>

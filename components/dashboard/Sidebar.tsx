@@ -12,6 +12,8 @@ import {
   Coins,
   Banknote,
   MessageSquare,
+  UserSearch,
+  Mail,
 } from "lucide-react";
 import type { UserRole } from "@/lib/supabase/queries";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -23,6 +25,7 @@ const itemsByRole: Record<UserRole, NavItem[]> = {
     { href: "/dashboard", label: "개요", icon: LayoutDashboard },
     { href: "/dashboard/campaigns", label: "내 캠페인", icon: Megaphone },
     { href: "/dashboard/applications", label: "응모자", icon: Inbox },
+    { href: "/dashboard/creators", label: "크리에이터 찾기", icon: UserSearch },
     { href: "/dashboard/messages", label: "메시지", icon: MessageSquare },
     { href: "/dashboard/billing", label: "구독·결제", icon: CreditCard },
     { href: "/dashboard/settings", label: "설정", icon: Settings },
@@ -31,6 +34,7 @@ const itemsByRole: Record<UserRole, NavItem[]> = {
     { href: "/dashboard", label: "개요", icon: LayoutDashboard },
     { href: "/dashboard/campaigns", label: "캠페인 둘러보기", icon: Star },
     { href: "/dashboard/applications", label: "내 응모", icon: Inbox },
+    { href: "/dashboard/invitations", label: "받은 초대", icon: Mail },
     { href: "/dashboard/messages", label: "메시지", icon: MessageSquare },
     { href: "/dashboard/points", label: "포인트", icon: Coins },
     { href: "/dashboard/settings", label: "설정·채널", icon: Settings },
@@ -38,6 +42,7 @@ const itemsByRole: Record<UserRole, NavItem[]> = {
   operator: [
     { href: "/dashboard", label: "개요", icon: LayoutDashboard },
     { href: "/dashboard/operator/users", label: "회원 관리", icon: Users },
+    { href: "/dashboard/creators", label: "크리에이터 풀", icon: UserSearch },
     { href: "/dashboard/operator/campaigns", label: "캠페인 검수", icon: ShieldCheck },
     { href: "/dashboard/operator/payments", label: "결제 내역", icon: CreditCard },
     { href: "/dashboard/operator/withdrawals", label: "정산 관리", icon: Banknote },

@@ -9,6 +9,7 @@ import {
   MessageSquareWarning,
   MessageSquare,
   Sparkles,
+  Mail,
 } from "lucide-react";
 import { TodoList, type TodoItem } from "@/components/dashboard/TodoList";
 
@@ -17,6 +18,7 @@ type InfluencerTodo = {
   revisionCount: number;
   unreadMessages: number;
   newCampaigns: number;
+  pendingInvites: number;
 };
 
 export function InfluencerOverview({
@@ -37,6 +39,16 @@ export function InfluencerOverview({
   todo: InfluencerTodo;
 }) {
   const todoItems: TodoItem[] = [
+    {
+      key: "invites",
+      count: todo.pendingInvites,
+      label: `광고주 초대 ${todo.pendingInvites}건이 응답을 기다려요`,
+      hint: "수락하면 즉시 응모돼요 — 선정 확률이 높은 기회예요",
+      href: "/dashboard/invitations",
+      cta: "초대 보기",
+      tone: "accent",
+      icon: <Mail className="size-5" />,
+    },
     {
       key: "revision",
       count: todo.revisionCount,

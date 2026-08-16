@@ -129,8 +129,9 @@ export default async function DashboardPage() {
       .filter((a) => a.status === "selected" || a.status === "completed")
       .map((a) => a.id);
 
-    // 오늘 할 일: 제출 대기(선정됐는데 제출물 없음) · 수정 요청 · 안읽은 메시지
-    const [{ data: subs }, { count: unreadMessages }, regionRes] = await Promise.all([
+    // 오늘 할 일: 제출 대기(선정됐는데 제출물 없음) · 수정 요청 · 안읽은 메시지 · 받은 초대
+    const [{ data: subs }, { count: unreadMessages }, regionRes, { count: pendingInvites }] =
+      await Promise.all([
       activeAppIds.length
         ? supabase
             .from("submissions")
@@ -152,6 +153,11 @@ export default async function DashboardPage() {
             .eq("id", influencer.region_id)
             .maybeSingle()
         : Promise.resolve({ data: null }),
+      supabase
+        .from("campaign_invitations")
+        .select("id", { count: "exact", head: true })
+        .eq("influencer_id", profile.id)
+        .eq("status", "pending"),
     ]);
     const submittedAppIds = new Set((subs ?? []).map((s) => s.application_id));
     const needSubmitCount = selectedApps.filter((a) => !submittedAppIds.has(a.id)).length;
@@ -171,6 +177,7 @@ export default async function DashboardPage() {
           revisionCount,
           unreadMessages: unreadMessages ?? 0,
           newCampaigns: newCampaigns ?? 0,
+          pendingInvites: pendingInvites ?? 0,
         }}
       />
     );

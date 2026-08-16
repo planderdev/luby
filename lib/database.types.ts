@@ -543,6 +543,91 @@ export type Database = {
           },
         ]
       }
+      campaign_invitations: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          id: string
+          influencer_id: string
+          invited_by: string
+          message: string | null
+          responded_at: string | null
+          status: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          id?: string
+          influencer_id: string
+          invited_by: string
+          message?: string | null
+          responded_at?: string | null
+          status?: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          id?: string
+          influencer_id?: string
+          invited_by?: string
+          message?: string | null
+          responded_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_invitations_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_invitations_influencer_id_fkey"
+            columns: ["influencer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_invitations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      influencer_categories: {
+        Row: {
+          category_id: string
+          influencer_id: string
+        }
+        Insert: {
+          category_id: string
+          influencer_id: string
+        }
+        Update: {
+          category_id?: string
+          influencer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "influencer_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "influencer_categories_influencer_id_fkey"
+            columns: ["influencer_id"]
+            isOneToOne: false
+            referencedRelation: "influencers"
+            referencedColumns: ["profile_id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           application_id: string
@@ -1029,6 +1114,35 @@ export type Database = {
       get_creator_portfolio: {
         Args: { p_profile_id: string }
         Returns: Json
+      }
+      respond_campaign_invitation: {
+        Args: { p_invitation_id: string; p_accept: boolean }
+        Returns: undefined
+      }
+      search_creators: {
+        Args: {
+          p_query?: string | null
+          p_category_id?: string | null
+          p_region_id?: string | null
+          p_channel_type_id?: string | null
+          p_min_followers?: number | null
+          p_sort?: string
+          p_limit?: number
+          p_offset?: number
+        }
+        Returns: {
+          id: string
+          name: string
+          avatar_url: string | null
+          bio: string | null
+          region_flag: string | null
+          region_name: string | null
+          total_followers: number
+          completed_count: number
+          channels: Json
+          categories: Json
+          total_count: number
+        }[]
       }
       is_message_participant: {
         Args: { p_application_id: string }
