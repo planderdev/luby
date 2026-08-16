@@ -8,6 +8,7 @@ import { getEntitlements } from "@/lib/plans/entitlements";
 import { ApplyButton } from "./ApplyButton";
 import { ApplicantList } from "./ApplicantList";
 import { AIMatches } from "./AIMatches";
+import { CampaignPerformance } from "./CampaignPerformance";
 import { Skeleton } from "@/components/dashboard/Skeleton";
 
 const STATUS_LABEL: Record<string, { label: string; tone: string }> = {
@@ -308,6 +309,15 @@ export default async function CampaignDetailPage({
       {/* Advertiser: AI influencer matching + applicants */}
       {isOwner && (
         <>
+          <Suspense fallback={<Skeleton className="mt-10 h-64 rounded-3xl" />}>
+            <CampaignPerformance
+              campaignId={id}
+              recruitCount={campaign.recruit_count}
+              recruitEnd={campaign.recruit_end}
+              pointAmount={campaign.point_amount}
+              status={campaign.status}
+            />
+          </Suspense>
           <AIMatches
             campaignId={id}
             campaignTitle={campaign.title}
