@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { MemberRow } from "./MemberRow";
+import { BulkApproveList } from "./BulkApproveList";
 
 export const metadata = { title: "회원 관리 — 루비AI" };
 
@@ -101,8 +102,8 @@ export default async function OperatorUsersPage({
         ))}
       </div>
 
-      <div className="mt-6 space-y-2">
-        {members.map((p) => {
+      {(() => {
+        const renderRow = (p: (typeof members)[number]) => {
           const adv = advertiserById.get(p.id);
           const inf = influencerById.get(p.id);
           const region = inf?.region_id ? regionById.get(inf.region_id) : null;
@@ -140,7 +141,18 @@ export default async function OperatorUsersPage({
               }
             />
           );
-        })}
+                };
+        return filter === "pending" ? (
+          <div className="mt-6">
+            <BulkApproveList
+              items={members.map((p) => ({ id: p.id, name: p.name, node: renderRow(p) }))}
+            />
+          </div>
+        ) : (
+          <div className="mt-6 space-y-2">{members.map((p) => renderRow(p))}</div>
+        );
+      })()}
+      <div className="mt-2 space-y-2">
         {members.length === 0 && (
           <div className="rounded-3xl border border-dashed border-border bg-background p-10 text-center text-sm text-muted-foreground">
             {filter === "pending"

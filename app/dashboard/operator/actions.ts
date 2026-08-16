@@ -52,6 +52,37 @@ export async function approveUser(
   return { ok: true };
 }
 
+/**
+ * 회원 일괄 승인 — 승인 대기 탭에서 체크한 회원을 한 번에.
+ * 최대 100명, 이미 승인된 행은 건드리지 않음 (approved=false 조건).
+ */
+export async function approveUsersBulk(
+  profileIds: string[]
+): Promise<{ ok: true; count: number } | { ok: false; error: string }> {
+  const guard = await ensureOperator();
+  if (!guard.ok) return { ok: false, error: guard.error };
+
+  const ids = [...new Set(profileIds)].filter(Boolean).slice(0, 100);
+  if (ids.length === 0) return { ok: false, error: "선택된 회원이 없습니다." };
+
+  const { data, error } = await guard.supabase
+    .from("profiles")
+    .update({
+      approved: true,
+      approved_at: new Date().toISOString(),
+      approved_by: guard.user.id,
+    })
+    .in("id", ids)
+    .eq("approved", false)
+    .neq("role", "operator")
+    .select("id");
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/dashboard/operator/users");
+  revalidatePath("/dashboard");
+  return { ok: true, count: data?.length ?? 0 };
+}
+
 export async function decideCampaign(
   campaignId: string,
   decision: "open" | "rejected"
