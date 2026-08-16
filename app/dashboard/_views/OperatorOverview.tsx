@@ -1,40 +1,83 @@
 import Link from "next/link";
-import { ArrowRight, Users, ShieldCheck } from "lucide-react";
+import { ArrowRight, Users, ShieldCheck, Banknote, Megaphone } from "lucide-react";
+import { TodoList, type TodoItem } from "@/components/dashboard/TodoList";
 
 export function OperatorOverview({
   name,
   pendingUsersCount,
   pendingCampaignsCount,
+  pendingWithdrawals,
+  openCampaigns,
 }: {
   name: string;
   pendingUsersCount: number;
   pendingCampaignsCount: number;
+  pendingWithdrawals: number;
+  openCampaigns: number;
 }) {
+  const totalPending = pendingUsersCount + pendingCampaignsCount + pendingWithdrawals;
+
+  const todoItems: TodoItem[] = [
+    {
+      key: "users",
+      count: pendingUsersCount,
+      label: `크리에이터 ${pendingUsersCount}명이 가입 승인을 기다려요`,
+      hint: "채널·프로필을 확인하고 승인하면 응모를 시작할 수 있어요",
+      href: "/dashboard/operator/users",
+      cta: "승인하기",
+      tone: "accent",
+      icon: <Users className="size-5" />,
+    },
+    {
+      key: "campaigns",
+      count: pendingCampaignsCount,
+      label: `캠페인 ${pendingCampaignsCount}개가 검수를 기다려요`,
+      hint: "승인하면 즉시 크리에이터에게 노출돼요",
+      href: "/dashboard/operator/campaigns",
+      cta: "검수하기",
+      tone: "warning",
+      icon: <ShieldCheck className="size-5" />,
+    },
+    {
+      key: "withdrawals",
+      count: pendingWithdrawals,
+      label: `정산 요청 ${pendingWithdrawals}건이 처리를 기다려요`,
+      hint: "계좌 확인 후 지급 처리하거나 반려하세요",
+      href: "/dashboard/operator/withdrawals",
+      cta: "정산하기",
+      tone: "danger",
+      icon: <Banknote className="size-5" />,
+    },
+  ];
+
   return (
     <div>
       <header>
         <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">운영자 대시보드</p>
         <h1 className="display mt-2 text-3xl font-semibold lg:text-4xl">
-          {name}님, 검수 작업이 기다립니다.
+          {name}님,{" "}
+          {totalPending > 0 ? `처리할 작업 ${totalPending}건이 있어요.` : "밀린 작업이 없어요."}
         </h1>
       </header>
 
       <div className="mt-10 grid gap-4 md:grid-cols-2">
         <ActionCard
-          icon={<Users className="size-5" />}
-          label="회원 승인 대기"
-          value={pendingUsersCount.toString()}
-          href="/dashboard/operator/users"
-          cta="검수 시작"
+          icon={<Megaphone className="size-5" />}
+          label="모집중 캠페인"
+          value={openCampaigns.toString()}
+          href="/dashboard/operator/campaigns?status=open"
+          cta="전체 보기"
         />
         <ActionCard
           icon={<ShieldCheck className="size-5" />}
-          label="캠페인 승인 대기"
-          value={pendingCampaignsCount.toString()}
-          href="/dashboard/operator/campaigns"
-          cta="검수 시작"
+          label="플랫폼 통계"
+          value="→"
+          href="/dashboard/operator/stats"
+          cta="열기"
         />
       </div>
+
+      <TodoList items={todoItems} title="처리 대기" />
     </div>
   );
 }

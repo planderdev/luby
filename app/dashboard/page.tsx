@@ -14,89 +14,185 @@ export default async function DashboardPage() {
   const supabase = await createClient();
 
   if (profile.role === "advertiser") {
-    const [{ count: campaignCount }, { count: openCount }, { data: subscription }] =
-      await Promise.all([
-        supabase
-          .from("campaigns")
-          .select("*", { count: "exact", head: true })
-          .eq("advertiser_id", profile.id),
-        supabase
-          .from("campaigns")
-          .select("*", { count: "exact", head: true })
-          .eq("advertiser_id", profile.id)
-          .eq("status", "open"),
-        supabase
-          .from("subscriptions")
-          .select("status, started_at, plan_id")
-          .eq("advertiser_id", profile.id)
-          .maybeSingle(),
-      ]);
+    const [{ data: myCampaigns }, { data: subscription }] = await Promise.all([
+      supabase
+        .from("campaigns")
+        .select("id, status, recruit_end")
+        .eq("advertiser_id", profile.id),
+      supabase
+        .from("subscriptions")
+        .select("status, started_at, expires_at, plan_id")
+        .eq("advertiser_id", profile.id)
+        .maybeSingle(),
+    ]);
+    const campaigns = myCampaigns ?? [];
+    const campaignIds = campaigns.map((c) => c.id);
+    const campaignCount = campaigns.length;
+    const openCount = campaigns.filter((c) => c.status === "open").length;
+    const draftCount = campaigns.filter((c) => c.status === "draft").length;
 
-    const planId = subscription?.plan_id;
-    const { data: plan } = planId
-      ? await supabase
-          .from("plans")
-          .select("name, tier, monthly_price")
-          .eq("id", planId)
-          .maybeSingle()
-      : { data: null };
+    const now = Date.now();
+    const closingSoonCount = campaigns.filter(
+      (c) =>
+        c.status === "open" &&
+        new Date(c.recruit_end).getTime() - now < 3 * 24 * 60 * 60 * 1000 &&
+        new Date(c.recruit_end).getTime() > now
+    ).length;
+
+    // 오늘 할 일: 대기 응모자 · 검수 대기 제출물 · 안읽은 메시지
+    const [{ count: pendingApplicants }, { data: myApps }, planRes] = await Promise.all([
+      campaignIds.length
+        ? supabase
+            .from("applications")
+            .select("id", { count: "exact", head: true })
+            .in("campaign_id", campaignIds)
+            .eq("status", "pending")
+        : Promise.resolve({ count: 0 }),
+      campaignIds.length
+        ? supabase
+            .from("applications")
+            .select("id")
+            .in("campaign_id", campaignIds)
+            .in("status", ["selected", "completed"])
+        : Promise.resolve({ data: [] }),
+      subscription?.plan_id
+        ? supabase
+            .from("plans")
+            .select("name, tier, monthly_price")
+            .eq("id", subscription.plan_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
+    const appIds = (myApps ?? []).map((a) => a.id);
+    const [{ count: submittedCount }, { count: unreadMessages }] = await Promise.all([
+      appIds.length
+        ? supabase
+            .from("submissions")
+            .select("id", { count: "exact", head: true })
+            .in("application_id", appIds)
+            .eq("status", "submitted")
+        : Promise.resolve({ count: 0 }),
+      appIds.length
+        ? supabase
+            .from("messages")
+            .select("id", { count: "exact", head: true })
+            .in("application_id", appIds)
+            .neq("sender_id", profile.id)
+            .is("read_at", null)
+        : Promise.resolve({ count: 0 }),
+    ]);
+
+    const plan = planRes.data;
+    const expiresAt = subscription?.expires_at ? new Date(subscription.expires_at).getTime() : null;
+    const daysToExpire =
+      expiresAt && plan && plan.tier !== "free"
+        ? Math.ceil((expiresAt - now) / (24 * 60 * 60 * 1000))
+        : null;
 
     return (
       <AdvertiserOverview
         name={profile.name}
-        campaignCount={campaignCount ?? 0}
-        openCount={openCount ?? 0}
+        campaignCount={campaignCount}
+        openCount={openCount}
         plan={plan}
+        todo={{
+          pendingApplicants: pendingApplicants ?? 0,
+          submittedCount: submittedCount ?? 0,
+          unreadMessages: unreadMessages ?? 0,
+          closingSoonCount,
+          draftCount,
+          daysToExpire,
+        }}
       />
     );
   }
 
   if (profile.role === "influencer") {
-    const [{ count: applicationCount }, { count: selectedCount }, { data: influencer }] =
-      await Promise.all([
-        supabase
-          .from("applications")
-          .select("*", { count: "exact", head: true })
-          .eq("influencer_id", profile.id),
-        supabase
-          .from("applications")
-          .select("*", { count: "exact", head: true })
-          .eq("influencer_id", profile.id)
-          .eq("status", "selected"),
-        supabase
-          .from("influencers")
-          .select("total_points, region_id")
-          .eq("profile_id", profile.id)
-          .maybeSingle(),
-      ]);
+    const [{ data: myApps }, { data: influencer }, { count: newCampaigns }] = await Promise.all([
+      supabase.from("applications").select("id, status").eq("influencer_id", profile.id),
+      supabase
+        .from("influencers")
+        .select("total_points, region_id")
+        .eq("profile_id", profile.id)
+        .maybeSingle(),
+      supabase
+        .from("campaigns")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "open")
+        .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
+    ]);
+    const apps = myApps ?? [];
+    const applicationCount = apps.length;
+    const selectedApps = apps.filter((a) => a.status === "selected");
+    const selectedCount = selectedApps.length;
+    const activeAppIds = apps
+      .filter((a) => a.status === "selected" || a.status === "completed")
+      .map((a) => a.id);
 
-    const regionId = influencer?.region_id;
-    const { data: region } = regionId
-      ? await supabase.from("regions").select("flag, name").eq("id", regionId).maybeSingle()
-      : { data: null };
+    // 오늘 할 일: 제출 대기(선정됐는데 제출물 없음) · 수정 요청 · 안읽은 메시지
+    const [{ data: subs }, { count: unreadMessages }, regionRes] = await Promise.all([
+      activeAppIds.length
+        ? supabase
+            .from("submissions")
+            .select("application_id, status")
+            .in("application_id", activeAppIds)
+        : Promise.resolve({ data: [] }),
+      activeAppIds.length
+        ? supabase
+            .from("messages")
+            .select("id", { count: "exact", head: true })
+            .in("application_id", activeAppIds)
+            .neq("sender_id", profile.id)
+            .is("read_at", null)
+        : Promise.resolve({ count: 0 }),
+      influencer?.region_id
+        ? supabase
+            .from("regions")
+            .select("flag, name")
+            .eq("id", influencer.region_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
+    const submittedAppIds = new Set((subs ?? []).map((s) => s.application_id));
+    const needSubmitCount = selectedApps.filter((a) => !submittedAppIds.has(a.id)).length;
+    const revisionCount = (subs ?? []).filter((s) => s.status === "revision_requested").length;
+    const region = regionRes.data;
 
     return (
       <InfluencerOverview
         name={profile.name}
         approved={profile.approved}
-        applicationCount={applicationCount ?? 0}
-        selectedCount={selectedCount ?? 0}
+        applicationCount={applicationCount}
+        selectedCount={selectedCount}
         totalPoints={influencer?.total_points ?? 0}
         region={region ? `${region.flag} ${region.name}` : "—"}
+        todo={{
+          needSubmitCount,
+          revisionCount,
+          unreadMessages: unreadMessages ?? 0,
+          newCampaigns: newCampaigns ?? 0,
+        }}
       />
     );
   }
 
   // operator
-  const [{ count: pendingUsersCount }, { count: pendingCampaignsCount }] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("*", { count: "exact", head: true })
-      .eq("approved", false),
+  const [
+    { count: pendingUsersCount },
+    { count: pendingCampaignsCount },
+    { count: pendingWithdrawals },
+    { count: openCampaigns },
+  ] = await Promise.all([
+    supabase.from("profiles").select("*", { count: "exact", head: true }).eq("approved", false),
     supabase
       .from("campaigns")
       .select("*", { count: "exact", head: true })
       .eq("status", "pending_approval"),
+    supabase
+      .from("point_withdrawals")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "requested"),
+    supabase.from("campaigns").select("id", { count: "exact", head: true }).eq("status", "open"),
   ]);
 
   return (
@@ -104,6 +200,8 @@ export default async function DashboardPage() {
       name={profile.name}
       pendingUsersCount={pendingUsersCount ?? 0}
       pendingCampaignsCount={pendingCampaignsCount ?? 0}
+      pendingWithdrawals={pendingWithdrawals ?? 0}
+      openCampaigns={openCampaigns ?? 0}
     />
   );
 }

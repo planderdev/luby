@@ -1,5 +1,23 @@
 import Link from "next/link";
-import { ArrowRight, Inbox, Star, Coins, Clock } from "lucide-react";
+import {
+  ArrowRight,
+  Inbox,
+  Star,
+  Coins,
+  Clock,
+  Upload,
+  MessageSquareWarning,
+  MessageSquare,
+  Sparkles,
+} from "lucide-react";
+import { TodoList, type TodoItem } from "@/components/dashboard/TodoList";
+
+type InfluencerTodo = {
+  needSubmitCount: number;
+  revisionCount: number;
+  unreadMessages: number;
+  newCampaigns: number;
+};
 
 export function InfluencerOverview({
   name,
@@ -8,6 +26,7 @@ export function InfluencerOverview({
   selectedCount,
   totalPoints,
   region,
+  todo,
 }: {
   name: string;
   approved: boolean;
@@ -15,7 +34,51 @@ export function InfluencerOverview({
   selectedCount: number;
   totalPoints: number;
   region: string;
+  todo: InfluencerTodo;
 }) {
+  const todoItems: TodoItem[] = [
+    {
+      key: "revision",
+      count: todo.revisionCount,
+      label: `수정 요청된 콘텐츠 ${todo.revisionCount}건`,
+      hint: "광고주 피드백을 반영해 다시 제출하세요",
+      href: "/dashboard/applications",
+      cta: "재제출",
+      tone: "danger",
+      icon: <MessageSquareWarning className="size-5" />,
+    },
+    {
+      key: "submit",
+      count: todo.needSubmitCount,
+      label: `선정된 캠페인 ${todo.needSubmitCount}건의 콘텐츠를 제출하세요`,
+      hint: "체험 후 콘텐츠 URL을 올리면 검수 뒤 포인트가 지급돼요",
+      href: "/dashboard/applications",
+      cta: "제출하기",
+      tone: "warning",
+      icon: <Upload className="size-5" />,
+    },
+    {
+      key: "messages",
+      count: todo.unreadMessages,
+      label: `안 읽은 메시지 ${todo.unreadMessages}개`,
+      hint: "광고주가 일정·안내를 보냈어요",
+      href: "/dashboard/messages",
+      cta: "확인하기",
+      tone: "accent",
+      icon: <MessageSquare className="size-5" />,
+    },
+    {
+      key: "new",
+      count: todo.newCampaigns,
+      label: `이번 주 새로 열린 캠페인 ${todo.newCampaigns}개`,
+      hint: "내 업종·지역에 맞는 캠페인을 골라 응모하세요",
+      href: "/dashboard/campaigns",
+      cta: "둘러보기",
+      tone: "neutral",
+      icon: <Sparkles className="size-5" />,
+    },
+  ];
+
   return (
     <div>
       <header className="flex flex-wrap items-end justify-between gap-4">
@@ -70,6 +133,8 @@ export function InfluencerOverview({
           hint="누적"
         />
       </div>
+
+      {approved && <TodoList items={todoItems} />}
     </div>
   );
 }
