@@ -37,6 +37,7 @@ export function CampaignCard({
   regionName,
   categoryEmoji,
   categoryName,
+  badges = [],
 }: {
   id: string;
   title: string;
@@ -47,6 +48,8 @@ export function CampaignCard({
   recruitEnd: string;
   recruitCount: number;
   pointAmount?: number;
+  /** 크리에이터 맞춤 배지: "응모함" | "내 분야" | "내 지역" */
+  badges?: string[];
   regionFlag: string;
   regionName: string;
   categoryEmoji: string;
@@ -73,6 +76,22 @@ export function CampaignCard({
         >
           {statusInfo.label}
         </span>
+        {badges.length > 0 && (
+          <div className="absolute right-3 top-3 flex flex-wrap justify-end gap-1">
+            {badges.map((b) => (
+              <span
+                key={b}
+                className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                  b === "응모함"
+                    ? "bg-foreground/85 text-background"
+                    : "bg-accent text-white shadow-pink-sm"
+                }`}
+              >
+                {b}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div>

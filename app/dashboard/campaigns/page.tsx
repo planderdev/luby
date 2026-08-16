@@ -23,6 +23,13 @@ const SORT_OPTIONS = [
   { value: "deadline", label: "마감 임박순" },
   { value: "points", label: "포인트 높은순" },
 ];
+// 크리에이터: 내 분야·지역·응모 여부를 반영한 추천순이 기본
+const SORT_OPTIONS_INFLUENCER = [
+  { value: "", label: "추천순 (내 분야·지역)" },
+  { value: "recent", label: "최신순" },
+  { value: "deadline", label: "마감 임박순" },
+  { value: "points", label: "포인트 높은순" },
+];
 
 export default async function CampaignsPage({
   searchParams,
@@ -53,6 +60,9 @@ export default async function CampaignsPage({
       "id, title, business_name, thumbnail_url, status, recruit_start, recruit_end, recruit_count, point_amount, region_id, category_id"
     );
 
+  const isInfluencer = profile.role === "influencer";
+  const personalize = isInfluencer && sort === ""; // 추천순 — DB 정렬 후 메모리 재랭킹
+
   if (sort === "deadline") {
     query = query.order("recruit_end", { ascending: true });
   } else if (sort === "points") {
@@ -80,10 +90,40 @@ export default async function CampaignsPage({
   }
 
   // Fetch the campaigns query and the cached catalog in parallel
-  const [{ data: campaigns }, catalog] = await Promise.all([query, fetchUICatalog()]);
+  const [{ data: rawCampaigns }, catalog] = await Promise.all([query, fetchUICatalog()]);
 
   const regionsById = new Map(catalog.regions.map((r) => [r.id, r]));
   const categoriesById = new Map(catalog.categories.map((c) => [c.id, c]));
+
+  // 크리에이터 맞춤 신호: 내 분야·지역·응모 여부
+  const myCategoryIds = new Set<string>();
+  let myRegionId: string | null = null;
+  const appliedIds = new Set<string>();
+  if (isInfluencer) {
+    const [{ data: cats }, { data: inf }, { data: apps }] = await Promise.all([
+      supabase.from("influencer_categories").select("category_id").eq("influencer_id", profile.id),
+      supabase.from("influencers").select("region_id").eq("profile_id", profile.id).maybeSingle(),
+      supabase.from("applications").select("campaign_id").eq("influencer_id", profile.id),
+    ]);
+    for (const c of cats ?? []) myCategoryIds.add(c.category_id);
+    myRegionId = inf?.region_id ?? null;
+    for (const a of apps ?? []) appliedIds.add(a.campaign_id);
+  }
+
+  const now = Date.now();
+  const scoreOf = (c: { id: string; category_id: string; region_id: string; recruit_end: string }) => {
+    let s = 0;
+    if (myCategoryIds.has(c.category_id)) s += 3;
+    if (myRegionId && c.region_id === myRegionId) s += 2;
+    const msLeft = new Date(c.recruit_end).getTime() - now;
+    if (msLeft > 0 && msLeft < 3 * 24 * 60 * 60 * 1000) s += 1;
+    if (appliedIds.has(c.id)) s -= 10;
+    return s;
+  };
+  const campaigns = personalize
+    ? [...(rawCampaigns ?? [])].sort((a, b) => scoreOf(b) - scoreOf(a))
+    : rawCampaigns;
+  const hasPersonalSignal = myCategoryIds.size > 0 || !!myRegionId;
 
   return (
     <div>
@@ -120,11 +160,20 @@ export default async function CampaignsPage({
           label: `${r.flag} ${r.name}`.trim(),
         }))}
         statusOptions={profile.role === "influencer" ? null : STATUS_OPTIONS_ADVERTISER}
-        sortOptions={SORT_OPTIONS}
+        sortOptions={isInfluencer ? SORT_OPTIONS_INFLUENCER : SORT_OPTIONS}
       />
 
-      <p className="mt-6 text-xs text-muted-foreground">
-        총 {(campaigns ?? []).length}개 캠페인
+      <p className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+        <span>총 {(campaigns ?? []).length}개 캠페인</span>
+        {isInfluencer && personalize && !hasPersonalSignal && (
+          <span>
+            ·{" "}
+            <Link href="/dashboard/settings" className="underline underline-offset-2 hover:text-foreground">
+              설정에서 전문 분야·지역을 등록
+            </Link>
+            하면 내게 맞는 캠페인이 위로 올라와요
+          </span>
+        )}
       </p>
 
       {/* List */}
@@ -144,6 +193,15 @@ export default async function CampaignsPage({
               recruitEnd={c.recruit_end}
               recruitCount={c.recruit_count}
               pointAmount={c.point_amount}
+              badges={
+                isInfluencer
+                  ? [
+                      ...(appliedIds.has(c.id) ? ["응모함"] : []),
+                      ...(myCategoryIds.has(c.category_id) ? ["내 분야"] : []),
+                      ...(myRegionId && c.region_id === myRegionId ? ["내 지역"] : []),
+                    ]
+                  : []
+              }
               regionFlag={region?.flag ?? ""}
               regionName={region?.name ?? ""}
               categoryEmoji={category?.emoji ?? ""}
