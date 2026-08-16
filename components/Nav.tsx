@@ -26,14 +26,14 @@ export function Nav({ dict, locale }: { dict: Dict["nav"]; locale: Locale }) {
       }`}
     >
       <div className="mx-auto flex h-16 w-full max-w-360 items-center justify-between px-5 md:px-10 lg:px-16">
-        <a href="#" className="flex items-center" aria-label={dict.home}>
+        <a href="#" className="flex shrink-0 items-center" aria-label={dict.home}>
           <Image
             src="/logo.png"
             alt={dict.home}
             width={1298}
             height={410}
             priority
-            className="h-7 w-auto invert dark:invert-0"
+            className="h-6 w-auto shrink-0 invert dark:invert-0 sm:h-7"
           />
         </a>
 
@@ -49,20 +49,21 @@ export function Nav({ dict, locale }: { dict: Dict["nav"]; locale: Locale }) {
           ))}
         </nav>
 
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <LangSwitcher locale={locale} />
           <ThemeToggle />
           <a
             href="/login"
-            className="inline-block whitespace-nowrap rounded-full px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground sm:px-4"
+            className="inline-block whitespace-nowrap rounded-full px-2 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground sm:px-4"
           >
             {dict.login}
           </a>
           <a
             href="/signup"
-            className="whitespace-nowrap rounded-full bg-foreground px-4 py-2.5 text-sm font-medium text-background transition-transform hover:scale-[1.02] active:scale-[0.98] sm:px-5"
+            className="whitespace-nowrap rounded-full bg-foreground px-3.5 py-2.5 text-sm font-medium text-background transition-transform hover:scale-[1.02] active:scale-[0.98] sm:px-5"
           >
-            {dict.cta}
+            <span className="sm:hidden">{dict.ctaShort ?? dict.cta}</span>
+            <span className="hidden sm:inline">{dict.cta}</span>
           </a>
         </div>
       </div>

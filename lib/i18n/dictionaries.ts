@@ -26,6 +26,7 @@ const ko = {
     ],
     login: "로그인",
     cta: "무료로 시작하기",
+    ctaShort: "시작하기",
   },
   hero: {
     eyebrow: "GLOBAL CAMPAIGN PLATFORM · 12개국 운영중",
@@ -306,6 +307,7 @@ const en: Dict = {
     ],
     login: "Log in",
     cta: "Start for free",
+    ctaShort: "Start",
   },
   hero: {
     eyebrow: "GLOBAL CAMPAIGN PLATFORM · LIVE IN 12 COUNTRIES",
@@ -584,6 +586,7 @@ const zh: Dict = {
     ],
     login: "登录",
     cta: "免费开始",
+    ctaShort: "开始",
   },
   hero: {
     eyebrow: "GLOBAL CAMPAIGN PLATFORM · 已覆盖 12 个国家",
