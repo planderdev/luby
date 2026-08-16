@@ -58,13 +58,16 @@ export async function POST(request: Request) {
   const html = `<!DOCTYPE html>
 <html lang="ko"><body style="margin:0;padding:0;background:#0a0a0a;font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">
   <div style="max-width:520px;margin:0 auto;padding:40px 24px;">
-    <div style="font-size:20px;font-weight:700;color:#ffffff;margin-bottom:28px;">Luby<span style="color:#f43f8e;"> AI</span></div>
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;"><tr>
+      <td style="vertical-align:middle;"><img src="${siteUrl}/symbol-128.png" width="36" height="36" alt="Luby" style="display:block;border-radius:10px;" /></td>
+      <td style="padding-left:12px;vertical-align:middle;font-size:18px;font-weight:700;color:#ffffff;">Luby AI</td>
+    </tr></table>
     <div style="background:#171717;border:1px solid #262626;border-radius:20px;padding:28px;">
       <h1 style="margin:0 0 12px;font-size:18px;color:#ffffff;">${payload.title}</h1>
       ${payload.body ? `<p style="margin:0 0 24px;font-size:14px;line-height:1.7;color:#a3a3a3;">${payload.body}</p>` : ""}
       <a href="${link}" style="display:inline-block;background:#f43f8e;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;padding:12px 24px;border-radius:999px;">확인하러 가기</a>
     </div>
-    <p style="margin:24px 0 0;font-size:12px;color:#525252;">이 메일은 루비AI 알림 설정에 따라 발송되었습니다.<br/>문의: contact@plander.io</p>
+    <p style="margin:24px 0 0;font-size:12px;color:#525252;">이 메일은 Luby AI 알림 설정에 따라 발송되었습니다.<br/>문의: contact@plander.io</p>
   </div>
 </body></html>`;
 

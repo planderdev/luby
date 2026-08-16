@@ -1,0 +1,656 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>Luby AI 이메일 템플릿 복사 도우미</title>
+<style>
+body{font-family:-apple-system,"Apple SD Gothic Neo",sans-serif;background:#0d0d0f;color:#eee;margin:0;padding:32px 20px 80px;max-width:900px;margin:0 auto}
+h1{font-size:22px;margin:0 0 6px} p.lead{color:#aaa;margin:0 0 20px;line-height:1.6}
+a{color:#ff5aa5}
+.card{background:#16161a;border:1px solid #2a2a30;border-radius:16px;padding:20px 22px;margin:14px 0}
+h2{font-size:16px;margin:0 0 12px;font-weight:600} .num{display:inline-block;background:#ff5aa5;color:#fff;border-radius:999px;width:24px;height:24px;line-height:24px;text-align:center;font-size:13px;margin-right:6px}
+.row{margin:12px 0} .label{font-size:13px;color:#bbb;margin-bottom:6px}
+.subj{background:#0d0d0f;border:1px solid #333;border-radius:8px;padding:8px 10px;font-size:14px;margin-bottom:6px}
+textarea{width:100%;height:90px;background:#0d0d0f;color:#888;border:1px solid #333;border-radius:8px;font-size:11px;padding:8px;box-sizing:border-box;resize:vertical}
+button{background:#fff;color:#000;border:0;border-radius:999px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;margin-top:6px}
+button.big{background:#ff5aa5;color:#fff;padding:10px 20px} button.done{background:#2fbf71!important;color:#fff!important}
+.tip{background:#1c1c22;border-left:3px solid #ff5aa5;padding:10px 14px;border-radius:8px;font-size:13px;color:#ccc;line-height:1.7}
+</style></head><body>
+<h1>Luby AI 이메일 템플릿 복사 도우미</h1>
+<p class="lead">이 페이지와 Supabase 페이지를 나란히 두고, 카드 5개를 위에서부터 차례로 처리하면 끝입니다.<br>
+Supabase 템플릿 페이지: <a href="https://supabase.com/dashboard/project/ncyuljyeyuorgsfuzzmw/auth/templates" target="_blank">https://supabase.com/dashboard/project/ncyuljyeyuorgsfuzzmw/auth/templates</a></p>
+<div class="tip">💡 각 카드마다: <b>제목 복사</b> → Supabase의 <b>Subject heading</b> 칸 클릭 → ⌘A → ⌘V &nbsp;|&nbsp; <b>본문 HTML 전체 복사</b> → Supabase의 <b>Message body</b> 코드 칸 클릭 → ⌘A → ⌘V &nbsp;|&nbsp; <b>Save changes</b><br>
+버튼이 초록색 <b>복사됨 ✓</b>으로 바뀌면 클립보드에 들어간 겁니다.</div>
+
+<section class="card">
+  <h2><span class="num">1</span> Supabase 왼쪽 목록에서 <b>“Confirm sign up”</b> 클릭</h2>
+  <div class="row">
+    <div class="label">① Subject heading 칸에 붙여넣기</div>
+    <div class="subj">Luby AI 이메일 인증 — 가입을 완료해주세요</div>
+    <button onclick="cp(this,"Luby AI \uc774\uba54\uc77c \uc778\uc99d \u2014 \uac00\uc785\uc744 \uc644\ub8cc\ud574\uc8fc\uc138\uc694")">제목 복사</button>
+  </div>
+  <div class="row">
+    <div class="label">② Message body 칸 → 클릭 → ⌘A → ⌘V (아래 버튼으로 복사한 뒤)</div>
+    <textarea id="t1" readonly>&lt;!--
+  Supabase Email Template: Confirm signup
+  Subject (paste separately): Luby AI 이메일 인증 — 가입을 완료해주세요
+
+  Variables used: {{ .ConfirmationURL }}
+--&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ko&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;color-scheme&quot; content=&quot;light dark&quot;&gt;
+&lt;meta name=&quot;supported-color-schemes&quot; content=&quot;light dark&quot;&gt;
+&lt;title&gt;Luby AI 이메일 인증&lt;/title&gt;
+&lt;style&gt;
+  @media (prefers-color-scheme: dark) {
+    .bg { background:#0a0a0c !important; }
+    .card { background:#15151a !important; border-color:#26262e !important; }
+    .text { color:#f5f5f7 !important; }
+    .muted { color:#9ca0ac !important; }
+    .border { border-color:#26262e !important; }
+    .btn { background:#f5f5f7 !important; color:#0a0a0c !important; }
+    .badge { background:#f5f5f7 !important; }
+    .badge-icon { color:#ec4899 !important; }
+    .pink-soft { background:#3d1729 !important; color:#fba8d0 !important; }
+    .link-fallback { background:#1a1a20 !important; color:#9ca0ac !important; }
+  }
+  a { text-decoration:none; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body class=&quot;bg&quot; style=&quot;margin:0;padding:0;background:#fafafa;font-family:-apple-system,BlinkMacSystemFont,&#x27;Apple SD Gothic Neo&#x27;,&#x27;Segoe UI&#x27;,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;&quot;&gt;
+&lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; class=&quot;bg&quot; style=&quot;background:#fafafa;&quot;&gt;
+  &lt;tr&gt;&lt;td align=&quot;center&quot; style=&quot;padding:40px 16px;&quot;&gt;
+    &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; class=&quot;card border&quot; style=&quot;max-width:560px;background:#ffffff;border:1px solid #e2e4ea;border-radius:24px;&quot;&gt;
+
+      &lt;!-- Header --&gt;
+      &lt;tr&gt;&lt;td style=&quot;padding:36px 36px 28px;&quot;&gt;
+        &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot;&gt;&lt;tr&gt;
+          &lt;td style=&quot;width:36px;height:36px;vertical-align:middle;&quot;&gt;
+            &lt;img src=&quot;https://luby.im/symbol-128.png&quot; width=&quot;36&quot; height=&quot;36&quot; alt=&quot;Luby&quot; style=&quot;display:block;border-radius:10px;&quot;&gt;
+          &lt;/td&gt;
+          &lt;td style=&quot;padding-left:12px;vertical-align:middle;&quot;&gt;
+            &lt;span class=&quot;text&quot; style=&quot;font-size:17px;font-weight:600;color:#0c0c0e;letter-spacing:-0.01em;&quot;&gt;Luby AI&lt;/span&gt;
+          &lt;/td&gt;
+        &lt;/tr&gt;&lt;/table&gt;
+      &lt;/td&gt;&lt;/tr&gt;
+
+      &lt;!-- Body --&gt;
+      &lt;tr&gt;&lt;td style=&quot;padding:0 36px 36px;&quot;&gt;
+
+        &lt;!-- Eyebrow --&gt;
+        &lt;div class=&quot;pink-soft&quot; style=&quot;display:inline-block;background:#fce7f3;color:#831843;font-size:11px;font-weight:600;letter-spacing:0.1em;padding:6px 12px;border-radius:999px;text-transform:uppercase;&quot;&gt;
+          환영합니다
+        &lt;/div&gt;
+
+        &lt;!-- Headline --&gt;
+        &lt;h1 class=&quot;text&quot; style=&quot;margin:20px 0 12px;font-size:28px;line-height:1.2;letter-spacing:-0.02em;color:#0c0c0e;font-weight:600;&quot;&gt;
+          이메일을&lt;br&gt;인증해주세요
+        &lt;/h1&gt;
+
+        &lt;!-- Sub --&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 28px;font-size:15px;line-height:1.6;color:#6e707a;&quot;&gt;
+          Luby AI에 가입해 주셔서 감사합니다.&lt;br&gt;
+          아래 버튼을 클릭하면 이메일 인증이 완료되고, 모든 기능을 사용하실 수 있어요.
+        &lt;/p&gt;
+
+        &lt;!-- CTA button --&gt;
+        &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot;&gt;&lt;tr&gt;&lt;td&gt;
+          &lt;a href=&quot;{{ .ConfirmationURL }}&quot; class=&quot;btn&quot; style=&quot;display:inline-block;background:#0c0c0e;color:#ffffff;font-size:15px;font-weight:600;padding:14px 28px;border-radius:999px;text-decoration:none;letter-spacing:-0.01em;&quot;&gt;
+            이메일 인증하기 →
+          &lt;/a&gt;
+        &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+        &lt;!-- Manual link fallback --&gt;
+        &lt;div style=&quot;margin-top:32px;padding-top:24px;border-top:1px solid #e2e4ea;&quot; class=&quot;border&quot;&gt;
+          &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 8px;font-size:12px;color:#9ca0ac;line-height:1.5;&quot;&gt;
+            버튼이 작동하지 않으면 아래 링크를 복사해서 브라우저 주소창에 붙여넣어주세요.
+          &lt;/p&gt;
+          &lt;p class=&quot;link-fallback&quot; style=&quot;margin:0;padding:10px 12px;background:#f4f4f6;border-radius:10px;font-size:11px;color:#6e707a;word-break:break-all;line-height:1.4;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;&quot;&gt;
+            {{ .ConfirmationURL }}
+          &lt;/p&gt;
+        &lt;/div&gt;
+
+      &lt;/td&gt;&lt;/tr&gt;
+
+      &lt;!-- Footer --&gt;
+      &lt;tr&gt;&lt;td class=&quot;border&quot; style=&quot;padding:24px 36px 32px;border-top:1px solid #e2e4ea;&quot;&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 8px;color:#6e707a;font-size:12px;line-height:1.6;&quot;&gt;
+          Luby AI · 글로벌 체험단 마케팅 플랫폼
+        &lt;/p&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0;font-size:12px;line-height:1.6;&quot;&gt;
+          &lt;a href=&quot;https://luby.im&quot; class=&quot;muted&quot; style=&quot;color:#6e707a;text-decoration:underline;&quot;&gt;luby.im&lt;/a&gt;
+          &amp;nbsp;·&amp;nbsp;
+          &lt;a href=&quot;mailto:contact@plander.io&quot; class=&quot;muted&quot; style=&quot;color:#6e707a;text-decoration:underline;&quot;&gt;contact@plander.io&lt;/a&gt;
+        &lt;/p&gt;
+      &lt;/td&gt;&lt;/tr&gt;
+
+    &lt;/table&gt;
+
+    &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; style=&quot;max-width:560px;margin-top:20px;&quot;&gt;
+      &lt;tr&gt;&lt;td align=&quot;center&quot; style=&quot;padding:0 16px;&quot;&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0;color:#9ca0ac;font-size:11px;line-height:1.6;&quot;&gt;
+          본인이 가입하지 않으셨다면 이 메일을 안전하게 무시해주세요.&lt;br&gt;
+          어떠한 계정도 생성되지 않습니다.
+        &lt;/p&gt;
+      &lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+
+  &lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</textarea>
+    <button class="big" onclick="cpTA(this,'t1')">본문 HTML 전체 복사</button>
+  </div>
+  <div class="row"><div class="label">③ 오른쪽 아래 <b>Save changes</b> 클릭 → 다음 카드로</div></div>
+</section>
+<section class="card">
+  <h2><span class="num">2</span> Supabase 왼쪽 목록에서 <b>“Magic Link”</b> 클릭</h2>
+  <div class="row">
+    <div class="label">① Subject heading 칸에 붙여넣기</div>
+    <div class="subj">Luby AI 로그인 링크가 도착했어요</div>
+    <button onclick="cp(this,"Luby AI \ub85c\uadf8\uc778 \ub9c1\ud06c\uac00 \ub3c4\ucc29\ud588\uc5b4\uc694")">제목 복사</button>
+  </div>
+  <div class="row">
+    <div class="label">② Message body 칸 → 클릭 → ⌘A → ⌘V (아래 버튼으로 복사한 뒤)</div>
+    <textarea id="t2" readonly>&lt;!--
+  Supabase Email Template: Magic Link
+  Subject (paste separately): Luby AI 로그인 링크가 도착했어요
+
+  Variables used: {{ .ConfirmationURL }}
+--&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ko&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;color-scheme&quot; content=&quot;light dark&quot;&gt;
+&lt;meta name=&quot;supported-color-schemes&quot; content=&quot;light dark&quot;&gt;
+&lt;title&gt;Luby AI 로그인&lt;/title&gt;
+&lt;style&gt;
+  @media (prefers-color-scheme: dark) {
+    .bg { background:#0a0a0c !important; }
+    .card { background:#15151a !important; border-color:#26262e !important; }
+    .text { color:#f5f5f7 !important; }
+    .muted { color:#9ca0ac !important; }
+    .border { border-color:#26262e !important; }
+    .btn { background:#f5f5f7 !important; color:#0a0a0c !important; }
+    .badge { background:#f5f5f7 !important; }
+    .badge-icon { color:#ec4899 !important; }
+    .pink-soft { background:#3d1729 !important; color:#fba8d0 !important; }
+    .link-fallback { background:#1a1a20 !important; color:#9ca0ac !important; }
+  }
+  a { text-decoration:none; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body class=&quot;bg&quot; style=&quot;margin:0;padding:0;background:#fafafa;font-family:-apple-system,BlinkMacSystemFont,&#x27;Apple SD Gothic Neo&#x27;,&#x27;Segoe UI&#x27;,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;&quot;&gt;
+&lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; class=&quot;bg&quot; style=&quot;background:#fafafa;&quot;&gt;
+  &lt;tr&gt;&lt;td align=&quot;center&quot; style=&quot;padding:40px 16px;&quot;&gt;
+    &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; class=&quot;card border&quot; style=&quot;max-width:560px;background:#ffffff;border:1px solid #e2e4ea;border-radius:24px;&quot;&gt;
+
+      &lt;tr&gt;&lt;td style=&quot;padding:36px 36px 28px;&quot;&gt;
+        &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot;&gt;&lt;tr&gt;
+          &lt;td style=&quot;width:36px;height:36px;vertical-align:middle;&quot;&gt;
+            &lt;img src=&quot;https://luby.im/symbol-128.png&quot; width=&quot;36&quot; height=&quot;36&quot; alt=&quot;Luby&quot; style=&quot;display:block;border-radius:10px;&quot;&gt;
+          &lt;/td&gt;
+          &lt;td style=&quot;padding-left:12px;vertical-align:middle;&quot;&gt;
+            &lt;span class=&quot;text&quot; style=&quot;font-size:17px;font-weight:600;color:#0c0c0e;letter-spacing:-0.01em;&quot;&gt;Luby AI&lt;/span&gt;
+          &lt;/td&gt;
+        &lt;/tr&gt;&lt;/table&gt;
+      &lt;/td&gt;&lt;/tr&gt;
+
+      &lt;tr&gt;&lt;td style=&quot;padding:0 36px 36px;&quot;&gt;
+        &lt;div class=&quot;pink-soft&quot; style=&quot;display:inline-block;background:#fce7f3;color:#831843;font-size:11px;font-weight:600;letter-spacing:0.1em;padding:6px 12px;border-radius:999px;text-transform:uppercase;&quot;&gt;
+          로그인 링크
+        &lt;/div&gt;
+
+        &lt;h1 class=&quot;text&quot; style=&quot;margin:20px 0 12px;font-size:28px;line-height:1.2;letter-spacing:-0.02em;color:#0c0c0e;font-weight:600;&quot;&gt;
+          한 번의 클릭으로&lt;br&gt;로그인하세요
+        &lt;/h1&gt;
+
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 28px;font-size:15px;line-height:1.6;color:#6e707a;&quot;&gt;
+          요청하신 매직 링크입니다. 아래 버튼을 누르면 비밀번호 없이 즉시 로그인됩니다.&lt;br&gt;
+          &lt;strong style=&quot;color:#0c0c0e;&quot;&gt;이 링크는 1시간 동안 유효합니다.&lt;/strong&gt;
+        &lt;/p&gt;
+
+        &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot;&gt;&lt;tr&gt;&lt;td&gt;
+          &lt;a href=&quot;{{ .ConfirmationURL }}&quot; class=&quot;btn&quot; style=&quot;display:inline-block;background:#0c0c0e;color:#ffffff;font-size:15px;font-weight:600;padding:14px 28px;border-radius:999px;text-decoration:none;letter-spacing:-0.01em;&quot;&gt;
+            로그인 →
+          &lt;/a&gt;
+        &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+        &lt;div style=&quot;margin-top:32px;padding-top:24px;border-top:1px solid #e2e4ea;&quot; class=&quot;border&quot;&gt;
+          &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 8px;font-size:12px;color:#9ca0ac;line-height:1.5;&quot;&gt;
+            버튼이 작동하지 않으면 아래 링크를 복사해서 사용해주세요.
+          &lt;/p&gt;
+          &lt;p class=&quot;link-fallback&quot; style=&quot;margin:0;padding:10px 12px;background:#f4f4f6;border-radius:10px;font-size:11px;color:#6e707a;word-break:break-all;line-height:1.4;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;&quot;&gt;
+            {{ .ConfirmationURL }}
+          &lt;/p&gt;
+        &lt;/div&gt;
+
+      &lt;/td&gt;&lt;/tr&gt;
+
+      &lt;tr&gt;&lt;td class=&quot;border&quot; style=&quot;padding:24px 36px 32px;border-top:1px solid #e2e4ea;&quot;&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 8px;color:#6e707a;font-size:12px;line-height:1.6;&quot;&gt;
+          Luby AI · 글로벌 체험단 마케팅 플랫폼
+        &lt;/p&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0;font-size:12px;line-height:1.6;&quot;&gt;
+          &lt;a href=&quot;https://luby.im&quot; class=&quot;muted&quot; style=&quot;color:#6e707a;text-decoration:underline;&quot;&gt;luby.im&lt;/a&gt;
+          &amp;nbsp;·&amp;nbsp;
+          &lt;a href=&quot;mailto:contact@plander.io&quot; class=&quot;muted&quot; style=&quot;color:#6e707a;text-decoration:underline;&quot;&gt;contact@plander.io&lt;/a&gt;
+        &lt;/p&gt;
+      &lt;/td&gt;&lt;/tr&gt;
+
+    &lt;/table&gt;
+
+    &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; style=&quot;max-width:560px;margin-top:20px;&quot;&gt;
+      &lt;tr&gt;&lt;td align=&quot;center&quot; style=&quot;padding:0 16px;&quot;&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0;color:#9ca0ac;font-size:11px;line-height:1.6;&quot;&gt;
+          본인이 요청하지 않으셨다면 누군가 이메일 주소를 잘못 입력했을 수 있습니다.&lt;br&gt;
+          이 메일을 안전하게 무시해주세요.
+        &lt;/p&gt;
+      &lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+
+  &lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</textarea>
+    <button class="big" onclick="cpTA(this,'t2')">본문 HTML 전체 복사</button>
+  </div>
+  <div class="row"><div class="label">③ 오른쪽 아래 <b>Save changes</b> 클릭 → 다음 카드로</div></div>
+</section>
+<section class="card">
+  <h2><span class="num">3</span> Supabase 왼쪽 목록에서 <b>“Reset Password”</b> 클릭</h2>
+  <div class="row">
+    <div class="label">① Subject heading 칸에 붙여넣기</div>
+    <div class="subj">Luby AI 비밀번호 재설정 안내</div>
+    <button onclick="cp(this,"Luby AI \ube44\ubc00\ubc88\ud638 \uc7ac\uc124\uc815 \uc548\ub0b4")">제목 복사</button>
+  </div>
+  <div class="row">
+    <div class="label">② Message body 칸 → 클릭 → ⌘A → ⌘V (아래 버튼으로 복사한 뒤)</div>
+    <textarea id="t3" readonly>&lt;!--
+  Supabase Email Template: Reset Password
+  Subject (paste separately): Luby AI 비밀번호 재설정 안내
+
+  Variables used: {{ .ConfirmationURL }}
+--&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ko&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;color-scheme&quot; content=&quot;light dark&quot;&gt;
+&lt;meta name=&quot;supported-color-schemes&quot; content=&quot;light dark&quot;&gt;
+&lt;title&gt;Luby AI 비밀번호 재설정&lt;/title&gt;
+&lt;style&gt;
+  @media (prefers-color-scheme: dark) {
+    .bg { background:#0a0a0c !important; }
+    .card { background:#15151a !important; border-color:#26262e !important; }
+    .text { color:#f5f5f7 !important; }
+    .muted { color:#9ca0ac !important; }
+    .border { border-color:#26262e !important; }
+    .btn { background:#f5f5f7 !important; color:#0a0a0c !important; }
+    .badge { background:#f5f5f7 !important; }
+    .badge-icon { color:#ec4899 !important; }
+    .pink-soft { background:#3d1729 !important; color:#fba8d0 !important; }
+    .link-fallback { background:#1a1a20 !important; color:#9ca0ac !important; }
+    .info-box { background:#1a1a20 !important; }
+  }
+  a { text-decoration:none; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body class=&quot;bg&quot; style=&quot;margin:0;padding:0;background:#fafafa;font-family:-apple-system,BlinkMacSystemFont,&#x27;Apple SD Gothic Neo&#x27;,&#x27;Segoe UI&#x27;,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;&quot;&gt;
+&lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; class=&quot;bg&quot; style=&quot;background:#fafafa;&quot;&gt;
+  &lt;tr&gt;&lt;td align=&quot;center&quot; style=&quot;padding:40px 16px;&quot;&gt;
+    &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; class=&quot;card border&quot; style=&quot;max-width:560px;background:#ffffff;border:1px solid #e2e4ea;border-radius:24px;&quot;&gt;
+
+      &lt;tr&gt;&lt;td style=&quot;padding:36px 36px 28px;&quot;&gt;
+        &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot;&gt;&lt;tr&gt;
+          &lt;td style=&quot;width:36px;height:36px;vertical-align:middle;&quot;&gt;
+            &lt;img src=&quot;https://luby.im/symbol-128.png&quot; width=&quot;36&quot; height=&quot;36&quot; alt=&quot;Luby&quot; style=&quot;display:block;border-radius:10px;&quot;&gt;
+          &lt;/td&gt;
+          &lt;td style=&quot;padding-left:12px;vertical-align:middle;&quot;&gt;
+            &lt;span class=&quot;text&quot; style=&quot;font-size:17px;font-weight:600;color:#0c0c0e;letter-spacing:-0.01em;&quot;&gt;Luby AI&lt;/span&gt;
+          &lt;/td&gt;
+        &lt;/tr&gt;&lt;/table&gt;
+      &lt;/td&gt;&lt;/tr&gt;
+
+      &lt;tr&gt;&lt;td style=&quot;padding:0 36px 36px;&quot;&gt;
+        &lt;div class=&quot;pink-soft&quot; style=&quot;display:inline-block;background:#fce7f3;color:#831843;font-size:11px;font-weight:600;letter-spacing:0.1em;padding:6px 12px;border-radius:999px;text-transform:uppercase;&quot;&gt;
+          비밀번호 재설정
+        &lt;/div&gt;
+
+        &lt;h1 class=&quot;text&quot; style=&quot;margin:20px 0 12px;font-size:28px;line-height:1.2;letter-spacing:-0.02em;color:#0c0c0e;font-weight:600;&quot;&gt;
+          새 비밀번호를&lt;br&gt;설정하세요
+        &lt;/h1&gt;
+
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 28px;font-size:15px;line-height:1.6;color:#6e707a;&quot;&gt;
+          비밀번호 재설정 요청을 받았습니다.&lt;br&gt;
+          아래 버튼을 클릭하시면 새 비밀번호를 안전하게 설정할 수 있어요.
+        &lt;/p&gt;
+
+        &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot;&gt;&lt;tr&gt;&lt;td&gt;
+          &lt;a href=&quot;{{ .ConfirmationURL }}&quot; class=&quot;btn&quot; style=&quot;display:inline-block;background:#0c0c0e;color:#ffffff;font-size:15px;font-weight:600;padding:14px 28px;border-radius:999px;text-decoration:none;letter-spacing:-0.01em;&quot;&gt;
+            비밀번호 재설정 →
+          &lt;/a&gt;
+        &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+        &lt;!-- Security note --&gt;
+        &lt;div class=&quot;info-box&quot; style=&quot;margin-top:28px;padding:16px 18px;background:#f4f4f6;border-radius:14px;&quot;&gt;
+          &lt;p class=&quot;muted&quot; style=&quot;margin:0;font-size:13px;line-height:1.6;color:#6e707a;&quot;&gt;
+            🔒 &lt;strong style=&quot;color:#0c0c0e;&quot;&gt;보안 안내&lt;/strong&gt;&lt;br&gt;
+            이 링크는 &lt;strong&gt;1시간 동안&lt;/strong&gt; 유효합니다. 본인이 요청하지 않으셨다면 즉시 비밀번호를 변경하시고 &lt;a href=&quot;mailto:contact@plander.io&quot; style=&quot;color:#831843;text-decoration:underline;&quot;&gt;contact@plander.io&lt;/a&gt; 로 문의해주세요.
+          &lt;/p&gt;
+        &lt;/div&gt;
+
+        &lt;div style=&quot;margin-top:24px;padding-top:24px;border-top:1px solid #e2e4ea;&quot; class=&quot;border&quot;&gt;
+          &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 8px;font-size:12px;color:#9ca0ac;line-height:1.5;&quot;&gt;
+            버튼이 작동하지 않으면 아래 링크를 복사해서 사용해주세요.
+          &lt;/p&gt;
+          &lt;p class=&quot;link-fallback&quot; style=&quot;margin:0;padding:10px 12px;background:#f4f4f6;border-radius:10px;font-size:11px;color:#6e707a;word-break:break-all;line-height:1.4;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;&quot;&gt;
+            {{ .ConfirmationURL }}
+          &lt;/p&gt;
+        &lt;/div&gt;
+
+      &lt;/td&gt;&lt;/tr&gt;
+
+      &lt;tr&gt;&lt;td class=&quot;border&quot; style=&quot;padding:24px 36px 32px;border-top:1px solid #e2e4ea;&quot;&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 8px;color:#6e707a;font-size:12px;line-height:1.6;&quot;&gt;
+          Luby AI · 글로벌 체험단 마케팅 플랫폼
+        &lt;/p&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0;font-size:12px;line-height:1.6;&quot;&gt;
+          &lt;a href=&quot;https://luby.im&quot; class=&quot;muted&quot; style=&quot;color:#6e707a;text-decoration:underline;&quot;&gt;luby.im&lt;/a&gt;
+          &amp;nbsp;·&amp;nbsp;
+          &lt;a href=&quot;mailto:contact@plander.io&quot; class=&quot;muted&quot; style=&quot;color:#6e707a;text-decoration:underline;&quot;&gt;contact@plander.io&lt;/a&gt;
+        &lt;/p&gt;
+      &lt;/td&gt;&lt;/tr&gt;
+
+    &lt;/table&gt;
+
+    &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; style=&quot;max-width:560px;margin-top:20px;&quot;&gt;
+      &lt;tr&gt;&lt;td align=&quot;center&quot; style=&quot;padding:0 16px;&quot;&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0;color:#9ca0ac;font-size:11px;line-height:1.6;&quot;&gt;
+          본인이 비밀번호 재설정을 요청하지 않으셨다면 이 메일을 무시해주세요.&lt;br&gt;
+          현재 비밀번호는 변경되지 않습니다.
+        &lt;/p&gt;
+      &lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+
+  &lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</textarea>
+    <button class="big" onclick="cpTA(this,'t3')">본문 HTML 전체 복사</button>
+  </div>
+  <div class="row"><div class="label">③ 오른쪽 아래 <b>Save changes</b> 클릭 → 다음 카드로</div></div>
+</section>
+<section class="card">
+  <h2><span class="num">4</span> Supabase 왼쪽 목록에서 <b>“Change Email Address”</b> 클릭</h2>
+  <div class="row">
+    <div class="label">① Subject heading 칸에 붙여넣기</div>
+    <div class="subj">Luby AI 이메일 변경 확인</div>
+    <button onclick="cp(this,"Luby AI \uc774\uba54\uc77c \ubcc0\uacbd \ud655\uc778")">제목 복사</button>
+  </div>
+  <div class="row">
+    <div class="label">② Message body 칸 → 클릭 → ⌘A → ⌘V (아래 버튼으로 복사한 뒤)</div>
+    <textarea id="t4" readonly>&lt;!--
+  Supabase Email Template: Change Email Address
+  Subject (paste separately): Luby AI 이메일 변경 확인
+
+  Variables used: {{ .ConfirmationURL }}, {{ .Email }}, {{ .NewEmail }}
+--&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ko&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;color-scheme&quot; content=&quot;light dark&quot;&gt;
+&lt;meta name=&quot;supported-color-schemes&quot; content=&quot;light dark&quot;&gt;
+&lt;title&gt;Luby AI 이메일 변경&lt;/title&gt;
+&lt;style&gt;
+  @media (prefers-color-scheme: dark) {
+    .bg { background:#0a0a0c !important; }
+    .card { background:#15151a !important; border-color:#26262e !important; }
+    .text { color:#f5f5f7 !important; }
+    .muted { color:#9ca0ac !important; }
+    .border { border-color:#26262e !important; }
+    .btn { background:#f5f5f7 !important; color:#0a0a0c !important; }
+    .badge { background:#f5f5f7 !important; }
+    .badge-icon { color:#ec4899 !important; }
+    .pink-soft { background:#3d1729 !important; color:#fba8d0 !important; }
+    .link-fallback { background:#1a1a20 !important; color:#9ca0ac !important; }
+    .info-box { background:#1a1a20 !important; }
+  }
+  a { text-decoration:none; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body class=&quot;bg&quot; style=&quot;margin:0;padding:0;background:#fafafa;font-family:-apple-system,BlinkMacSystemFont,&#x27;Apple SD Gothic Neo&#x27;,&#x27;Segoe UI&#x27;,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;&quot;&gt;
+&lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; class=&quot;bg&quot; style=&quot;background:#fafafa;&quot;&gt;
+  &lt;tr&gt;&lt;td align=&quot;center&quot; style=&quot;padding:40px 16px;&quot;&gt;
+    &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; class=&quot;card border&quot; style=&quot;max-width:560px;background:#ffffff;border:1px solid #e2e4ea;border-radius:24px;&quot;&gt;
+
+      &lt;tr&gt;&lt;td style=&quot;padding:36px 36px 28px;&quot;&gt;
+        &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot;&gt;&lt;tr&gt;
+          &lt;td style=&quot;width:36px;height:36px;vertical-align:middle;&quot;&gt;
+            &lt;img src=&quot;https://luby.im/symbol-128.png&quot; width=&quot;36&quot; height=&quot;36&quot; alt=&quot;Luby&quot; style=&quot;display:block;border-radius:10px;&quot;&gt;
+          &lt;/td&gt;
+          &lt;td style=&quot;padding-left:12px;vertical-align:middle;&quot;&gt;
+            &lt;span class=&quot;text&quot; style=&quot;font-size:17px;font-weight:600;color:#0c0c0e;letter-spacing:-0.01em;&quot;&gt;Luby AI&lt;/span&gt;
+          &lt;/td&gt;
+        &lt;/tr&gt;&lt;/table&gt;
+      &lt;/td&gt;&lt;/tr&gt;
+
+      &lt;tr&gt;&lt;td style=&quot;padding:0 36px 36px;&quot;&gt;
+        &lt;div class=&quot;pink-soft&quot; style=&quot;display:inline-block;background:#fce7f3;color:#831843;font-size:11px;font-weight:600;letter-spacing:0.1em;padding:6px 12px;border-radius:999px;text-transform:uppercase;&quot;&gt;
+          이메일 변경
+        &lt;/div&gt;
+
+        &lt;h1 class=&quot;text&quot; style=&quot;margin:20px 0 12px;font-size:28px;line-height:1.2;letter-spacing:-0.02em;color:#0c0c0e;font-weight:600;&quot;&gt;
+          이메일 변경을&lt;br&gt;확인해주세요
+        &lt;/h1&gt;
+
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 24px;font-size:15px;line-height:1.6;color:#6e707a;&quot;&gt;
+          Luby AI 계정의 이메일 주소 변경 요청을 받았습니다.&lt;br&gt;
+          아래 버튼을 클릭하시면 변경이 완료됩니다.
+        &lt;/p&gt;
+
+        &lt;!-- Email change summary --&gt;
+        &lt;div class=&quot;info-box&quot; style=&quot;margin-bottom:28px;padding:18px;background:#f4f4f6;border-radius:14px;&quot;&gt;
+          &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 4px;font-size:11px;color:#9ca0ac;text-transform:uppercase;letter-spacing:0.08em;&quot;&gt;변경 전&lt;/p&gt;
+          &lt;p class=&quot;text&quot; style=&quot;margin:0 0 12px;font-size:14px;color:#0c0c0e;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;&quot;&gt;{{ .Email }}&lt;/p&gt;
+          &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 4px;font-size:11px;color:#9ca0ac;text-transform:uppercase;letter-spacing:0.08em;&quot;&gt;변경 후&lt;/p&gt;
+          &lt;p class=&quot;text&quot; style=&quot;margin:0;font-size:14px;color:#0c0c0e;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:600;&quot;&gt;{{ .NewEmail }}&lt;/p&gt;
+        &lt;/div&gt;
+
+        &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot;&gt;&lt;tr&gt;&lt;td&gt;
+          &lt;a href=&quot;{{ .ConfirmationURL }}&quot; class=&quot;btn&quot; style=&quot;display:inline-block;background:#0c0c0e;color:#ffffff;font-size:15px;font-weight:600;padding:14px 28px;border-radius:999px;text-decoration:none;letter-spacing:-0.01em;&quot;&gt;
+            변경 확인하기 →
+          &lt;/a&gt;
+        &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+        &lt;div style=&quot;margin-top:32px;padding-top:24px;border-top:1px solid #e2e4ea;&quot; class=&quot;border&quot;&gt;
+          &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 8px;font-size:12px;color:#9ca0ac;line-height:1.5;&quot;&gt;
+            버튼이 작동하지 않으면 아래 링크를 복사해서 사용해주세요.
+          &lt;/p&gt;
+          &lt;p class=&quot;link-fallback&quot; style=&quot;margin:0;padding:10px 12px;background:#f4f4f6;border-radius:10px;font-size:11px;color:#6e707a;word-break:break-all;line-height:1.4;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;&quot;&gt;
+            {{ .ConfirmationURL }}
+          &lt;/p&gt;
+        &lt;/div&gt;
+
+      &lt;/td&gt;&lt;/tr&gt;
+
+      &lt;tr&gt;&lt;td class=&quot;border&quot; style=&quot;padding:24px 36px 32px;border-top:1px solid #e2e4ea;&quot;&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 8px;color:#6e707a;font-size:12px;line-height:1.6;&quot;&gt;
+          Luby AI · 글로벌 체험단 마케팅 플랫폼
+        &lt;/p&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0;font-size:12px;line-height:1.6;&quot;&gt;
+          &lt;a href=&quot;https://luby.im&quot; class=&quot;muted&quot; style=&quot;color:#6e707a;text-decoration:underline;&quot;&gt;luby.im&lt;/a&gt;
+          &amp;nbsp;·&amp;nbsp;
+          &lt;a href=&quot;mailto:contact@plander.io&quot; class=&quot;muted&quot; style=&quot;color:#6e707a;text-decoration:underline;&quot;&gt;contact@plander.io&lt;/a&gt;
+        &lt;/p&gt;
+      &lt;/td&gt;&lt;/tr&gt;
+
+    &lt;/table&gt;
+
+    &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; style=&quot;max-width:560px;margin-top:20px;&quot;&gt;
+      &lt;tr&gt;&lt;td align=&quot;center&quot; style=&quot;padding:0 16px;&quot;&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0;color:#9ca0ac;font-size:11px;line-height:1.6;&quot;&gt;
+          본인이 이메일 변경을 요청하지 않으셨다면 즉시&lt;br&gt;
+          &lt;a href=&quot;mailto:contact@plander.io&quot; class=&quot;muted&quot; style=&quot;color:#6e707a;text-decoration:underline;&quot;&gt;contact@plander.io&lt;/a&gt; 로 문의해주세요.
+        &lt;/p&gt;
+      &lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+
+  &lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</textarea>
+    <button class="big" onclick="cpTA(this,'t4')">본문 HTML 전체 복사</button>
+  </div>
+  <div class="row"><div class="label">③ 오른쪽 아래 <b>Save changes</b> 클릭 → 다음 카드로</div></div>
+</section>
+<section class="card">
+  <h2><span class="num">5</span> Supabase 왼쪽 목록에서 <b>“Invite user”</b> 클릭</h2>
+  <div class="row">
+    <div class="label">① Subject heading 칸에 붙여넣기</div>
+    <div class="subj">Luby AI에 초대되었어요</div>
+    <button onclick="cp(this,"Luby AI\uc5d0 \ucd08\ub300\ub418\uc5c8\uc5b4\uc694")">제목 복사</button>
+  </div>
+  <div class="row">
+    <div class="label">② Message body 칸 → 클릭 → ⌘A → ⌘V (아래 버튼으로 복사한 뒤)</div>
+    <textarea id="t5" readonly>&lt;!--
+  Supabase Email Template: Invite User
+  Subject (paste separately): Luby AI에 초대되었어요
+
+  Variables used: {{ .ConfirmationURL }}, {{ .Email }}
+--&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ko&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;color-scheme&quot; content=&quot;light dark&quot;&gt;
+&lt;meta name=&quot;supported-color-schemes&quot; content=&quot;light dark&quot;&gt;
+&lt;title&gt;Luby AI 초대장&lt;/title&gt;
+&lt;style&gt;
+  @media (prefers-color-scheme: dark) {
+    .bg { background:#0a0a0c !important; }
+    .card { background:#15151a !important; border-color:#26262e !important; }
+    .text { color:#f5f5f7 !important; }
+    .muted { color:#9ca0ac !important; }
+    .border { border-color:#26262e !important; }
+    .btn { background:#f5f5f7 !important; color:#0a0a0c !important; }
+    .badge { background:#f5f5f7 !important; }
+    .badge-icon { color:#ec4899 !important; }
+    .pink-soft { background:#3d1729 !important; color:#fba8d0 !important; }
+    .link-fallback { background:#1a1a20 !important; color:#9ca0ac !important; }
+    .info-box { background:#1a1a20 !important; }
+    .feature-row { color:#9ca0ac !important; }
+  }
+  a { text-decoration:none; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body class=&quot;bg&quot; style=&quot;margin:0;padding:0;background:#fafafa;font-family:-apple-system,BlinkMacSystemFont,&#x27;Apple SD Gothic Neo&#x27;,&#x27;Segoe UI&#x27;,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;&quot;&gt;
+&lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; class=&quot;bg&quot; style=&quot;background:#fafafa;&quot;&gt;
+  &lt;tr&gt;&lt;td align=&quot;center&quot; style=&quot;padding:40px 16px;&quot;&gt;
+    &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; class=&quot;card border&quot; style=&quot;max-width:560px;background:#ffffff;border:1px solid #e2e4ea;border-radius:24px;&quot;&gt;
+
+      &lt;tr&gt;&lt;td style=&quot;padding:36px 36px 28px;&quot;&gt;
+        &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot;&gt;&lt;tr&gt;
+          &lt;td style=&quot;width:36px;height:36px;vertical-align:middle;&quot;&gt;
+            &lt;img src=&quot;https://luby.im/symbol-128.png&quot; width=&quot;36&quot; height=&quot;36&quot; alt=&quot;Luby&quot; style=&quot;display:block;border-radius:10px;&quot;&gt;
+          &lt;/td&gt;
+          &lt;td style=&quot;padding-left:12px;vertical-align:middle;&quot;&gt;
+            &lt;span class=&quot;text&quot; style=&quot;font-size:17px;font-weight:600;color:#0c0c0e;letter-spacing:-0.01em;&quot;&gt;Luby AI&lt;/span&gt;
+          &lt;/td&gt;
+        &lt;/tr&gt;&lt;/table&gt;
+      &lt;/td&gt;&lt;/tr&gt;
+
+      &lt;tr&gt;&lt;td style=&quot;padding:0 36px 36px;&quot;&gt;
+        &lt;div class=&quot;pink-soft&quot; style=&quot;display:inline-block;background:#fce7f3;color:#831843;font-size:11px;font-weight:600;letter-spacing:0.1em;padding:6px 12px;border-radius:999px;text-transform:uppercase;&quot;&gt;
+          초대장 도착 🎉
+        &lt;/div&gt;
+
+        &lt;h1 class=&quot;text&quot; style=&quot;margin:20px 0 12px;font-size:28px;line-height:1.2;letter-spacing:-0.02em;color:#0c0c0e;font-weight:600;&quot;&gt;
+          Luby AI에&lt;br&gt;합류하세요
+        &lt;/h1&gt;
+
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 24px;font-size:15px;line-height:1.6;color:#6e707a;&quot;&gt;
+          &lt;strong style=&quot;color:#0c0c0e;&quot;&gt;{{ .Email }}&lt;/strong&gt; 주소로 초대장이 도착했습니다.&lt;br&gt;
+          아래 버튼을 통해 가입을 완료하고 글로벌 체험단 마케팅을 시작해보세요.
+        &lt;/p&gt;
+
+        &lt;!-- Features preview --&gt;
+        &lt;div class=&quot;info-box&quot; style=&quot;margin-bottom:28px;padding:18px 20px;background:#f4f4f6;border-radius:14px;&quot;&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; width=&quot;100%&quot;&gt;
+            &lt;tr&gt;&lt;td style=&quot;padding:4px 0;&quot; class=&quot;feature-row&quot;&gt;
+              &lt;span class=&quot;text&quot; style=&quot;color:#0c0c0e;font-size:14px;&quot;&gt;✦&lt;/span&gt;
+              &lt;span class=&quot;muted&quot; style=&quot;color:#6e707a;font-size:14px;line-height:1.6;&quot;&gt;&amp;nbsp;&amp;nbsp;12개국 글로벌 인플루언서 풀&lt;/span&gt;
+            &lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;td style=&quot;padding:4px 0;&quot; class=&quot;feature-row&quot;&gt;
+              &lt;span class=&quot;text&quot; style=&quot;color:#0c0c0e;font-size:14px;&quot;&gt;✦&lt;/span&gt;
+              &lt;span class=&quot;muted&quot; style=&quot;color:#6e707a;font-size:14px;line-height:1.6;&quot;&gt;&amp;nbsp;&amp;nbsp;AI가 5분 안에 캠페인 작성&lt;/span&gt;
+            &lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;td style=&quot;padding:4px 0;&quot; class=&quot;feature-row&quot;&gt;
+              &lt;span class=&quot;text&quot; style=&quot;color:#0c0c0e;font-size:14px;&quot;&gt;✦&lt;/span&gt;
+              &lt;span class=&quot;muted&quot; style=&quot;color:#6e707a;font-size:14px;line-height:1.6;&quot;&gt;&amp;nbsp;&amp;nbsp;응모자 자동 매칭 &amp; 검증 시스템&lt;/span&gt;
+            &lt;/td&gt;&lt;/tr&gt;
+          &lt;/table&gt;
+        &lt;/div&gt;
+
+        &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot;&gt;&lt;tr&gt;&lt;td&gt;
+          &lt;a href=&quot;{{ .ConfirmationURL }}&quot; class=&quot;btn&quot; style=&quot;display:inline-block;background:#0c0c0e;color:#ffffff;font-size:15px;font-weight:600;padding:14px 28px;border-radius:999px;text-decoration:none;letter-spacing:-0.01em;&quot;&gt;
+            초대 수락하기 →
+          &lt;/a&gt;
+        &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+        &lt;div style=&quot;margin-top:32px;padding-top:24px;border-top:1px solid #e2e4ea;&quot; class=&quot;border&quot;&gt;
+          &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 8px;font-size:12px;color:#9ca0ac;line-height:1.5;&quot;&gt;
+            버튼이 작동하지 않으면 아래 링크를 복사해서 사용해주세요.
+          &lt;/p&gt;
+          &lt;p class=&quot;link-fallback&quot; style=&quot;margin:0;padding:10px 12px;background:#f4f4f6;border-radius:10px;font-size:11px;color:#6e707a;word-break:break-all;line-height:1.4;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;&quot;&gt;
+            {{ .ConfirmationURL }}
+          &lt;/p&gt;
+        &lt;/div&gt;
+
+      &lt;/td&gt;&lt;/tr&gt;
+
+      &lt;tr&gt;&lt;td class=&quot;border&quot; style=&quot;padding:24px 36px 32px;border-top:1px solid #e2e4ea;&quot;&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 8px;color:#6e707a;font-size:12px;line-height:1.6;&quot;&gt;
+          Luby AI · 글로벌 체험단 마케팅 플랫폼
+        &lt;/p&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0;font-size:12px;line-height:1.6;&quot;&gt;
+          &lt;a href=&quot;https://luby.im&quot; class=&quot;muted&quot; style=&quot;color:#6e707a;text-decoration:underline;&quot;&gt;luby.im&lt;/a&gt;
+          &amp;nbsp;·&amp;nbsp;
+          &lt;a href=&quot;mailto:contact@plander.io&quot; class=&quot;muted&quot; style=&quot;color:#6e707a;text-decoration:underline;&quot;&gt;contact@plander.io&lt;/a&gt;
+        &lt;/p&gt;
+      &lt;/td&gt;&lt;/tr&gt;
+
+    &lt;/table&gt;
+
+    &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; style=&quot;max-width:560px;margin-top:20px;&quot;&gt;
+      &lt;tr&gt;&lt;td align=&quot;center&quot; style=&quot;padding:0 16px;&quot;&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0;color:#9ca0ac;font-size:11px;line-height:1.6;&quot;&gt;
+          이 초대장은 본인을 위해 발송되었습니다. 의도하지 않은 메일이라면 무시해주세요.
+        &lt;/p&gt;
+      &lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+
+  &lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</textarea>
+    <button class="big" onclick="cpTA(this,'t5')">본문 HTML 전체 복사</button>
+  </div>
+  <div class="row"><div class="label">③ 오른쪽 아래 <b>Save changes</b> 클릭 → 다음 카드로</div></div>
+</section>
+<script>
+function ok(b){const t=b.textContent;b.textContent='복사됨 ✓';b.classList.add('done');setTimeout(()=>{b.textContent=t;b.classList.remove('done')},2500)}
+function cp(b,s){navigator.clipboard.writeText(s).then(()=>ok(b)).catch(()=>{const ta=document.createElement('textarea');ta.value=s;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();ok(b)})}
+function cpTA(b,id){const ta=document.getElementById(id);navigator.clipboard.writeText(ta.value).then(()=>ok(b)).catch(()=>{ta.select();document.execCommand('copy');ok(b)})}
+</script></body></html>
