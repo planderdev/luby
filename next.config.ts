@@ -6,6 +6,21 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
+  async headers() {
+    // 오픈 전 기본 보안 헤더. CSP는 토스 결제창·Supabase·GA 도메인 정리 후 별도 도입.
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(self \"https://*.tosspayments.com\")" },
+        ],
+      },
+    ];
+  },
   async redirects() {
     // 도메인 이전 (ruby-ai.kr → luby.im, SEO 308).
     // luby.im DNS가 살아있기 전에 켜면 전체 서비스가 죽으므로

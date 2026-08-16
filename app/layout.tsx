@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { SITE, getSiteUrl } from "@/lib/seo/site";
 import { GoogleAds } from "@/components/GoogleAds";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const siteUrl = getSiteUrl();
 const title = `${SITE.name} — ${SITE.tagline}`;
@@ -92,6 +94,8 @@ export default function RootLayout({
       <body className="antialiased">
         {children}
         <GoogleAds />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

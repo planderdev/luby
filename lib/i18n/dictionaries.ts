@@ -269,8 +269,8 @@ const ko = {
         ],
       },
     ],
-    copyright: "© 2026 루비AI (주식회사 플랜더). All rights reserved.",
-    madeWith: "Made with care in Seoul · Tokyo · Bangkok",
+    copyright: "© 2026 루비AI. All rights reserved.",
+    madeWith: "Made with care in Seoul · Jeju · Shanghai · Bangkok · Newyork",
   },
   comingSoon: {
     title: "베타테스트 완료",
@@ -550,8 +550,8 @@ const en: Dict = {
         ],
       },
     ],
-    copyright: "© 2026 Luby AI (Plander Inc.). All rights reserved.",
-    madeWith: "Made with care in Seoul · Tokyo · Bangkok",
+    copyright: "© 2026 Luby AI. All rights reserved.",
+    madeWith: "Made with care in Seoul · Jeju · Shanghai · Bangkok · Newyork",
   },
   comingSoon: {
     title: "Beta test complete",
@@ -829,8 +829,8 @@ const zh: Dict = {
         ],
       },
     ],
-    copyright: "© 2026 Luby AI (Plander Inc.). 保留所有权利。",
-    madeWith: "用心打造于 首尔 · 东京 · 曼谷",
+    copyright: "© 2026 Luby AI. 保留所有权利。",
+    madeWith: "用心打造于 首尔 · 济州 · 上海 · 曼谷 · 纽约",
   },
   comingSoon: {
     title: "Beta 测试已完成",

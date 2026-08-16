@@ -34,8 +34,8 @@ export type LegalContent = {
 };
 
 export const COMPANY = {
-  name: "주식회사 플랜더 (Plander Inc.)",
-  address: "제주특별자치도 제주시 관덕로 44, 63168",
+  name: "주식회사 플랜더 (Plander Corp.)",
+  address: "제주특별자치도 제주시 관덕로 44, 제주소통협력센터 404호",
   email: "contact@plander.io",
   bizNo: "432-81-02903",
   ceo: "이동욱",
@@ -299,18 +299,18 @@ const en: LegalContent = {
       "These terms govern the rights and obligations between the company and members regarding use of the Luby AI service. By using the service, you agree to these terms. The Korean version is the legally binding original.",
     companyLabel: "Business information",
     company: [
-      { label: "Company", value: "Plander Inc." },
+      { label: "Company", value: "Plander Corp." },
       { label: "Representative", value: "Dongwook Lee" },
       { label: "Business registration no.", value: COMPANY.bizNo },
       { label: "Mail-order business report no.", value: COMPANY.mailOrder },
-      { label: "Address", value: "44 Gwandeok-ro, Jeju-si, Jeju, Republic of Korea" },
+      { label: "Address", value: "#404 Jeju Communication & Collaboration Center, 44 Gwandeok-ro, Jeju-si, Jeju, Republic of Korea" },
       { label: "Email", value: COMPANY.email },
     ],
     sections: [
       {
         heading: "1. Purpose",
         body: [
-          "These terms set out the basic rights, obligations, responsibilities, conditions and procedures between Plander Inc. ('Company') and members regarding the use of 'Luby AI' ('Service'), a global reviewer marketing platform.",
+          "These terms set out the basic rights, obligations, responsibilities, conditions and procedures between Plander Corp. ('Company') and members regarding the use of 'Luby AI' ('Service'), a global reviewer marketing platform.",
         ],
       },
       {
@@ -421,12 +421,12 @@ const en: LegalContent = {
     effectiveLabel: "Effective",
     effectiveDate: "July 13, 2026",
     disclaimer:
-      "Plander Inc. ('Company') complies with the Personal Information Protection Act and related laws and processes users' personal information as follows. The Korean version is the legally binding original.",
+      "Plander Corp. ('Company') complies with the Personal Information Protection Act and related laws and processes users' personal information as follows. The Korean version is the legally binding original.",
     companyLabel: "Privacy officer",
     company: [
       { label: "Contact", value: COMPANY.email },
-      { label: "Company", value: "Plander Inc." },
-      { label: "Address", value: "44 Gwandeok-ro, Jeju-si, Jeju, Republic of Korea" },
+      { label: "Company", value: "Plander Corp." },
+      { label: "Address", value: "#404 Jeju Communication & Collaboration Center, 44 Gwandeok-ro, Jeju-si, Jeju, Republic of Korea" },
     ],
     sections: [
       {
@@ -514,18 +514,18 @@ const zh: LegalContent = {
       "本条款规定了公司与会员之间关于使用 Luby AI 服务的权利与义务。使用本服务即视为同意本条款。韩文版为具有法律约束力的正式文本。",
     companyLabel: "企业信息",
     company: [
-      { label: "公司", value: "Plander Inc.（株式会社 Plander）" },
+      { label: "公司", value: "Plander Corp.（株式会社 Plander）" },
       { label: "代表", value: "李东旭 (Dongwook Lee)" },
       { label: "营业执照号", value: COMPANY.bizNo },
       { label: "通信销售业申报号", value: COMPANY.mailOrder },
-      { label: "地址", value: "韩国济州特别自治道济州市观德路44号" },
+      { label: "地址", value: "韩国济州特别自治道济州市观德路44号 济州沟通协力中心404室" },
       { label: "邮箱", value: COMPANY.email },
     ],
     sections: [
       {
         heading: "第1条（目的）",
         body: [
-          "本条款旨在规定 Plander Inc.（以下称「公司」）提供的全球体验官营销平台「Luby AI」（以下称「服务」）使用相关的公司与会员之间的权利、义务、责任及使用条件与程序等基本事项。",
+          "本条款旨在规定 Plander Corp.（以下称「公司」）提供的全球体验官营销平台「Luby AI」（以下称「服务」）使用相关的公司与会员之间的权利、义务、责任及使用条件与程序等基本事项。",
         ],
       },
       {
@@ -636,12 +636,12 @@ const zh: LegalContent = {
     effectiveLabel: "生效日",
     effectiveDate: "2026年7月13日",
     disclaimer:
-      "Plander Inc.（以下称「公司」）遵守《个人信息保护法》等相关法律，按如下方式处理用户个人信息。韩文版为具有法律约束力的正式文本。",
+      "Plander Corp.（以下称「公司」）遵守《个人信息保护法》等相关法律，按如下方式处理用户个人信息。韩文版为具有法律约束力的正式文本。",
     companyLabel: "个人信息保护负责人",
     company: [
       { label: "联系", value: COMPANY.email },
-      { label: "公司", value: "Plander Inc." },
-      { label: "地址", value: "韩国济州特别自治道济州市观德路44号" },
+      { label: "公司", value: "Plander Corp." },
+      { label: "地址", value: "韩国济州特别自治道济州市观德路44号 济州沟通协力中心404室" },
     ],
     sections: [
       {
@@ -733,20 +733,20 @@ export function businessInfo(locale: Locale): { label: string; value: string }[]
   }
   if (locale === "zh") {
     return [
-      { label: "公司", value: "Plander Inc." },
+      { label: "公司", value: "Plander Corp." },
       { label: "代表", value: "Dongwook Lee" },
       { label: "营业执照号", value: COMPANY.bizNo },
       { label: "通信销售业申报号", value: COMPANY.mailOrder },
-      { label: "地址", value: "韩国济州特别自治道济州市观德路44号" },
+      { label: "地址", value: "韩国济州特别自治道济州市观德路44号 济州沟通协力中心404室" },
       { label: "邮箱", value: COMPANY.email },
     ];
   }
   return [
-    { label: "Company", value: "Plander Inc." },
+    { label: "Company", value: "Plander Corp." },
     { label: "CEO", value: "Dongwook Lee" },
     { label: "Business Reg. No.", value: COMPANY.bizNo },
     { label: "Mail-order Report No.", value: COMPANY.mailOrder },
-    { label: "Address", value: "44 Gwandeok-ro, Jeju-si, Jeju, Republic of Korea" },
+    { label: "Address", value: "#404 Jeju Communication & Collaboration Center, 44 Gwandeok-ro, Jeju-si, Jeju, Republic of Korea" },
     { label: "Email", value: COMPANY.email },
   ];
 }
