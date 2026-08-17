@@ -1,4 +1,5 @@
 "use server";
+import { channelHint, urlMatchesChannel } from "@/lib/channel-hints";
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
@@ -100,6 +101,13 @@ export async function addChannel(payload: ChannelPayload): Promise<ActionResult>
   const url = payload.url.trim();
   if (!url) return { ok: false, error: "채널 URL을 입력해주세요." };
   if (!payload.channel_type_id) return { ok: false, error: "채널 종류를 선택해주세요." };
+  if (!/^https?:\/\//i.test(url)) return { ok: false, error: "URL은 https:// 로 시작해야 해요." };
+  const { data: ct } = await supabase.from("channel_types").select("slug, name").eq("id", payload.channel_type_id).maybeSingle();
+  if (!ct) return { ok: false, error: "채널 종류가 올바르지 않습니다." };
+  if (!urlMatchesChannel(url, ct.slug)) {
+    const h = channelHint(ct.slug);
+    return { ok: false, error: `${ct.name} 채널 주소가 아닌 것 같아요. 예: ${h.urlPlaceholder}` };
+  }
 
   const { error } = await supabase.from("influencer_channels").insert({
     influencer_id: user.id,

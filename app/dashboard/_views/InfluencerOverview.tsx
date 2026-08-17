@@ -14,6 +14,8 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { TodoList, type TodoItem } from "@/components/dashboard/TodoList";
+import { CompletenessCard } from "@/components/dashboard/CompletenessCard";
+import type { CompletenessItem } from "@/lib/profile-completeness";
 
 export type RecommendedCampaign = {
   id: string;
@@ -45,6 +47,7 @@ export function InfluencerOverview({
   region,
   todo,
   recommended = [],
+  completeness,
 }: {
   name: string;
   approved: boolean;
@@ -54,6 +57,7 @@ export function InfluencerOverview({
   region: string;
   todo: InfluencerTodo;
   recommended?: RecommendedCampaign[];
+  completeness?: { percent: number; items: CompletenessItem[]; next: CompletenessItem | null };
 }) {
   const todoItems: TodoItem[] = [
     {
@@ -162,6 +166,12 @@ export function InfluencerOverview({
           hint="누적"
         />
       </div>
+
+      {completeness && completeness.percent < 100 && (
+        <div className="mt-8">
+          <CompletenessCard {...completeness} compact />
+        </div>
+      )}
 
       {approved && <TodoList items={todoItems} />}
 

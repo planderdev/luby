@@ -6,6 +6,7 @@ import { OperatorOverview } from "./_views/OperatorOverview";
 import { redirect } from "next/navigation";
 import { fetchUICatalog } from "@/lib/cache/ui-catalog";
 import { rankCampaigns, campaignBadges, type CreatorSignals } from "@/lib/campaign-ranking";
+import { creatorCompleteness } from "@/lib/profile-completeness";
 
 export const metadata = { title: "대시보드 — 루비AI" };
 
@@ -114,7 +115,7 @@ export default async function DashboardPage() {
       supabase.from("applications").select("id, status, campaign_id").eq("influencer_id", profile.id),
       supabase
         .from("influencers")
-        .select("total_points, region_id")
+        .select("total_points, region_id, bio")
         .eq("profile_id", profile.id)
         .maybeSingle(),
       supabase
@@ -165,6 +166,20 @@ export default async function DashboardPage() {
     const needSubmitCount = selectedApps.filter((a) => !submittedAppIds.has(a.id)).length;
     const revisionCount = (subs ?? []).filter((s) => s.status === "revision_requested").length;
     const region = regionRes.data;
+
+    // 프로필 완성도 (승인 여부와 무관 — 승인 대기 중에도 채우도록 유도)
+    const [{ data: myChannels }, { data: myCatRows }] = await Promise.all([
+      supabase.from("influencer_channels").select("followers").eq("influencer_id", profile.id),
+      supabase.from("influencer_categories").select("category_id").eq("influencer_id", profile.id),
+    ]);
+    const completeness = creatorCompleteness({
+      avatarUrl: profile.avatar_url,
+      bio: influencer?.bio ?? null,
+      regionId: influencer?.region_id ?? null,
+      channelCount: (myChannels ?? []).length,
+      channelsWithFollowers: (myChannels ?? []).filter((c) => (c.followers ?? 0) > 0).length,
+      categoryCount: (myCatRows ?? []).length,
+    });
 
     // 추천 캠페인 3개 (승인된 크리에이터만) — 목록 페이지와 같은 랭킹 로직
     let recommended: {
@@ -217,6 +232,7 @@ export default async function DashboardPage() {
           pendingInvites: pendingInvites ?? 0,
         }}
         recommended={recommended}
+        completeness={completeness}
       />
     );
   }

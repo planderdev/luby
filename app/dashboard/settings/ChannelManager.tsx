@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Plus, Trash2, Loader2, ExternalLink } from "lucide-react";
 import { addChannel, deleteChannel } from "./actions";
+import { channelHint } from "@/lib/channel-hints";
 
 export type ChannelRow = {
   id: string;
@@ -31,6 +32,8 @@ export function ChannelManager({
   const [pending, startTransition] = useTransition();
 
   const typeNameById = new Map(channelTypes.map((t) => [t.id, t.name]));
+  const selectedSlug = channelTypes.find((t) => t.id === typeId)?.slug;
+  const hint = channelHint(selectedSlug);
 
   function submit() {
     setError(null);
@@ -61,7 +64,7 @@ export function ChannelManager({
   }
 
   return (
-    <div className="rounded-3xl glass-card p-6 lg:p-8">
+    <div id="channels" className="scroll-mt-24 rounded-3xl glass-card p-6 lg:p-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -157,7 +160,7 @@ export function ChannelManager({
                 type="text"
                 value={handle}
                 onChange={(e) => setHandle(e.target.value)}
-                placeholder="@myhandle"
+                placeholder={hint.handlePlaceholder}
                 className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none focus:border-foreground"
               />
             </div>
@@ -171,7 +174,7 @@ export function ChannelManager({
                 type="url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://instagram.com/myhandle"
+                placeholder={hint.urlPlaceholder}
                 className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none focus:border-foreground"
               />
             </div>
@@ -189,6 +192,9 @@ export function ChannelManager({
               />
             </div>
           </div>
+          {hint.tip && (
+            <p className="mt-2 text-xs text-muted-foreground">💡 {hint.tip}</p>
+          )}
           {error && (
             <div className="mt-3 rounded-xl border border-accent/30 bg-accent-soft px-3 py-2 text-xs text-accent-ink">
               {error}

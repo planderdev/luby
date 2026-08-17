@@ -51,7 +51,7 @@ export function CategoryPicker({
   }
 
   return (
-    <section className="rounded-3xl glass-card p-6 lg:p-8">
+    <section id="categories" className="scroll-mt-24 rounded-3xl glass-card p-6 lg:p-8">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">전문 분야</h2>

@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { SettingsForm } from "./SettingsForm";
+import { CompletenessCard } from "@/components/dashboard/CompletenessCard";
+import { creatorCompleteness } from "@/lib/profile-completeness";
 import { ChannelManager, type ChannelRow } from "./ChannelManager";
 import { CategoryPicker } from "./CategoryPicker";
 
@@ -66,6 +68,16 @@ export default async function SettingsPage() {
   ]);
 
   const extra = extraRes.data ?? {};
+  const completeness = isInfluencer
+    ? creatorCompleteness({
+        avatarUrl: profile.avatar_url,
+        bio: (extra as { bio?: string | null }).bio ?? null,
+        regionId: (extra as { region_id?: string | null }).region_id ?? null,
+        channelCount: (channelsRes.data ?? []).length,
+        channelsWithFollowers: (channelsRes.data ?? []).filter((c) => (c.followers ?? 0) > 0).length,
+        categoryCount: (myCatsRes.data ?? []).length,
+      })
+    : null;
 
   return (
     <div>
@@ -79,6 +91,7 @@ export default async function SettingsPage() {
       </p>
 
       <div className="mt-8 space-y-4">
+        {completeness && <CompletenessCard {...completeness} />}
         <SettingsForm
           profile={{
             id: profile.id,
