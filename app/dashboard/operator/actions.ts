@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import type { Precheck } from "@/lib/ai/campaign-precheck";
 
 async function ensureOperator() {
   const supabase = await createClient();
@@ -128,4 +129,54 @@ export async function processWithdrawal(
   revalidatePath("/dashboard/operator/withdrawals");
   revalidatePath("/dashboard/points");
   return { ok: true };
+}
+
+/** 운영자: 캠페인 AI 사전 점검 실행 → 결과를 campaigns.ai_precheck 에 저장 */
+export async function precheckCampaignAction(
+  campaignId: string,
+  force = false
+): Promise<{ ok: true; result: Precheck; checkedAt: string } | { ok: false; error: string }> {
+  const guard = await ensureOperator();
+  if (!guard.ok) return { ok: false, error: guard.error };
+  const supabase = guard.supabase;
+
+  const { data: c } = await supabase
+    .from("campaigns")
+    .select("id, title, business_name, industry_brief, point_amount, recruit_count, recruit_start, recruit_end, category_id, promotion_type_id, ai_precheck, ai_prechecked_at")
+    .eq("id", campaignId)
+    .maybeSingle();
+  if (!c) return { ok: false, error: "캠페인을 찾을 수 없습니다." };
+  if (!force && c.ai_precheck && c.ai_prechecked_at) {
+    return { ok: true, result: c.ai_precheck as Precheck, checkedAt: c.ai_prechecked_at };
+  }
+
+  const [{ data: ms }, { data: kw }, { data: of }, { data: cat }, { data: pt }] = await Promise.all([
+    supabase.from("campaign_missions").select("description, channel_types(name)").eq("campaign_id", campaignId),
+    supabase.from("campaign_keywords").select("keyword").eq("campaign_id", campaignId),
+    supabase.from("campaign_offerings").select("title, description, estimated_value").eq("campaign_id", campaignId),
+    c.category_id ? supabase.from("categories").select("name").eq("id", c.category_id).maybeSingle() : Promise.resolve({ data: null }),
+    c.promotion_type_id ? supabase.from("promotion_types").select("name").eq("id", c.promotion_type_id).maybeSingle() : Promise.resolve({ data: null }),
+  ]);
+  type Named = { name: string } | { name: string }[] | null;
+  const nameOf = (n: Named) => (Array.isArray(n) ? n[0]?.name : n?.name) ?? "";
+  const days = Math.max(1, Math.round((new Date(c.recruit_end).getTime() - new Date(c.recruit_start).getTime()) / 864e5));
+
+  const { precheckCampaign } = await import("@/lib/ai/campaign-precheck");
+  const r = await precheckCampaign({
+    title: c.title,
+    businessName: c.business_name,
+    industryBrief: c.industry_brief,
+    category: cat?.name ?? null,
+    promotionType: pt?.name ?? null,
+    missions: (ms ?? []).map((m) => ({ channel: nameOf(m.channel_types as Named), description: m.description })),
+    keywords: (kw ?? []).map((k) => k.keyword),
+    offerings: (of ?? []).map((o) => ({ title: o.title, description: o.description, estimatedValue: o.estimated_value })),
+    pointAmount: c.point_amount,
+    recruitCount: c.recruit_count,
+    recruitDays: days,
+  });
+  if (!r.ok) return r;
+  const checkedAt = new Date().toISOString();
+  await supabase.from("campaigns").update({ ai_precheck: r.result, ai_prechecked_at: checkedAt }).eq("id", campaignId);
+  return { ok: true, result: r.result, checkedAt };
 }

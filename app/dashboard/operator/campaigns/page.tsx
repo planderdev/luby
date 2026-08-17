@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { CampaignDecisionRow } from "./CampaignDecisionRow";
+import type { Precheck } from "@/lib/ai/campaign-precheck";
 
 export const metadata = { title: "캠페인 검수 — 루비AI" };
 
@@ -14,7 +15,7 @@ export default async function OperatorCampaignsPage() {
   const supabase = await createClient();
   const { data: campaigns } = await supabase
     .from("campaigns")
-    .select("id, title, business_name, status, advertiser_id, recruit_start, recruit_end, created_at")
+    .select("id, title, business_name, status, advertiser_id, recruit_start, recruit_end, created_at, ai_precheck, ai_prechecked_at")
     .eq("status", "pending_approval")
     .order("created_at", { ascending: false });
 
@@ -45,6 +46,8 @@ export default async function OperatorCampaignsPage() {
               advertiserEmail={adv?.email ?? ""}
               recruitStart={c.recruit_start}
               recruitEnd={c.recruit_end}
+              initialPrecheck={(c.ai_precheck as Precheck | null) ?? null}
+              initialCheckedAt={c.ai_prechecked_at}
             />
           );
         })}

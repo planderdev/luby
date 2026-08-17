@@ -2,8 +2,9 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { Check, X, Loader2, ExternalLink } from "lucide-react";
-import { decideCampaign } from "../actions";
+import { Check, X, Loader2, ExternalLink, ShieldCheck, ShieldAlert, ShieldX, Sparkles, RotateCcw } from "lucide-react";
+import { decideCampaign, precheckCampaignAction } from "../actions";
+import type { Precheck } from "@/lib/ai/campaign-precheck";
 
 function fmtDate(iso: string) {
   const d = new Date(iso);
@@ -18,6 +19,8 @@ export function CampaignDecisionRow({
   advertiserEmail,
   recruitStart,
   recruitEnd,
+  initialPrecheck = null,
+  initialCheckedAt = null,
 }: {
   campaignId: string;
   title: string;
@@ -26,10 +29,28 @@ export function CampaignDecisionRow({
   advertiserEmail: string;
   recruitStart: string;
   recruitEnd: string;
+  initialPrecheck?: Precheck | null;
+  initialCheckedAt?: string | null;
 }) {
   const [hidden, setHidden] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [precheck, setPrecheck] = useState<Precheck | null>(initialPrecheck);
+  const [checkedAt, setCheckedAt] = useState<string | null>(initialCheckedAt);
+  const [checking, setChecking] = useState(false);
+  const [showIssues, setShowIssues] = useState(!!initialPrecheck && initialPrecheck.verdict !== "ok");
+
+  async function runPrecheck(force: boolean) {
+    setError(null);
+    setChecking(true);
+    const r = await precheckCampaignAction(campaignId, force);
+    setChecking(false);
+    if (r.ok) {
+      setPrecheck(r.result);
+      setCheckedAt(r.checkedAt);
+      setShowIssues(true);
+    } else setError(r.error);
+  }
 
   function decide(decision: "open" | "rejected") {
     setError(null);
@@ -86,6 +107,78 @@ export function CampaignDecisionRow({
           </button>
         </div>
       </div>
+      {/* AI 사전 점검 */}
+      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
+        {precheck ? (
+          <button
+            type="button"
+            onClick={() => setShowIssues((v) => !v)}
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
+              precheck.verdict === "ok"
+                ? "bg-success-soft text-success"
+                : precheck.verdict === "caution"
+                  ? "bg-warning-soft text-warning"
+                  : "bg-danger-soft text-danger"
+            }`}
+          >
+            {precheck.verdict === "ok" ? <ShieldCheck className="size-3.5" /> : precheck.verdict === "caution" ? <ShieldAlert className="size-3.5" /> : <ShieldX className="size-3.5" />}
+            AI 점검: {precheck.verdict === "ok" ? "이상 없음" : precheck.verdict === "caution" ? "수정 권장" : "승인 보류 권장"}
+            {precheck.issues.length > 0 && ` · 이슈 ${precheck.issues.length}`}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => runPrecheck(false)}
+            disabled={checking || pending}
+            className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent-ink hover:bg-accent/20 disabled:opacity-60"
+          >
+            {checking ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
+            {checking ? "점검 중…" : "AI 사전 점검"}
+          </button>
+        )}
+        {precheck && (
+          <>
+            <span className="text-[11px] text-muted-foreground">
+              {checkedAt ? new Date(checkedAt).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }) : ""}
+            </span>
+            <button
+              type="button"
+              onClick={() => runPrecheck(true)}
+              disabled={checking}
+              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+              title="다시 점검"
+            >
+              {checking ? <Loader2 className="size-3 animate-spin" /> : <RotateCcw className="size-3" />} 다시
+            </button>
+          </>
+        )}
+      </div>
+      {precheck && showIssues && (
+        <div className="mt-2 rounded-2xl bg-muted/50 p-3 text-xs">
+          <p className="leading-relaxed">{precheck.summary}</p>
+          {precheck.issues.length > 0 && (
+            <ul className="mt-2 space-y-1.5">
+              {precheck.issues.map((it, i) => (
+                <li key={i} className="rounded-xl bg-background px-3 py-2">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span
+                      className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                        it.severity === "high" ? "bg-danger-soft text-danger" : it.severity === "medium" ? "bg-warning-soft text-warning" : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {it.severity === "high" ? "높음" : it.severity === "medium" ? "중간" : "낮음"}
+                    </span>
+                    <span className="font-medium">{it.area}</span>
+                  </div>
+                  <div className="mt-1 text-muted-foreground">{it.detail}</div>
+                  <div className="mt-1">💡 {it.fix}</div>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-2 text-[10px] text-muted-foreground">AI 참고 의견입니다 — 최종 승인/반려는 운영자 판단.</p>
+        </div>
+      )}
       {error && (
         <div className="mt-2 rounded-xl border border-accent/30 bg-accent-soft px-3 py-2 text-xs text-accent-ink">
           {error}

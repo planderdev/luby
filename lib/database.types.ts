@@ -291,6 +291,8 @@ export type Database = {
       campaigns: {
         Row: {
           advertiser_id: string
+          ai_precheck: Json | null
+          ai_prechecked_at: string | null
           always_open: boolean
           approved_at: string | null
           approved_by: string | null
@@ -316,6 +318,8 @@ export type Database = {
         }
         Insert: {
           advertiser_id: string
+          ai_precheck?: Json | null
+          ai_prechecked_at?: string | null
           always_open?: boolean
           approved_at?: string | null
           approved_by?: string | null
@@ -341,6 +345,8 @@ export type Database = {
         }
         Update: {
           advertiser_id?: string
+          ai_precheck?: Json | null
+          ai_prechecked_at?: string | null
           always_open?: boolean
           approved_at?: string | null
           approved_by?: string | null
