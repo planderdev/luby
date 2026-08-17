@@ -5,6 +5,7 @@ import { AICapability } from "@/components/AICapability";
 import { Features } from "@/components/Features";
 import { HowItWorks } from "@/components/HowItWorks";
 import { Global } from "@/components/Global";
+import { Platforms } from "@/components/Platforms";
 import { UseCases } from "@/components/UseCases";
 import { Trust } from "@/components/Trust";
 import { Pricing } from "@/components/Pricing";
@@ -31,6 +32,7 @@ export function Landing({ locale }: { locale: Locale }) {
         <Features dict={dict.features} />
         <HowItWorks dict={dict.howItWorks} />
         <Global dict={dict.global} />
+        <Platforms dict={extra.platforms} />
         <UseCases dict={extra.useCases} />
         <Trust dict={extra.trust} />
         <Pricing dict={dict.pricing} />

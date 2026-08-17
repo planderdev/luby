@@ -216,6 +216,10 @@ const ko = {
         q: "정산 주기는 어떻게 되나요?",
         a: "콘텐츠 발행 확인 후 영업일 기준 7일 이내 자동 정산됩니다. ENTERPRISE 플랜은 매주 또는 격주 정산 주기를 선택할 수 있습니다.",
       },
+      {
+        q: "샤오홍슈(小红书) 같은 해외 플랫폼 체험단도 가능한가요?",
+        a: "네. 크리에이터는 인스타그램·유튜브·틱톡·블로그·스레드 외에 샤오홍슈(小红书)·더우인(抖音)·Lemon8을 채널로 등록할 수 있고, 광고주는 캠페인에서 원하는 채널을 지정해 모집합니다. 중국·화교권 관광객이 한국 여행·맛집·쇼핑을 샤오홍슈에서 미리 찾아보기 때문에, 방문형 매장과 K뷰티·K푸드 브랜드에 특히 효과적입니다.",
+      },
     ],
   },
   cta: {
@@ -497,6 +501,10 @@ const en: Dict = {
         q: "What is the settlement cycle?",
         a: "Settlement is automatic within 7 business days after posting is confirmed. ENTERPRISE plans can choose a weekly or biweekly settlement cycle.",
       },
+      {
+        q: "Can I run campaigns on overseas platforms like Xiaohongshu (RedNote)?",
+        a: "Yes. Besides Instagram, YouTube, TikTok, blogs and Threads, creators can register Xiaohongshu (小红书), Douyin (抖音) and Lemon8 as channels, and advertisers pick the channels they want when creating a campaign. Because travelers from China and Chinese-speaking markets plan Korea trips, restaurants and shopping on Xiaohongshu first, it works especially well for visit-based stores and K-beauty / K-food brands.",
+      },
     ],
   },
   cta: {
@@ -775,6 +783,10 @@ const zh: Dict = {
       {
         q: "结算周期是怎样的？",
         a: "确认内容发布后，将在 7 个工作日内自动结算。ENTERPRISE 方案可选择每周或每两周的结算周期。",
+      },
+      {
+        q: "可以在小红书等海外平台上做体验官活动吗？",
+        a: "可以。除了 Instagram、YouTube、TikTok、博客和 Threads，创作者还可以登记小红书、抖音和 Lemon8 作为渠道，广告主在创建活动时指定所需渠道即可。由于中国及华语市场的游客会先在小红书上规划韩国行程、餐厅与购物，因此对到店型门店以及 K-Beauty / K-Food 品牌尤其有效。",
       },
     ],
   },

@@ -64,6 +64,38 @@ const ko = {
       },
     ],
   },
+  platforms: {
+    label: "글로벌 플랫폼",
+    heading1: "인스타그램만으로는",
+    heading2: "글로벌이 아닙니다.",
+    sub: "나라마다 소비자가 '진짜 후기'를 찾는 앱이 다릅니다. 루비AI는 크리에이터를 채널 단위로 등록받아, 시장별로 실제 구매·방문을 움직이는 플랫폼에서 체험단을 모집합니다.",
+    featured: {
+      name: "샤오홍슈 (小红书 · RedNote)",
+      tag: "중국 · 화교권 필수",
+      desc: "중국 MZ 여성이 뷰티·맛집·여행을 '검색'하는 곳. 광고 같은 콘텐츠는 걸러지고, 실사용 후기(种草·씨딩)만 살아남는 커뮤니티라 체험단과 궁합이 가장 좋은 플랫폼입니다.",
+      stats: [
+        { value: "3억+", label: "월간 활성 사용자" },
+        { value: "70%", label: "18~35세 여성 비중" },
+        { value: "83%", label: "광고 아닌 사용자 후기로 제품 발견" },
+      ],
+      points: [
+        "중국·홍콩·대만·싱가포르 관광객이 한국 여행 코스·맛집·쇼핑을 샤오홍슈에서 미리 정합니다 — 매장 후기 하나가 방문으로 이어집니다.",
+        "K뷰티·K푸드는 샤오홍슈 인기 카테고리. 대형 KOL 1명보다 KOC(일반 크리에이터) 20~50명의 실후기가 전환을 만듭니다.",
+        "루비AI에서 샤오홍슈를 대표 채널로 등록한 크리에이터에게 바로 캠페인을 열 수 있어요.",
+      ],
+    },
+    othersLabel: "함께 지원하는 채널",
+    others: [
+      { name: "Instagram", region: "글로벌" },
+      { name: "YouTube", region: "글로벌" },
+      { name: "TikTok", region: "글로벌 · 동남아" },
+      { name: "Threads", region: "글로벌" },
+      { name: "네이버 블로그", region: "한국" },
+      { name: "Douyin (抖音)", region: "중국" },
+      { name: "Lemon8", region: "일본 · 동남아" },
+    ],
+    footnote: "수치는 플랫폼 공개 자료·업계 리포트(2026) 기준이며 시점에 따라 달라질 수 있습니다.",
+  },
   trust: {
     label: "신뢰와 보안",
     heading1: "성장은 빠르게,",
@@ -124,6 +156,22 @@ export type ExtraDict = {
       scenario: string;
       wins: readonly string[];
     }[];
+  };
+  platforms: {
+    label: string;
+    heading1: string;
+    heading2: string;
+    sub: string;
+    featured: {
+      name: string;
+      tag: string;
+      desc: string;
+      stats: readonly { value: string; label: string }[];
+      points: readonly string[];
+    };
+    othersLabel: string;
+    others: readonly { name: string; region: string }[];
+    footnote: string;
   };
   trust: {
     label: string;
@@ -190,6 +238,38 @@ const en: ExtraDict = {
         wins: ["One listing reaches a 12-market creator pool", "Localized campaign pages handled for you", "Compare market response in one dashboard"],
       },
     ],
+  },
+  platforms: {
+    label: "Global platforms",
+    heading1: "Instagram alone",
+    heading2: "isn't global.",
+    sub: "Every market has its own app where shoppers look for real reviews. Luby AI registers creators by channel and recruits reviewers on the platform that actually drives purchases and visits in each market.",
+    featured: {
+      name: "Xiaohongshu (小红书 · RedNote)",
+      tag: "Essential for China & Chinese-speaking markets",
+      desc: "Where young Chinese women search for beauty, food and travel. Ad-like posts get filtered out; only genuine, first-hand reviews (种草 'seeding') survive — which makes it the best-fit platform for reviewer campaigns.",
+      stats: [
+        { value: "300M+", label: "monthly active users" },
+        { value: "70%", label: "women aged 18–35" },
+        { value: "83%", label: "discover products via user reviews, not ads" },
+      ],
+      points: [
+        "Travelers from China, Hong Kong, Taiwan and Singapore plan Korea trips — restaurants, routes, shopping — on Xiaohongshu first. One honest store review turns into visits.",
+        "K-beauty and K-food are top categories. 20–50 KOC (everyday creator) reviews convert better than one celebrity KOL.",
+        "Open a campaign directly to creators who registered Xiaohongshu as their main channel on Luby AI.",
+      ],
+    },
+    othersLabel: "Also supported",
+    others: [
+      { name: "Instagram", region: "Global" },
+      { name: "YouTube", region: "Global" },
+      { name: "TikTok", region: "Global · SEA" },
+      { name: "Threads", region: "Global" },
+      { name: "Naver Blog", region: "Korea" },
+      { name: "Douyin (抖音)", region: "China" },
+      { name: "Lemon8", region: "Japan · SEA" },
+    ],
+    footnote: "Figures are based on platform disclosures and industry reports (2026) and may change over time.",
   },
   trust: {
     label: "Trust & security",
@@ -273,6 +353,38 @@ const zh: ExtraDict = {
         wins: ["一次发布触达 12 国达人库", "本地化活动页面自动处理", "在一个后台对比各国反响"],
       },
     ],
+  },
+  platforms: {
+    label: "全球平台",
+    heading1: "只有 Instagram",
+    heading2: "算不上全球化。",
+    sub: "每个市场的消费者寻找「真实评价」的 App 都不一样。Luby AI 按渠道登记创作者，在真正带动购买与到店的平台上招募体验官。",
+    featured: {
+      name: "小红书 (Xiaohongshu · RedNote)",
+      tag: "中国及华语市场必备",
+      desc: "年轻女性搜索美妆、美食与旅行的地方。广告味的内容会被过滤，只有真实的亲测笔记（种草）能留下——这正是与体验官营销最契合的平台。",
+      stats: [
+        { value: "3亿+", label: "月活跃用户" },
+        { value: "70%", label: "18–35 岁女性占比" },
+        { value: "83%", label: "通过用户笔记而非广告发现产品" },
+      ],
+      points: [
+        "来自中国大陆、香港、台湾、新加坡的游客会先在小红书上规划韩国行程——餐厅、路线、购物。一篇真实的门店笔记就能带来到店。",
+        "K-Beauty 与 K-Food 是热门品类。20–50 位 KOC（普通创作者）的真实笔记，比 1 位头部 KOL 更能带来转化。",
+        "可直接向在 Luby AI 上以小红书为主渠道的创作者发布活动。",
+      ],
+    },
+    othersLabel: "同时支持",
+    others: [
+      { name: "Instagram", region: "全球" },
+      { name: "YouTube", region: "全球" },
+      { name: "TikTok", region: "全球 · 东南亚" },
+      { name: "Threads", region: "全球" },
+      { name: "Naver 博客", region: "韩国" },
+      { name: "抖音 (Douyin)", region: "中国" },
+      { name: "Lemon8", region: "日本 · 东南亚" },
+    ],
+    footnote: "数据来源于平台公开资料与行业报告（2026），可能随时间变化。",
   },
   trust: {
     label: "信任与安全",
