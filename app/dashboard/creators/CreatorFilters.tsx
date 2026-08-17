@@ -50,10 +50,13 @@ export function CreatorFilters({
   categories,
   regions,
   channels,
+  quickChannels = [],
 }: {
   categories: Opt[];
   regions: Opt[];
   channels: Opt[];
+  /** 글로벌 채널 퀵필터 (샤오홍슈·더우인·Lemon8) */
+  quickChannels?: Opt[];
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -68,8 +71,42 @@ export function CreatorFilters({
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }
 
+  const activeChannel = params.get("channel") ?? "";
+  const publicOnly = params.get("public") === "1";
+
   return (
-    <div className="mt-8 flex flex-wrap items-center gap-2">
+    <div className="mt-8">
+      <div className="mb-3 flex flex-wrap items-center gap-1.5">
+          <span className="mr-1 text-[11px] uppercase tracking-wider text-muted-foreground">빠른 필터</span>
+          {quickChannels.map((q) => {
+            const on = activeChannel === q.value;
+            return (
+              <button
+                key={q.value}
+                type="button"
+                onClick={() => setParam("channel", on ? "" : q.value)}
+                aria-pressed={on}
+                className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                  on ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:bg-muted"
+                }`}
+              >
+                {q.label}
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => setParam("public", publicOnly ? "" : "1")}
+            aria-pressed={publicOnly}
+            className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+              publicOnly ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:bg-muted"
+            }`}
+            title="공개 프로필을 켠 크리에이터만 — 팀·클라이언트에 링크 공유 가능"
+          >
+            공개 프로필 있음
+          </button>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
       <form
         className="relative min-w-[220px] flex-1"
         onSubmit={(e) => {
@@ -115,6 +152,7 @@ export function CreatorFilters({
         options={SORT_OPTIONS}
         onChange={(v) => setParam("sort", v)}
       />
+      </div>
     </div>
   );
 }

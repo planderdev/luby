@@ -61,7 +61,7 @@ export function PublicProfileToggle({ userId, initial, approved }: { userId: str
             <ExternalLink className="size-3.5" /> 미리보기
           </a>
           <span className="text-[11px] text-muted-foreground">
-            해외용: <a href={`/en/p/${userId}`} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">EN</a> · <a href={`/zh/p/${userId}`} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">中文</a>
+            해외용: <a href={`/en/p/${userId}`} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">EN</a> · <a href={`/zh/p/${userId}`} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">CN</a>
           </span>
         </div>
       )}

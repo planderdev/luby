@@ -29,6 +29,7 @@ export default async function CreatorsDirectoryPage({
     followers?: string;
     sort?: string;
     page?: string;
+    public?: string;
   }>;
 }) {
   const profile = await getCurrentProfile();
@@ -53,6 +54,7 @@ export default async function CreatorsDirectoryPage({
       p_sort: sort,
       p_limit: PAGE_SIZE,
       p_offset: (page - 1) * PAGE_SIZE,
+      p_public: sp.public === "1" ? true : null,
     }),
     fetchUICatalog(),
     profile.role === "advertiser" ? getEntitlements(profile.id) : Promise.resolve(null),
@@ -130,6 +132,9 @@ export default async function CreatorsDirectoryPage({
         categories={catalog.categories.map((c) => ({ value: c.id, label: `${c.emoji ?? ""} ${c.name}`.trim() }))}
         regions={catalog.regions.map((r) => ({ value: r.id, label: `${r.flag} ${r.name}`.trim() }))}
         channels={catalog.channels.map((c) => ({ value: c.id, label: c.name }))}
+        quickChannels={catalog.channels
+          .filter((c) => ["xiaohongshu", "douyin", "lemon8"].includes(c.slug))
+          .map((c) => ({ value: c.id, label: c.name.replace(/\s*\(.*\)$/, "") }))}
       />
 
       <p className="mt-6 flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -159,6 +164,9 @@ export default async function CreatorsDirectoryPage({
                     </span>
                     {Number(c.completed_count) > 0 && (
                       <BadgeCheck className="size-3.5 shrink-0 text-accent-ink" aria-label="체험 완료 이력" />
+                    )}
+                    {c.public_profile && (
+                      <span className="shrink-0 rounded-full border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground" title="공개 프로필 있음 — 링크 공유 가능">공개</span>
                     )}
                   </div>
                   <div className="mt-0.5 text-[11px] text-muted-foreground">

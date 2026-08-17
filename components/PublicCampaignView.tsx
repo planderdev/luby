@@ -122,7 +122,7 @@ export async function PublicCampaignView({ id, locale }: { id: string; locale: L
                   hrefLang={l}
                   className={`rounded-full px-2 py-0.5 ${l === locale ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}
                 >
-                  {l === "ko" ? "KO" : l === "en" ? "EN" : "中文"}
+                  {l === "ko" ? "KR" : l === "en" ? "EN" : "CN"}
                 </Link>
               ))}
             </nav>

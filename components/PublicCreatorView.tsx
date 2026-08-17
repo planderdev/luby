@@ -96,7 +96,7 @@ export async function PublicCreatorView({ id, locale = "ko" }: { id: string; loc
             <nav aria-label="language" className="flex items-center gap-1 rounded-full border border-border p-0.5 text-[11px]">
               {(["ko", "en", "zh"] as Locale[]).map((l) => (
                 <Link key={l} href={`${localePrefix(l)}/p/${c.id}`} hrefLang={l} className={`rounded-full px-2 py-0.5 ${l === locale ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}>
-                  {l === "ko" ? "KO" : l === "en" ? "EN" : "中文"}
+                  {l === "ko" ? "KR" : l === "en" ? "EN" : "CN"}
                 </Link>
               ))}
             </nav>

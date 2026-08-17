@@ -22,11 +22,17 @@ const nextConfig: NextConfig = {
     ];
   },
   async redirects() {
+    // 표기는 CN 이지만 URL 로케일 코드는 표준 zh 유지 — /cn/* 로 들어오면 /zh/* 로 영구 이동
+    const cnAlias = [
+      { source: "/cn", destination: "/zh", permanent: true },
+      { source: "/cn/:path*", destination: "/zh/:path*", permanent: true },
+    ];
     // 도메인 이전 (ruby-ai.kr → luby.im, SEO 308).
     // luby.im DNS가 살아있기 전에 켜면 전체 서비스가 죽으므로
     // NEXT_PUBLIC_PRIMARY_DOMAIN=luby.im 환경변수로 게이트한다 (Phase B에서 활성화).
-    if (process.env.NEXT_PUBLIC_PRIMARY_DOMAIN !== "luby.im") return [];
+    if (process.env.NEXT_PUBLIC_PRIMARY_DOMAIN !== "luby.im") return cnAlias;
     return [
+      ...cnAlias,
       {
         source: "/:path*",
         has: [{ type: "host" as const, value: "ruby-ai.kr" }],

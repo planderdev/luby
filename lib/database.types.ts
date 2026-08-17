@@ -1190,6 +1190,7 @@ export type Database = {
           p_sort?: string
           p_limit?: number
           p_offset?: number
+          p_public?: boolean | null
         }
         Returns: {
           id: string
@@ -1203,6 +1204,7 @@ export type Database = {
           channels: Json
           categories: Json
           total_count: number
+          public_profile: boolean
         }[]
       }
       is_message_participant: {

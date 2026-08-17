@@ -4,9 +4,9 @@ import { useState } from "react";
 import { Link2, Check, ChevronDown } from "lucide-react";
 
 const LANGS = [
-  { code: "", label: "한국어 (KO)" },
+  { code: "", label: "한국어 (KR)" },
   { code: "/en", label: "English (EN)" },
-  { code: "/zh", label: "中文 (ZH)" },
+  { code: "/zh", label: "中文 (CN)" },
 ];
 
 /** 공개 캠페인 페이지 링크 복사 — 언어별 URL (SNS·샤오홍슈·카톡 공유용) */
@@ -54,7 +54,7 @@ export function ShareLinkButton({ campaignId }: { campaignId: string }) {
               {copied === l.code ? <Check className="size-3.5 text-success" /> : <span className="text-[10px] text-muted-foreground">복사</span>}
             </button>
           ))}
-          <p className="px-3 pb-1 pt-1.5 text-[10px] text-muted-foreground">샤오홍슈·해외 SNS엔 中文/EN 링크를 쓰세요</p>
+          <p className="px-3 pb-1 pt-1.5 text-[10px] text-muted-foreground">샤오홍슈·해외 SNS엔 CN/EN 링크를 쓰세요</p>
         </div>
       )}
     </div>
