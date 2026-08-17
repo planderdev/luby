@@ -1,4 +1,5 @@
 "use client";
+import { trackClient } from "@/lib/analytics";
 
 import { useEffect, useRef, useState } from "react";
 import { loadTossPayments, type TossPaymentsWidgets } from "@tosspayments/tosspayments-sdk";
@@ -64,6 +65,7 @@ export function CheckoutClient({ clientKey }: { clientKey: string }) {
     if (!widgetsRef.current || !order) return;
     setPaying(true);
     setError(null);
+    trackClient("checkout_started", { plan: order.orderName });
     try {
       await widgetsRef.current.requestPayment({
         orderId: order.orderId,

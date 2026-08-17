@@ -1,4 +1,5 @@
 "use client";
+import { trackClient } from "@/lib/analytics";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -205,6 +206,8 @@ function FormStep({
       setError(error.message);
       return;
     }
+
+    trackClient("signup_completed", { role });
 
     if (data.session) {
       onSignedIn();

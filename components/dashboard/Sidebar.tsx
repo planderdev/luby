@@ -15,7 +15,7 @@ export function Sidebar({
 }) {
   const items = dashboardNav[role];
   return (
-    <aside className="hidden w-60 shrink-0 border-r border-border bg-background lg:flex lg:flex-col">
+    <aside className="hidden w-60 shrink-0 border-r border-border bg-background lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:self-start lg:overflow-y-auto">
       <div className="flex h-16 items-center justify-between px-6">
         <Link href="/" aria-label="루비AI 홈">
           <Image

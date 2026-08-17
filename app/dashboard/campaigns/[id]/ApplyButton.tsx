@@ -1,4 +1,5 @@
 "use client";
+import { trackClient } from "@/lib/analytics";
 
 import { useState, useTransition } from "react";
 import { Loader2, Check, X } from "lucide-react";
@@ -32,6 +33,7 @@ export function ApplyButton({
     startTransition(async () => {
       const result = await applyToCampaign(campaignId, message);
       if (result.ok) {
+        trackClient("application_sent");
         setStatus("pending");
         setShowForm(false);
         setMessage("");

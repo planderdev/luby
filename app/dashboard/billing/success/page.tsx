@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CheckCircle2, XCircle, ArrowRight } from "lucide-react";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { confirmBusinessPayment } from "../actions";
+import { trackServer } from "@/lib/analytics-server";
 
 export const metadata = { title: "결제 완료 — 루비AI" };
 
@@ -25,6 +26,9 @@ export default async function PaymentSuccessPage({
 
   // 서버에서 토스 승인 + 구독 업그레이드 (멱등 — 새로고침해도 안전)
   const result = await confirmBusinessPayment({ paymentKey, orderId, amount });
+  if (result.ok && !result.alreadyPaid) {
+    await trackServer("payment_completed", { plan: result.planName, amount });
+  }
 
   if (!result.ok) {
     return (

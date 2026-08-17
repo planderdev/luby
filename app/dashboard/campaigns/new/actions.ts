@@ -1,4 +1,5 @@
 "use server";
+import { trackServer } from "@/lib/analytics-server";
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -178,6 +179,10 @@ export async function createCampaign(
 export async function createCampaignAndRedirect(draft: CampaignDraft, submit: boolean) {
   const result = await createCampaign(draft, submit);
   if (result.ok) {
+    await trackServer("campaign_created", {
+      mode: submit ? "submit" : "draft",
+      ai: draft.industry_brief ? "yes" : "no",
+    });
     redirect(`/dashboard/campaigns/${result.id}`);
   }
   return result;
