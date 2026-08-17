@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Calendar, Coins, Users } from "lucide-react";
+import { Calendar, Coins, Users, Inbox, CheckCircle2, Sparkles } from "lucide-react";
 
 const STATUS_LABEL: Record<string, { label: string; tone: "success" | "warning" | "danger" | "muted" | "ink" }> = {
   draft: { label: "초안", tone: "muted" },
@@ -38,6 +38,7 @@ export function CampaignCard({
   categoryEmoji,
   categoryName,
   badges = [],
+  stats,
 }: {
   id: string;
   title: string;
@@ -50,6 +51,8 @@ export function CampaignCard({
   pointAmount?: number;
   /** 크리에이터 맞춤 배지: "응모함" | "내 분야" | "내 지역" */
   badges?: string[];
+  /** 광고주·운영자 카드: 응모 집계 (크리에이터 뷰에서는 미전달) */
+  stats?: { applied: number; pending: number; selected: number; approved: number };
   regionFlag: string;
   regionName: string;
   categoryEmoji: string;
@@ -101,6 +104,29 @@ export function CampaignCard({
           <h3 className="mt-2 line-clamp-2 text-base font-semibold tracking-tight">{title}</h3>
           <p className="mt-1 text-xs text-muted-foreground">{businessName}</p>
         </div>
+        {stats && status !== "draft" && (
+          <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+            {stats.pending > 0 && (status === "open" || status === "closed") && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 font-semibold text-accent-ink">
+                <Sparkles className="size-3" /> 선정 대기 {stats.pending}
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
+              <Inbox className="size-3" /> 응모 {stats.applied}
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
+              <Users className="size-3" /> 선정 {stats.selected}/{recruitCount}
+            </span>
+            {stats.approved > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
+                <CheckCircle2 className="size-3" /> 승인 {stats.approved}
+                {status === "completed" && typeof pointAmount === "number" && pointAmount > 0
+                  ? ` · ${(stats.approved * pointAmount).toLocaleString()}P 지급`
+                  : ""}
+              </span>
+            )}
+          </div>
+        )}
         <div className="mt-auto flex items-center gap-4 border-t border-border pt-3 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1">
             <Calendar className="size-3.5" />

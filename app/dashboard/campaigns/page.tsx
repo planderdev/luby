@@ -121,6 +121,25 @@ export default async function CampaignsPage({
   const campaigns = personalize ? rankCampaigns(rawCampaigns ?? [], signals) : rawCampaigns;
   const hasPersonalSignal = hasSignal(signals);
 
+  // 광고주·운영자: 카드별 응모 집계 (응모/선정 대기/선정/승인) — 한 번의 조회로 메모리 집계
+  type CardStats = { applied: number; pending: number; selected: number; approved: number };
+  const statsById = new Map<string, CardStats>();
+  if (!isInfluencer && (campaigns ?? []).length > 0) {
+    const ids = (campaigns ?? []).map((c) => c.id);
+    const { data: appRows } = await supabase
+      .from("applications")
+      .select("campaign_id, status")
+      .in("campaign_id", ids);
+    for (const a of appRows ?? []) {
+      const st = statsById.get(a.campaign_id) ?? { applied: 0, pending: 0, selected: 0, approved: 0 };
+      if (a.status !== "cancelled") st.applied += 1;
+      if (a.status === "pending") st.pending += 1;
+      if (a.status === "selected" || a.status === "completed") st.selected += 1;
+      if (a.status === "completed") st.approved += 1;
+      statsById.set(a.campaign_id, st);
+    }
+  }
+
   return (
     <div>
       <header className="flex flex-wrap items-end justify-between gap-4">
@@ -190,6 +209,7 @@ export default async function CampaignsPage({
               recruitCount={c.recruit_count}
               pointAmount={c.point_amount}
               badges={isInfluencer ? campaignBadges(c, signals) : []}
+              stats={isInfluencer ? undefined : statsById.get(c.id) ?? { applied: 0, pending: 0, selected: 0, approved: 0 }}
               regionFlag={region?.flag ?? ""}
               regionName={region?.name ?? ""}
               categoryEmoji={category?.emoji ?? ""}
