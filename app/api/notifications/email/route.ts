@@ -48,9 +48,12 @@ export async function POST(request: Request) {
   if (!profile?.email) {
     return NextResponse.json({ skipped: true, reason: "recipient not found" });
   }
-  // 테스트 계정(@ruby-ai.kr 가상 주소)에는 발송하지 않음
-  if (profile.email.endsWith("@ruby-ai.kr")) {
-    return NextResponse.json({ skipped: true, reason: "test account" });
+  // 발송 제외 도메인: @ruby-ai.kr(테스트 가상 주소), @luby.im(수신 MX 미설정 — 반송 방지. 수신함 개설 후 NOTIFY_SKIP_DOMAINS 에서 제거)
+  const skipDomains = (process.env.NOTIFY_SKIP_DOMAINS ?? "ruby-ai.kr,luby.im")
+    .split(",").map((d) => d.trim().toLowerCase()).filter(Boolean);
+  const domain = profile.email.split("@")[1]?.toLowerCase() ?? "";
+  if (skipDomains.includes(domain)) {
+    return NextResponse.json({ skipped: true, reason: `skip domain ${domain}` });
   }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://luby.im";
