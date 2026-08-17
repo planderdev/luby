@@ -3,6 +3,7 @@ import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { SettingsForm } from "./SettingsForm";
 import { EmailPrefsForm } from "./EmailPrefsForm";
+import { PublicProfileToggle } from "./PublicProfileToggle";
 import { normalizePrefs } from "@/lib/notification-categories";
 import { CompletenessCard } from "@/components/dashboard/CompletenessCard";
 import { creatorCompleteness, advertiserCompleteness } from "@/lib/profile-completeness";
@@ -25,7 +26,7 @@ export default async function SettingsPage() {
     isInfluencer
       ? supabase
           .from("influencers")
-          .select("bio, region_id")
+          .select("bio, region_id, public_profile")
           .eq("profile_id", profile.id)
           .maybeSingle()
       : isAdvertiser
@@ -132,6 +133,14 @@ export default async function SettingsPage() {
           <ChannelManager
             channels={(channelsRes.data ?? []) as ChannelRow[]}
             channelTypes={channelTypesRes.data ?? []}
+          />
+        )}
+
+        {isInfluencer && (
+          <PublicProfileToggle
+            userId={profile.id}
+            initial={!!(extra as { public_profile?: boolean }).public_profile}
+            approved={profile.approved}
           />
         )}
 

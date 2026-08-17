@@ -19,6 +19,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   } catch {
     campaignEntries = [];
   }
+  // 공개 프로필을 켠 크리에이터 (/p/[id])
+  let creatorEntries: MetadataRoute.Sitemap = [];
+  try {
+    const { data } = await getStaticSupabase().rpc("list_public_creator_ids", { p_limit: 1000 });
+    creatorEntries = (data ?? []).map((c) => ({
+      url: `${base}/p/${c.id}`,
+      lastModified: new Date(c.updated_at),
+      changeFrequency: "weekly" as const,
+      priority: 0.5,
+    }));
+  } catch {
+    creatorEntries = [];
+  }
 
   // Landing page is served in 3 languages; declare the alternates so search
   // engines surface the right locale.
@@ -76,5 +89,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.3,
     },
     ...campaignEntries,
+    ...creatorEntries,
   ];
 }

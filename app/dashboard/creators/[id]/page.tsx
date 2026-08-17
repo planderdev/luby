@@ -57,6 +57,9 @@ export default async function CreatorProfilePage({
   const { id } = await params;
   const supabase = await createClient();
   const { data } = await supabase.rpc("get_creator_portfolio", { p_profile_id: id });
+  // 공개 프로필을 켠 크리에이터면 공유 가능한 /p/[id] 링크 표시 (RLS: 승인 크리에이터의 influencers 행은 조회 가능)
+  const { data: pubRow } = await supabase.from("influencers").select("public_profile").eq("profile_id", id).maybeSingle();
+  const hasPublic = !!pubRow?.public_profile;
   const portfolio = data as Portfolio | null;
 
   if (!portfolio) {
@@ -118,6 +121,11 @@ export default async function CreatorProfilePage({
                 <CalendarDays className="size-3.5" />
                 {new Date(portfolio.joined_at).toLocaleDateString("ko-KR")} 가입
               </span>
+              {hasPublic && (
+                <a href={`/p/${id}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 underline underline-offset-2 hover:text-foreground">
+                  공개 프로필 링크 ↗
+                </a>
+              )}
               {totalFollowers > 0 && (
                 <span className="inline-flex items-center gap-1">
                   <Users className="size-3.5" />총 팔로워 {fmtFollowers(totalFollowers)}

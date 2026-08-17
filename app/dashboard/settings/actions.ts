@@ -195,3 +195,16 @@ export async function updateEmailPrefs(prefs: {
   revalidatePath("/dashboard/settings");
   return { ok: true };
 }
+
+/** 크리에이터: 공개 프로필 켜기/끄기 (옵트인) */
+export async function setPublicProfile(enabled: boolean): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+  const { error } = await supabase.from("influencers").update({ public_profile: !!enabled }).eq("profile_id", user.id);
+  if (error) return { ok: false, error: `저장 실패: ${error.message}` };
+  revalidatePath("/dashboard/settings");
+  return { ok: true };
+}
