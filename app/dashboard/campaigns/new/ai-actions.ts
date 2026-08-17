@@ -110,6 +110,34 @@ export async function suggestTitles(input: {
   });
 }
 
+
+/**
+ * 모델이 카탈로그에 없는 ID를 돌려주는 경우(드묾) 방어 — 유효한 ID만 남기고,
+ * 선택 채널마다 미션이 1개는 있도록 정리한다. 카테고리·홍보유형이 무효면 빈 문자열(UI가 선택 유도).
+ */
+async function sanitizeChannelPicks<T extends {
+  channel_type_ids: string[];
+  missions: { channel_type_id: string; description: string }[];
+  category_id?: string;
+  promotion_type_id?: string;
+}>(d: T): Promise<T> {
+  const catalog = await fetchCatalog();
+  const validCh = new Set(catalog.channels.map((c) => c.id));
+  const validCat = new Set(catalog.categories.map((c) => c.id));
+  const validPromo = new Set(catalog.promotionTypes.map((p) => p.id));
+  const channel_type_ids = [...new Set(d.channel_type_ids.filter((id) => validCh.has(id)))].slice(0, 4);
+  const missions = d.missions.filter((m) => channel_type_ids.includes(m.channel_type_id) && m.description?.trim());
+  // 미션이 빠진 채널은 제외 (미션 없는 채널을 광고주가 다시 채워야 하는 상황 방지)
+  const withMission = channel_type_ids.filter((id) => missions.some((m) => m.channel_type_id === id));
+  return {
+    ...d,
+    channel_type_ids: withMission,
+    missions: missions.filter((m) => withMission.includes(m.channel_type_id)),
+    ...(d.category_id !== undefined ? { category_id: validCat.has(d.category_id) ? d.category_id : "" } : {}),
+    ...(d.promotion_type_id !== undefined ? { promotion_type_id: validPromo.has(d.promotion_type_id) ? d.promotion_type_id : "" } : {}),
+  };
+}
+
 // ---------- Step 2: Promotion + category + channels + missions --------------
 
 export type PromotionSuggestion = {
@@ -127,7 +155,7 @@ export async function suggestPromotionAndChannels(input: {
   if (!auth.ok) return auth;
   if (!input.industryBrief?.trim()) return { ok: false, error: "업종 설명이 필요합니다." };
 
-  return callAI<PromotionSuggestion>({    userPrompt: `상호명: ${input.businessName}
+  const r = await callAI<PromotionSuggestion>({    userPrompt: `상호명: ${input.businessName}
 업종 설명: ${input.industryBrief}
 
 위 정보를 보고:
@@ -137,7 +165,8 @@ export async function suggestPromotionAndChannels(input: {
 4. 선택한 각 채널마다 인플루언서가 수행할 미션 1개씩 작성 (60~150자, 채널 특성 반영)
 
 미션 작성 시 주의:
-- 각 채널의 콘텐츠 형식을 활용 (인스타→릴스/피드, 블로그→상세후기, 유튜브→영상 등)
+- 시스템의 "채널별 콘텐츠 형식 가이드"를 그대로 따를 것 (인스타→릴스/피드, 블로그→상세후기, 샤오홍슈→중국어 笔记 등)
+- 중국·화교권 관광객이 찾을 만한 방문형 매장이나 K뷰티·K푸드라면 xiaohongshu 를 채널 후보에 포함
 - 해시태그·키워드·언급해야 할 핵심 포인트를 구체적으로
 - 너무 많은 요구사항은 금지 (1~3개의 명확한 액션만)`,
     schema: {
@@ -166,6 +195,8 @@ export async function suggestPromotionAndChannels(input: {
       required: ["promotion_type_id", "category_id", "channel_type_ids", "missions"],
     },
   });
+  if (!r.ok) return r;
+  return { ok: true, data: await sanitizeChannelPicks(r.data) };
 }
 
 // ---------- Step 4: Keywords + recruit count -------------------------------
@@ -291,8 +322,8 @@ export async function suggestEverything(input: {
 - title: 매력적인 캠페인 제목 (25~40자)
 - promotion_type_id: 가장 어울리는 홍보 유형
 - category_id: 가장 어울리는 카테고리
-- channel_type_ids: 가장 효과적인 채널 2~3개
-- missions: 선택한 채널별 미션 (각 60~150자)
+- channel_type_ids: 가장 효과적인 채널 2~3개 (중국·화교권 관광객이 찾는 방문형 매장·K뷰티·K푸드라면 xiaohongshu 포함 검토)
+- missions: 선택한 채널별 미션 (각 60~150자, 시스템의 채널별 콘텐츠 형식 가이드 준수 — 글로벌 채널은 사용 언어·현지어 키워드 병기)
 - recruit_count: 적정 모집 인원
 - keywords: 5~8개 핵심 키워드
 - offerings: 제공 내역 1~3개 (각 title + description + estimated_value KRW)
@@ -357,13 +388,12 @@ export async function suggestEverything(input: {
   });
   if (!r.ok) return r;
 
-  // 스키마 제약 미지원 대체: 개수·범위 서버측 클램핑
-  const d = r.data;
+  // 스키마 제약 미지원 대체: 개수·범위 서버측 클램핑 + 카탈로그 ID 검증
+  const d = await sanitizeChannelPicks(r.data);
   return {
     ok: true,
     data: {
       ...d,
-      channel_type_ids: d.channel_type_ids.slice(0, 4),
       recruit_count: Math.min(100, Math.max(1, d.recruit_count)),
       keywords: d.keywords.slice(0, 8),
       offerings: d.offerings
