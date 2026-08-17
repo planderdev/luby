@@ -2,8 +2,9 @@
 import { trackClient } from "@/lib/analytics";
 
 import { useState, useTransition } from "react";
-import { Loader2, Check, X } from "lucide-react";
+import { Loader2, Check, X, Sparkles } from "lucide-react";
 import { applyToCampaign, cancelApplication } from "./actions";
+import { suggestApplicationMessage } from "./ai-apply-actions";
 
 const STATUS_LABEL: Record<string, { label: string; tone: string }> = {
   pending: { label: "응모 대기", tone: "bg-muted text-foreground" },
@@ -27,6 +28,16 @@ export function ApplyButton({
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [drafting, setDrafting] = useState(false);
+
+  async function draftWithAI() {
+    setError(null);
+    setDrafting(true);
+    const r = await suggestApplicationMessage(campaignId);
+    setDrafting(false);
+    if (r.ok) setMessage(r.message);
+    else setError(r.error);
+  }
 
   function submit() {
     setError(null);
@@ -86,12 +97,24 @@ export function ApplyButton({
   if (showForm) {
     return (
       <div className="w-full max-w-md rounded-3xl glass-card p-5">
-        <h4 className="text-sm font-semibold">응모 메시지 (선택)</h4>
+        <div className="flex items-center justify-between gap-2">
+          <h4 className="text-sm font-semibold">응모 메시지 (선택)</h4>
+          <button
+            type="button"
+            onClick={draftWithAI}
+            disabled={drafting || pending}
+            className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1.5 text-xs font-medium text-accent-ink hover:bg-accent/20 disabled:opacity-60"
+            title="캠페인 미션과 내 프로필을 바탕으로 초안을 만들어요"
+          >
+            {drafting ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
+            {drafting ? "작성 중…" : "AI 초안"}
+          </button>
+        </div>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="광고주에게 어필할 내용이 있으면 작성해주세요."
-          rows={3}
+          placeholder="광고주에게 어필할 내용이 있으면 작성해주세요. 'AI 초안'을 누르면 캠페인 미션에 맞춰 시작 문장을 만들어드려요."
+          rows={4}
           className="mt-3 w-full resize-none rounded-2xl glass-card px-4 py-3 text-sm outline-none focus:border-foreground"
         />
         {error && (
