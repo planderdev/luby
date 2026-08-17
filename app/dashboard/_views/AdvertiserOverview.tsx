@@ -12,6 +12,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { TodoList, type TodoItem } from "@/components/dashboard/TodoList";
+import { CompletenessCard } from "@/components/dashboard/CompletenessCard";
+import type { CompletenessItem } from "@/lib/profile-completeness";
 
 type Plan = { name: string; tier: string; monthly_price: number } | null;
 
@@ -31,12 +33,14 @@ export function AdvertiserOverview({
   openCount,
   plan,
   todo,
+  completeness,
 }: {
   name: string;
   campaignCount: number;
   openCount: number;
   plan: Plan;
   todo: AdvertiserTodo;
+  completeness?: { percent: number; items: CompletenessItem[]; next: CompletenessItem | null };
 }) {
   const todoItems: TodoItem[] = [
     {
@@ -142,6 +146,12 @@ export function AdvertiserOverview({
           hint={plan ? `${plan.monthly_price.toLocaleString()}원/월` : ""}
         />
       </div>
+
+      {completeness && completeness.percent < 100 && (
+        <div className="mt-8">
+          <CompletenessCard {...completeness} compact title="회사 프로필 완성도" doneText="완성! 크리에이터가 브랜드를 신뢰하고 응모해요" todoText="채울수록 응모율·선정 품질이 올라가요" />
+        </div>
+      )}
 
       <TodoList items={todoItems} />
 

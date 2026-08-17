@@ -7,22 +7,28 @@ export function CompletenessCard({
   items,
   next,
   compact = false,
+  title = "프로필 완성도",
+  doneText = "완성! 광고주 검색·AI 매칭에 최대로 노출돼요",
+  todoText = "완성할수록 추천·초대가 늘어요",
 }: {
   percent: number;
   items: CompletenessItem[];
   next: CompletenessItem | null;
   compact?: boolean;
+  title?: string;
+  doneText?: string;
+  todoText?: string;
 }) {
   const done = percent >= 100;
   return (
     <section className={`rounded-3xl ${done ? "glass-card" : "border border-accent/30 bg-accent-soft/40"} p-6 lg:p-8`}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">프로필 완성도</div>
+          <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{title}</div>
           <div className="mt-1 flex items-baseline gap-2">
             <span className="display text-3xl font-semibold">{percent}%</span>
             <span className="text-xs text-muted-foreground">
-              {done ? "완성! 광고주 검색·AI 매칭에 최대로 노출돼요" : "완성할수록 추천·초대가 늘어요"}
+              {done ? doneText : todoText}
             </span>
           </div>
         </div>

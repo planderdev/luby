@@ -6,7 +6,7 @@ import { OperatorOverview } from "./_views/OperatorOverview";
 import { redirect } from "next/navigation";
 import { fetchUICatalog } from "@/lib/cache/ui-catalog";
 import { rankCampaigns, campaignBadges, type CreatorSignals } from "@/lib/campaign-ranking";
-import { creatorCompleteness } from "@/lib/profile-completeness";
+import { creatorCompleteness, advertiserCompleteness } from "@/lib/profile-completeness";
 
 export const metadata = { title: "대시보드 — 루비AI" };
 
@@ -86,6 +86,18 @@ export default async function DashboardPage() {
     ]);
 
     const plan = planRes.data;
+    const { data: advRow } = await supabase
+      .from("advertisers")
+      .select("description, website, category_id, contact_phone")
+      .eq("profile_id", profile.id)
+      .maybeSingle();
+    const advCompleteness = advertiserCompleteness({
+      avatarUrl: profile.avatar_url,
+      description: advRow?.description ?? null,
+      categoryId: advRow?.category_id ?? null,
+      website: advRow?.website ?? null,
+      contactPhone: advRow?.contact_phone ?? profile.phone ?? null,
+    });
     const expiresAt = subscription?.expires_at ? new Date(subscription.expires_at).getTime() : null;
     const daysToExpire =
       expiresAt && plan && plan.tier !== "free"
@@ -106,6 +118,7 @@ export default async function DashboardPage() {
           draftCount,
           daysToExpire,
         }}
+        completeness={advCompleteness}
       />
     );
   }

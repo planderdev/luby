@@ -5,7 +5,7 @@ import { SettingsForm } from "./SettingsForm";
 import { EmailPrefsForm } from "./EmailPrefsForm";
 import { normalizePrefs } from "@/lib/notification-categories";
 import { CompletenessCard } from "@/components/dashboard/CompletenessCard";
-import { creatorCompleteness } from "@/lib/profile-completeness";
+import { creatorCompleteness, advertiserCompleteness } from "@/lib/profile-completeness";
 import { ChannelManager, type ChannelRow } from "./ChannelManager";
 import { CategoryPicker } from "./CategoryPicker";
 
@@ -31,7 +31,7 @@ export default async function SettingsPage() {
       : isAdvertiser
         ? supabase
             .from("advertisers")
-            .select("company_name, advertiser_kind, description, website, category_id")
+            .select("company_name, advertiser_kind, description, website, category_id, contact_phone")
             .eq("profile_id", profile.id)
             .maybeSingle()
         : Promise.resolve({ data: null }),
@@ -72,6 +72,15 @@ export default async function SettingsPage() {
   const extra = extraRes.data ?? {};
   const { data: prefRow } = await supabase.from("profiles").select("email_prefs").eq("id", profile.id).maybeSingle();
   const emailPrefs = normalizePrefs(prefRow?.email_prefs);
+  const advCompleteness = isAdvertiser
+    ? advertiserCompleteness({
+        avatarUrl: profile.avatar_url,
+        description: (extra as { description?: string | null }).description ?? null,
+        categoryId: (extra as { category_id?: string | null }).category_id ?? null,
+        website: (extra as { website?: string | null }).website ?? null,
+        contactPhone: (extra as { contact_phone?: string | null }).contact_phone ?? profile.phone ?? null,
+      })
+    : null;
   const completeness = isInfluencer
     ? creatorCompleteness({
         avatarUrl: profile.avatar_url,
@@ -96,6 +105,9 @@ export default async function SettingsPage() {
 
       <div className="mt-8 space-y-4">
         {completeness && <CompletenessCard {...completeness} />}
+        {advCompleteness && (
+          <CompletenessCard {...advCompleteness} title="회사 프로필 완성도" doneText="완성! 크리에이터가 브랜드를 신뢰하고 응모해요" todoText="채울수록 응모율·선정 품질이 올라가요" />
+        )}
         <SettingsForm
           profile={{
             id: profile.id,
