@@ -9,6 +9,7 @@ import { ApplyButton } from "./ApplyButton";
 import { ApplicantList } from "./ApplicantList";
 import { AIMatches } from "./AIMatches";
 import { CampaignPerformance } from "./CampaignPerformance";
+import { CancelCampaignButton } from "./CancelCampaignButton";
 import { Skeleton } from "@/components/dashboard/Skeleton";
 
 const STATUS_LABEL: Record<string, { label: string; tone: string }> = {
@@ -116,6 +117,17 @@ export default async function CampaignDetailPage({
     myApplicationStatus = app?.status ?? null;
   }
 
+  // Owner: 취소 확인 문구용 응모자 수 (취소·거절 제외)
+  let applicantCount = 0;
+  if (isOwner) {
+    const { count } = await supabase
+      .from("applications")
+      .select("id", { count: "exact", head: true })
+      .eq("campaign_id", id)
+      .in("status", ["pending", "selected"]);
+    applicantCount = count ?? 0;
+  }
+
   return (
     <div>
       <Link
@@ -147,6 +159,9 @@ export default async function CampaignDetailPage({
           </p>
         </div>
 
+        {isOwner && ["pending_approval", "open", "closed"].includes(campaign.status) && (
+          <CancelCampaignButton campaignId={id} applicantCount={applicantCount} />
+        )}
         {isInfluencer && campaign.status === "open" && (
           <ApplyButton
             campaignId={id}
