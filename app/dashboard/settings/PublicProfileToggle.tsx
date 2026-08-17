@@ -9,7 +9,8 @@ export function PublicProfileToggle({ userId, initial, approved }: { userId: str
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const url = typeof window !== "undefined" ? `${window.location.origin}/p/${userId}` : `/p/${userId}`;
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const url = `${origin}/p/${userId}`;
 
   function toggle() {
     const next = !on;
@@ -59,6 +60,9 @@ export function PublicProfileToggle({ userId, initial, approved }: { userId: str
           <a href={`/p/${userId}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
             <ExternalLink className="size-3.5" /> 미리보기
           </a>
+          <span className="text-[11px] text-muted-foreground">
+            해외용: <a href={`/en/p/${userId}`} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">EN</a> · <a href={`/zh/p/${userId}`} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">中文</a>
+          </span>
         </div>
       )}
       {error && <p className="mt-2 text-xs text-danger">{error}</p>}
