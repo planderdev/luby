@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Calendar, Users, MapPin, Tag, Coins } from "lucide-react";
+import { ArrowLeft, Calendar, Users, MapPin, Tag, Coins, Copy } from "lucide-react";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { getEntitlements } from "@/lib/plans/entitlements";
@@ -159,8 +159,19 @@ export default async function CampaignDetailPage({
           </p>
         </div>
 
-        {isOwner && ["pending_approval", "open", "closed"].includes(campaign.status) && (
-          <CancelCampaignButton campaignId={id} applicantCount={applicantCount} />
+        {isOwner && (
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href={`/dashboard/campaigns/new?from=${id}`}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-xs font-medium hover:bg-muted"
+              title="이 캠페인의 내용으로 새 캠페인을 시작합니다 (일정은 새로 지정)"
+            >
+              <Copy className="size-3.5" /> 이 캠페인으로 새로 만들기
+            </Link>
+            {["pending_approval", "open", "closed"].includes(campaign.status) && (
+              <CancelCampaignButton campaignId={id} applicantCount={applicantCount} />
+            )}
+          </div>
         )}
         {isInfluencer && campaign.status === "open" && (
           <ApplyButton

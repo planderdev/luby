@@ -59,18 +59,21 @@ export function CampaignBuilder({
   categories,
   channels,
   promotionTypes,
+  initial,
 }: {
   regions: Region[];
   categories: Category[];
   channels: Channel[];
   promotionTypes: PromotionType[];
+  /** 캠페인 복제 시 프리필 값 (일정은 비워서 광고주가 새로 지정) */
+  initial?: Partial<CampaignDraft> | null;
 }) {
   const router = useRouter();
   const [step, setStep] = useState(1);
   // Empty region_id forces the user to pick from the dropdown — matches the
   // behavior of the other Step 2 selects (promotion type, category) so the UX
   // is consistent. canProceed() enforces it before moving to Step 2.
-  const [draft, setDraft] = useState<CampaignDraft>(() => initialDraft(""));
+  const [draft, setDraft] = useState<CampaignDraft>(() => ({ ...initialDraft(""), ...(initial ?? {}) }));
   const [error, setError] = useState<string | null>(null);
   const [modalError, setModalError] = useState<{ step: number; error: string } | null>(null);
   const [pending, startTransition] = useTransition();
