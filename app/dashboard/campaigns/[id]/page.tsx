@@ -10,6 +10,7 @@ import { ApplicantList } from "./ApplicantList";
 import { AIMatches } from "./AIMatches";
 import { CampaignPerformance } from "./CampaignPerformance";
 import { CancelCampaignButton } from "./CancelCampaignButton";
+import { ShareLinkButton } from "./ShareLinkButton";
 import { Skeleton } from "@/components/dashboard/Skeleton";
 
 const STATUS_LABEL: Record<string, { label: string; tone: string }> = {
@@ -161,6 +162,7 @@ export default async function CampaignDetailPage({
 
         {isOwner && (
           <div className="flex flex-wrap items-center gap-2">
+            {["open", "closed", "completed"].includes(campaign.status) && <ShareLinkButton campaignId={id} />}
             <Link
               href={`/dashboard/campaigns/new?from=${id}`}
               className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-xs font-medium hover:bg-muted"

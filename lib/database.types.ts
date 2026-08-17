@@ -1132,6 +1132,14 @@ export type Database = {
         Returns: boolean
       }
       is_operator: { Args: never; Returns: boolean }
+      get_public_campaign: {
+        Args: { p_id: string }
+        Returns: Json
+      }
+      list_public_campaign_ids: {
+        Args: { p_limit?: number }
+        Returns: { id: string; updated_at: string }[]
+      }
       get_advertiser_portfolio: {
         Args: { p_profile_id: string }
         Returns: Json
