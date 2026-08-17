@@ -39,7 +39,7 @@ export default async function OperatorUsersPage({
         .order("created_at", { ascending: false }),
       supabase
         .from("advertisers")
-        .select("profile_id, company_name, business_number, business_type, representative_name"),
+        .select("profile_id, company_name, business_number, business_type, representative_name, advertiser_kind"),
       supabase.from("influencers").select("profile_id, region_id, bio, total_points"),
       supabase.from("influencer_channels").select("influencer_id, followers"),
       supabase.from("regions").select("id, flag, name"),
@@ -122,6 +122,7 @@ export default async function OperatorUsersPage({
                 adv
                   ? {
                       companyName: adv.company_name,
+                      advertiserKind: adv.advertiser_kind,
                       businessNumber: adv.business_number,
                       businessType: adv.business_type,
                       representative: adv.representative_name,

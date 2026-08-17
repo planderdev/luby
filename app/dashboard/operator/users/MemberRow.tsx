@@ -6,6 +6,7 @@ import { approveUser } from "../actions";
 
 type Business = {
   companyName: string | null;
+  advertiserKind?: "brand" | "agency" | null;
   businessNumber: string | null;
   businessType: string | null;
   representative: string | null;
@@ -99,6 +100,11 @@ export function MemberRow({
               <span className="inline-flex items-center gap-1.5 font-medium">
                 <Building2 className="size-3.5 text-muted-foreground" />
                 {business.companyName ?? "—"}
+                {business.advertiserKind === "agency" && (
+                  <span className="rounded-full border border-border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                    대행사
+                  </span>
+                )}
               </span>
               <span className="text-muted-foreground">
                 사업자번호{" "}

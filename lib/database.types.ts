@@ -17,6 +17,7 @@ export type Database = {
           business_address: string | null
           business_number: string | null
           business_type: Database["public"]["Enums"]["business_type"] | null
+          advertiser_kind: Database["public"]["Enums"]["advertiser_kind"]
           category_id: string | null
           company_name: string
           contact_email: string | null
@@ -32,6 +33,7 @@ export type Database = {
           business_address?: string | null
           business_number?: string | null
           business_type?: Database["public"]["Enums"]["business_type"] | null
+          advertiser_kind?: Database["public"]["Enums"]["advertiser_kind"]
           category_id?: string | null
           company_name: string
           contact_email?: string | null
@@ -47,6 +49,7 @@ export type Database = {
           business_address?: string | null
           business_number?: string | null
           business_type?: Database["public"]["Enums"]["business_type"] | null
+          advertiser_kind?: Database["public"]["Enums"]["advertiser_kind"]
           category_id?: string | null
           company_name?: string
           contact_email?: string | null
@@ -1195,6 +1198,7 @@ export type Database = {
         | "cancelled"
         | "completed"
       business_type: "individual" | "corporation"
+      advertiser_kind: "brand" | "agency"
       campaign_status:
         | "draft"
         | "pending_approval"

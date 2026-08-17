@@ -1,5 +1,6 @@
 "use client";
 import { trackClient } from "@/lib/analytics";
+import { ADVERTISER_KINDS, type AdvertiserKind } from "@/lib/advertiser-kind";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -150,6 +151,7 @@ function FormStep({
 
   const [companyName, setCompanyName] = useState("");
   const [businessNumber, setBusinessNumber] = useState("");
+  const [advertiserKind, setAdvertiserKind] = useState<AdvertiserKind>("brand");
 
   const [regionId, setRegionId] = useState(regions[0]?.id ?? "");
   const [channelTypeId, setChannelTypeId] = useState(channelTypes[0]?.id ?? "");
@@ -183,6 +185,7 @@ function FormStep({
       phone,
     };
     if (role === "advertiser") {
+      metadata.advertiser_kind = advertiserKind;
       metadata.company_name = companyName;
       // 저장은 표준 표기(000-00-00000)로 정규화
       const d = businessNumber.replace(/-/g, "");
@@ -252,8 +255,39 @@ function FormStep({
 
       {role === "advertiser" ? (
         <>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">광고주 유형</label>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {ADVERTISER_KINDS.map((k) => {
+                const on = advertiserKind === k.value;
+                return (
+                  <button
+                    key={k.value}
+                    type="button"
+                    onClick={() => setAdvertiserKind(k.value)}
+                    aria-pressed={on}
+                    className={`rounded-2xl border px-4 py-3 text-left transition-colors ${
+                      on
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border bg-background hover:bg-muted"
+                    }`}
+                  >
+                    <div className="text-sm font-semibold">{k.label}</div>
+                    <div className={`mt-0.5 text-xs ${on ? "text-background/70" : "text-muted-foreground"}`}>
+                      {k.desc}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            {advertiserKind === "agency" && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                대행사는 캠페인을 만들 때마다 클라이언트 상호를 따로 입력할 수 있어요. 아래에는 대행사 정보를 적어주세요.
+              </p>
+            )}
+          </div>
           <Field
-            label="회사·상호명"
+            label={advertiserKind === "agency" ? "대행사명" : "회사·상호명"}
             type="text"
             value={companyName}
             onChange={setCompanyName}

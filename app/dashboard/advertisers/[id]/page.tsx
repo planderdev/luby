@@ -17,6 +17,7 @@ export const metadata = { title: "광고주 프로필 — 루비AI" };
 type Portfolio = {
   id: string;
   company_name: string;
+  advertiser_kind?: "brand" | "agency" | null;
   avatar_url: string | null;
   joined_at: string;
   description: string | null;
@@ -105,6 +106,11 @@ export default async function AdvertiserProfilePage({
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="display text-3xl font-semibold">{p.company_name}</h1>
+              {p.advertiser_kind === "agency" && (
+                <span className="rounded-full border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                  마케팅 대행사 · 실행사
+                </span>
+              )}
               {p.category_name && (
                 <span className="rounded-full bg-accent-soft px-2.5 py-1 text-[11px] font-medium text-accent-ink">
                   {p.category_emoji} {p.category_name}

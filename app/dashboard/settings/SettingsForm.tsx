@@ -1,4 +1,5 @@
 "use client";
+import { ADVERTISER_KINDS, type AdvertiserKind } from "@/lib/advertiser-kind";
 
 import { useState, useTransition } from "react";
 import { Loader2, Check } from "lucide-react";
@@ -25,6 +26,7 @@ export function SettingsForm({
     bio?: string | null;
     region_id?: string | null;
     company_name?: string | null;
+    advertiser_kind?: string | null;
     description?: string | null;
     website?: string | null;
     category_id?: string | null;
@@ -37,6 +39,9 @@ export function SettingsForm({
   const [bio, setBio] = useState(extra.bio ?? "");
   const [regionId, setRegionId] = useState(extra.region_id ?? "");
   const [companyName, setCompanyName] = useState(extra.company_name ?? "");
+  const [advertiserKind, setAdvertiserKind] = useState<AdvertiserKind>(
+    extra.advertiser_kind === "agency" ? "agency" : "brand"
+  );
   const [description, setDescription] = useState(extra.description ?? "");
   const [website, setWebsite] = useState(extra.website ?? "");
   const [categoryId, setCategoryId] = useState(extra.category_id ?? "");
@@ -57,6 +62,7 @@ export function SettingsForm({
         ...(profile.role === "advertiser"
           ? {
               company_name: companyName || null,
+              advertiser_kind: advertiserKind,
               description: description || null,
               website: website || null,
               category_id: categoryId || null,
@@ -160,8 +166,30 @@ export function SettingsForm({
           {profile.role === "advertiser" && (
             <>
               <div>
+                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">광고주 유형</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {ADVERTISER_KINDS.map((k) => {
+                    const on = advertiserKind === k.value;
+                    return (
+                      <button
+                        key={k.value}
+                        type="button"
+                        onClick={() => setAdvertiserKind(k.value)}
+                        aria-pressed={on}
+                        className={`rounded-2xl border px-4 py-3 text-left transition-colors ${
+                          on ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:bg-muted"
+                        }`}
+                      >
+                        <div className="text-sm font-semibold">{k.label}</div>
+                        <div className={`mt-0.5 text-xs ${on ? "text-background/70" : "text-muted-foreground"}`}>{k.desc}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
                 <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                  회사명 · 브랜드명
+                  {advertiserKind === "agency" ? "대행사명" : "회사명 · 브랜드명"}
                 </label>
                 <input
                   type="text"

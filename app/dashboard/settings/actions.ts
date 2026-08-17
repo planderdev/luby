@@ -10,6 +10,7 @@ export type SettingsPayload = {
   region_id?: string | null;
   // 광고주 공개 프로필
   company_name?: string | null;
+  advertiser_kind?: "brand" | "agency" | null;
   description?: string | null;
   website?: string | null;
   category_id?: string | null;
@@ -62,6 +63,9 @@ export async function updateProfile(
       .from("advertisers")
       .update({
         ...(payload.company_name?.trim() ? { company_name: payload.company_name.trim() } : {}),
+        ...(payload.advertiser_kind === "brand" || payload.advertiser_kind === "agency"
+          ? { advertiser_kind: payload.advertiser_kind }
+          : {}),
         description: payload.description?.trim().slice(0, 600) || null,
         website: website?.slice(0, 200) ?? null,
         category_id: payload.category_id || null,

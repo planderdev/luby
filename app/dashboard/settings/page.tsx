@@ -27,7 +27,7 @@ export default async function SettingsPage() {
       : isAdvertiser
         ? supabase
             .from("advertisers")
-            .select("company_name, description, website, category_id")
+            .select("company_name, advertiser_kind, description, website, category_id")
             .eq("profile_id", profile.id)
             .maybeSingle()
         : Promise.resolve({ data: null }),
