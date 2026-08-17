@@ -887,6 +887,7 @@ export type Database = {
           approved_at: string | null
           approved_by: string | null
           avatar_url: string | null
+          email_prefs: Json
           created_at: string
           email: string
           id: string
@@ -900,6 +901,7 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           avatar_url?: string | null
+          email_prefs?: Json
           created_at?: string
           email: string
           id: string
@@ -913,6 +915,7 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           avatar_url?: string | null
+          email_prefs?: Json
           created_at?: string
           email?: string
           id?: string

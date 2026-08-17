@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { SettingsForm } from "./SettingsForm";
+import { EmailPrefsForm } from "./EmailPrefsForm";
+import { normalizePrefs } from "@/lib/notification-categories";
 import { CompletenessCard } from "@/components/dashboard/CompletenessCard";
 import { creatorCompleteness } from "@/lib/profile-completeness";
 import { ChannelManager, type ChannelRow } from "./ChannelManager";
@@ -68,6 +70,8 @@ export default async function SettingsPage() {
   ]);
 
   const extra = extraRes.data ?? {};
+  const { data: prefRow } = await supabase.from("profiles").select("email_prefs").eq("id", profile.id).maybeSingle();
+  const emailPrefs = normalizePrefs(prefRow?.email_prefs);
   const completeness = isInfluencer
     ? creatorCompleteness({
         avatarUrl: profile.avatar_url,
@@ -118,6 +122,8 @@ export default async function SettingsPage() {
             channelTypes={channelTypesRes.data ?? []}
           />
         )}
+
+        <EmailPrefsForm initial={emailPrefs} isOperator={profile.role === "operator"} />
       </div>
     </div>
   );

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminSupabase } from "@/lib/supabase/admin";
+import { categoryOf, normalizePrefs, EMAIL_CATEGORY_LABEL } from "@/lib/notification-categories";
+import { unsubscribeUrl } from "@/lib/unsubscribe-token";
 
 export const maxDuration = 15;
 
@@ -41,12 +43,19 @@ export async function POST(request: Request) {
   const admin = getAdminSupabase();
   const { data: profile } = await admin
     .from("profiles")
-    .select("email, name")
+    .select("email, name, email_prefs")
     .eq("id", payload.user_id)
     .maybeSingle();
 
   if (!profile?.email) {
     return NextResponse.json({ skipped: true, reason: "recipient not found" });
+  }
+
+  // 이메일 수신 설정 존중 (인앱 알림은 이미 생성됨)
+  const category = categoryOf(payload.type);
+  const prefs = normalizePrefs(profile.email_prefs);
+  if (!prefs[category]) {
+    return NextResponse.json({ skipped: true, reason: `email pref off: ${category}` });
   }
   // 발송 제외 도메인: @ruby-ai.kr(테스트 가상 주소), @luby.im(수신 MX 미설정 — 반송 방지. 수신함 개설 후 NOTIFY_SKIP_DOMAINS 에서 제거)
   const skipDomains = (process.env.NOTIFY_SKIP_DOMAINS ?? "ruby-ai.kr,luby.im")
@@ -67,7 +76,11 @@ export async function POST(request: Request) {
       ${payload.body ? `<p style="margin:0 0 24px;font-size:14px;line-height:1.7;color:#a3a3a3;">${payload.body}</p>` : ""}
       <a href="${link}" style="display:inline-block;background:#f43f8e;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;padding:12px 24px;border-radius:999px;">확인하러 가기</a>
     </div>
-    <p style="margin:24px 0 0;font-size:12px;color:#525252;">이 메일은 Luby AI 알림 설정에 따라 발송되었습니다.<br/>문의: contact@plander.io</p>
+    <p style="margin:24px 0 0;font-size:12px;color:#525252;line-height:1.7;">이 메일은 Luby AI 알림 설정에 따라 발송되었습니다 (${EMAIL_CATEGORY_LABEL[category].label}).<br/>
+      <a href="${siteUrl}/dashboard/settings#email" style="color:#737373;">이메일 알림 설정</a> ·
+      <a href="${unsubscribeUrl(siteUrl, payload.user_id, category)}" style="color:#737373;">이 종류 메일 수신 거부</a> ·
+      <a href="${unsubscribeUrl(siteUrl, payload.user_id, "all")}" style="color:#737373;">모든 이메일 수신 거부</a><br/>
+      문의: contact@plander.io · (주)플랜더 · 제주특별자치도 제주시 관덕로 44, 제주소통협력센터 404호</p>
   </div>
 </body></html>`;
 

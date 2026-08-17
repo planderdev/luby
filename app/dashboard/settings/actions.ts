@@ -177,3 +177,21 @@ export async function setMyCategories(categoryIds: string[]): Promise<ActionResu
   revalidatePath("/dashboard/settings");
   return { ok: true };
 }
+
+/** 이메일 알림 수신 설정 저장 (인앱 알림은 영향 없음) */
+export async function updateEmailPrefs(prefs: {
+  transactional: boolean;
+  reminders: boolean;
+  digest: boolean;
+}): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+  const clean = { transactional: !!prefs.transactional, reminders: !!prefs.reminders, digest: !!prefs.digest };
+  const { error } = await supabase.from("profiles").update({ email_prefs: clean }).eq("id", user.id);
+  if (error) return { ok: false, error: `저장 실패: ${error.message}` };
+  revalidatePath("/dashboard/settings");
+  return { ok: true };
+}
