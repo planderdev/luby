@@ -2,6 +2,9 @@ import type { MetadataRoute } from "next";
 import { getSiteUrl } from "@/lib/seo/site";
 import { getStaticSupabase } from "@/lib/supabase/static";
 
+// 캠페인·공개 프로필이 수시로 바뀌므로 1시간마다 재생성
+export const revalidate = 3600;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getSiteUrl();
   const now = new Date();
