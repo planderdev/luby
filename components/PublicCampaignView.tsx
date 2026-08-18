@@ -8,6 +8,7 @@ import { getCurrentProfile } from "@/lib/supabase/queries";
 import { getSiteUrl, SITE } from "@/lib/seo/site";
 import { publicCampaignDict, localePrefix } from "@/lib/i18n/public-campaign";
 import type { Locale } from "@/lib/i18n/config";
+import { PublicShareButton } from "@/components/PublicShareButton";
 
 // 공개 캠페인 페이지 — 로그인 없이 볼 수 있는 공유·SEO용. 데이터는 get_public_campaign() (민감정보 제외).
 
@@ -74,7 +75,7 @@ export async function buildPublicCampaignMetadata(id: string, locale: Locale): P
   };
 }
 
-export async function PublicCampaignView({ id, locale }: { id: string; locale: Locale }) {
+export async function PublicCampaignView({ id, locale, refId = null }: { id: string; locale: Locale; refId?: string | null }) {
   const c = await fetchPublicCampaign(id);
   if (!c) notFound();
   const t = publicCampaignDict[locale];
@@ -85,7 +86,9 @@ export async function PublicCampaignView({ id, locale }: { id: string; locale: L
   const isOpen = c.status === "open";
   const daysLeft = Math.ceil((new Date(c.recruit_end).getTime() - Date.now()) / 864e5);
   const dashboardHref = `/dashboard/campaigns/${c.id}`;
-  const ctaHref = profile ? dashboardHref : `/signup?role=influencer&redirect=${encodeURIComponent(dashboardHref)}`;
+  const refQ = refId ? `&ref=${refId}` : "";
+  const ctaHref = profile ? dashboardHref : `/signup?role=influencer&redirect=${encodeURIComponent(dashboardHref)}${refQ}`;
+  const sharePath = `${pfx}/c/${c.id}${profile?.role === "influencer" ? `?ref=${profile.id}` : refId ? `?ref=${refId}` : ""}`;
   const ctaLabel = profile ? (profile.role === "influencer" ? t.ctaApply : t.ctaDashboard) : t.ctaSignup;
   const loginHref = `/login?redirect=${encodeURIComponent(dashboardHref)}`;
 
@@ -155,7 +158,10 @@ export async function PublicCampaignView({ id, locale }: { id: string; locale: L
               {c.region?.flag} {c.region?.name} · {c.category?.emoji} {c.category?.name}{c.promotion_type ? ` · ${c.promotion_type}` : ""}
             </div>
             <h1 className="display mt-2 text-3xl font-semibold lg:text-4xl">{c.title}</h1>
-            <p className="mt-2 text-sm text-muted-foreground">{c.business_name}</p>
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              <p className="text-sm text-muted-foreground">{c.business_name}</p>
+              <PublicShareButton title={c.title} path={sharePath} label={locale === "ko" ? "공유하기" : locale === "zh" ? "分享" : "Share"} copiedLabel={locale === "ko" ? "링크 복사됨" : locale === "zh" ? "已复制链接" : "Link copied"} />
+            </div>
             {c.industry_brief && <p className="mt-5 text-sm leading-relaxed lg:text-base">{c.industry_brief}</p>}
 
             <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">

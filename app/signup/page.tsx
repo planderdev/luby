@@ -19,9 +19,9 @@ export const metadata: Metadata = {
 export default async function SignupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ role?: string }>;
+  searchParams: Promise<{ role?: string; redirect?: string; ref?: string }>;
 }) {
-  const { role } = await searchParams;
+  const { role, redirect: redirectTo, ref } = await searchParams;
   const initialRole =
     role === "advertiser" || role === "influencer" ? role : null;
 
@@ -44,6 +44,8 @@ export default async function SignupPage({
         channelTypes={channelTypes ?? []}
         categories={categories ?? []}
         initialRole={initialRole}
+        redirectTo={redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//") ? redirectTo : null}
+        refId={ref && /^[0-9a-f-]{36}$/.test(ref) ? ref : null}
       />
       <p className="mt-6 text-center text-sm text-muted-foreground">
         이미 계정이 있으신가요?{" "}

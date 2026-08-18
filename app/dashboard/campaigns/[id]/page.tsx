@@ -176,6 +176,9 @@ export default async function CampaignDetailPage({
           </div>
         )}
         {isInfluencer && campaign.status === "open" && (
+          <ShareLinkButton campaignId={id} refId={profile.id} buttonLabel="친구에게 공유" />
+        )}
+        {isInfluencer && campaign.status === "open" && (
           <ApplyButton
             campaignId={id}
             disabled={!profile.approved}

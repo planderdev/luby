@@ -18,12 +18,18 @@ export function SignupForm({
   channelTypes,
   categories,
   initialRole = null,
+  redirectTo = null,
+  refId = null,
 }: {
   regions: RegionOption[];
   channelTypes: ChannelOption[];
   categories: CategoryOption[];
   /** 랜딩 CTA에서 역할을 정하고 들어온 경우 — 역할 선택 단계를 건너뛴다 */
   initialRole?: Role | null;
+  /** 가입 후 이동할 내부 경로 (공개 캠페인 → 가입 → 다시 캠페인) */
+  redirectTo?: string | null;
+  /** 추천인(공유한 크리에이터) id — profiles.referred_by 로 저장 */
+  refId?: string | null;
 }) {
   const router = useRouter();
   const [role, setRole] = useState<Role>(initialRole ?? "advertiser");
@@ -39,11 +45,12 @@ export function SignupForm({
       {step === "form" && (
         <FormStep
           role={role}
+          refId={refId}
           regions={regions}
           channelTypes={channelTypes}
           categories={categories}
           onBack={() => setStep("role")}
-          onSignedIn={() => router.push("/dashboard")}
+          onSignedIn={() => router.push(redirectTo ?? "/dashboard")}
           onNeedConfirm={() => setStep("check_email")}
         />
       )}
@@ -129,6 +136,7 @@ function RoleCard({
 
 function FormStep({
   role,
+  refId = null,
   regions,
   channelTypes,
   categories,
@@ -137,6 +145,7 @@ function FormStep({
   onNeedConfirm,
 }: {
   role: Role;
+  refId?: string | null;
   regions: RegionOption[];
   channelTypes: ChannelOption[];
   categories: CategoryOption[];
@@ -184,6 +193,7 @@ function FormStep({
       name,
       phone,
     };
+    if (refId) metadata.referred_by = refId;
     if (role === "advertiser") {
       metadata.advertiser_kind = advertiserKind;
       metadata.company_name = companyName;
@@ -210,7 +220,7 @@ function FormStep({
       return;
     }
 
-    trackClient("signup_completed", { role });
+    trackClient("signup_completed", { role, referred: refId ? "yes" : "no" });
 
     if (data.session) {
       onSignedIn();
