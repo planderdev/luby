@@ -180,6 +180,9 @@ export default async function DashboardPage() {
     const revisionCount = (subs ?? []).filter((s) => s.status === "revision_requested").length;
     const region = regionRes.data;
 
+    const { data: refStats } = await supabase.rpc("get_my_referral_stats");
+    const referrals = Number((refStats as { total?: number } | null)?.total ?? 0);
+
     // 프로필 완성도 (승인 여부와 무관 — 승인 대기 중에도 채우도록 유도)
     const [{ data: myChannels }, { data: myCatRows }] = await Promise.all([
       supabase.from("influencer_channels").select("followers").eq("influencer_id", profile.id),
@@ -246,6 +249,7 @@ export default async function DashboardPage() {
         }}
         recommended={recommended}
         completeness={completeness}
+        referrals={referrals}
       />
     );
   }

@@ -48,6 +48,7 @@ export function InfluencerOverview({
   todo,
   recommended = [],
   completeness,
+  referrals = 0,
 }: {
   name: string;
   approved: boolean;
@@ -58,6 +59,8 @@ export function InfluencerOverview({
   todo: InfluencerTodo;
   recommended?: RecommendedCampaign[];
   completeness?: { percent: number; items: CompletenessItem[]; next: CompletenessItem | null };
+  /** 내 공유 링크로 가입한 사람 수 */
+  referrals?: number;
 }) {
   const todoItems: TodoItem[] = [
     {
@@ -146,7 +149,7 @@ export function InfluencerOverview({
         </div>
       )}
 
-      <div className="mt-10 grid gap-4 md:grid-cols-3">
+      <div className="mt-10 grid gap-4 md:grid-cols-4">
         <StatCard
           icon={<Inbox className="size-5" />}
           label="응모 누적"
@@ -164,6 +167,12 @@ export function InfluencerOverview({
           label="포인트"
           value={totalPoints.toLocaleString()}
           hint="누적"
+        />
+        <StatCard
+          icon={<Users className="size-5" />}
+          label="내 추천 가입"
+          value={referrals.toString()}
+          hint={referrals > 0 ? "친구에게 공유한 링크로 가입" : "캠페인 '친구에게 공유'로 초대해요"}
         />
       </div>
 

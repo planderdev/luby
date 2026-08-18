@@ -1135,6 +1135,10 @@ export type Database = {
         Returns: boolean
       }
       is_operator: { Args: never; Returns: boolean }
+      get_my_referral_stats: {
+        Args: Record<string, never>
+        Returns: Json
+      }
       get_public_creator: {
         Args: { p_id: string }
         Returns: Json
@@ -1166,6 +1170,7 @@ export type Database = {
           submissions_approved: number
           points_paid: number
           payments_krw: number
+          referred_signups: number
         }[]
       }
       get_creator_portfolio: {

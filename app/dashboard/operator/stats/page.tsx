@@ -54,6 +54,7 @@ export default async function OperatorStatsPage() {
   const withdrawals = wdRes.data ?? [];
   const paidOut = withdrawals.filter((w) => w.status === "paid").reduce((s, w) => s + (w.amount ?? 0), 0);
   const pendingOut = withdrawals.filter((w) => w.status === "requested").reduce((s, w) => s + (w.amount ?? 0), 0);
+  const { count: referredTotal } = await supabase.from("profiles").select("id", { count: "exact", head: true }).not("referred_by", "is", null);
 
   const allProfiles = profilesRes.data ?? [];
   const advertisers = allProfiles.filter((p) => p.role === "advertiser");
@@ -157,7 +158,8 @@ export default async function OperatorStatsPage() {
       </div>
 
       {/* 재무 요약 */}
-      <div className="mt-8 grid gap-4 md:grid-cols-3">
+      <div className="mt-8 grid gap-4 md:grid-cols-4">
+        <MoneyCard label="추천 유입 누계" value={`${(referredTotal ?? 0).toLocaleString()}명`} hint="공유 링크(?ref) 로 가입" />
         <MoneyCard label="누적 결제 매출" value={`₩${revenue.toLocaleString()}`} hint="BUSINESS 결제 완료 합계" />
         <MoneyCard label="누적 포인트 지급" value={`${paidOut.toLocaleString()}P`} hint="정산 완료 합계" />
         <MoneyCard
@@ -200,6 +202,14 @@ export default async function OperatorStatsPage() {
           title="결제 매출 (만원)"
           series={[
             { label: "결제", values: weekly.map((w) => Math.round(Number(w.payments_krw) / 10000)), tone: "accent" },
+          ]}
+          weeks={weekly.map((w) => w.week_start)}
+        />
+        <TrendCard
+          title="추천 유입 가입 (바이럴)"
+          series={[
+            { label: "추천 가입", values: weekly.map((w) => Number(w.referred_signups ?? 0)), tone: "accent" },
+            { label: "전체 가입", values: weekly.map((w) => Number(w.new_influencers) + Number(w.new_advertisers)), tone: "muted" },
           ]}
           weeks={weekly.map((w) => w.week_start)}
         />
