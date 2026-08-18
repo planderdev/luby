@@ -54,7 +54,9 @@ export function ShareLinkButton({ campaignId, refId = null, buttonLabel = "공�
               {copied === l.code ? <Check className="size-3.5 text-success" /> : <span className="text-[10px] text-muted-foreground">복사</span>}
             </button>
           ))}
-          <p className="px-3 pb-1 pt-1.5 text-[10px] text-muted-foreground">샤오홍슈·해외 SNS엔 CN/EN 링크를 쓰세요</p>
+          <p className="px-3 pb-1 pt-1.5 text-[10px] text-muted-foreground">
+            {refId ? "내 링크로 가입한 친구가 첫 체험을 완료하면 500P (월 5명)" : "샤오홍슈·해외 SNS엔 CN/EN 링크를 쓰세요"}
+          </p>
         </div>
       )}
     </div>

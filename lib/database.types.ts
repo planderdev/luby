@@ -973,6 +973,12 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_rewards: {
+        Row: { id: string; referrer_id: string; referred_id: string; points: number; campaign_id: string | null; created_at: string }
+        Insert: { id?: string; referrer_id: string; referred_id: string; points: number; campaign_id?: string | null; created_at?: string }
+        Update: { id?: string; referrer_id?: string; referred_id?: string; points?: number; campaign_id?: string | null; created_at?: string }
+        Relationships: []
+      }
       regions: {
         Row: {
           active: boolean

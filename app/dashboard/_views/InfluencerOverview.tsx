@@ -172,7 +172,7 @@ export function InfluencerOverview({
           icon={<Users className="size-5" />}
           label="내 추천 가입"
           value={referrals.toString()}
-          hint={referrals > 0 ? "친구에게 공유한 링크로 가입" : "캠페인 '친구에게 공유'로 초대해요"}
+          hint={referrals > 0 ? "친구가 첫 체험을 완료하면 500P" : "친구 초대 → 첫 체험 완료 시 500P"}
         />
       </div>
 
