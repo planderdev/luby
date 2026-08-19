@@ -29,6 +29,7 @@ export function MemberRow({
   role,
   approved,
   createdAt,
+  tags = [],
   business,
   influencer,
 }: {
@@ -39,6 +40,7 @@ export function MemberRow({
   role: string;
   approved: boolean;
   createdAt: string;
+  tags?: string[];
   business: Business | null;
   influencer: Influencer | null;
 }) {
@@ -87,6 +89,9 @@ export function MemberRow({
               {isApproved ? "승인됨" : "승인 대기"}
             </span>
             <span className="text-[11px] text-muted-foreground">가입 {joined}</span>
+            {tags.map((t) => (
+              <span key={t} className="rounded-full bg-foreground px-2 py-0.5 text-[10px] text-background">{t}</span>
+            ))}
             <Link href={`/dashboard/operator/users/${profileId}`} className="ml-auto text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground">상세 →</Link>
           </div>
 

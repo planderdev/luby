@@ -21,7 +21,7 @@ const TABS: { key: Filter; label: string }[] = [
 export default async function OperatorUsersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filter?: string }>;
+  searchParams: Promise<{ filter?: string; q?: string; tag?: string }>;
 }) {
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
@@ -29,6 +29,8 @@ export default async function OperatorUsersPage({
 
   const params = await searchParams;
   const filter: Filter = (TABS.find((t) => t.key === params.filter)?.key ?? "pending") as Filter;
+  const q = (params.q ?? "").trim().toLowerCase();
+  const tag = (params.tag ?? "").trim();
 
   const supabase = await createClient();
 
@@ -37,7 +39,7 @@ export default async function OperatorUsersPage({
     await Promise.all([
       supabase
         .from("profiles")
-        .select("id, email, name, phone, role, approved, created_at")
+        .select("id, email, name, phone, role, approved, created_at, operator_tags")
         .order("created_at", { ascending: false }),
       supabase
         .from("advertisers")
@@ -70,13 +72,30 @@ export default async function OperatorUsersPage({
     influencer: all.filter((p) => p.role === "influencer").length,
   };
 
+  const matchesQuery = (p: (typeof all)[number]) => {
+    if (!q) return true;
+    const adv = advertiserById.get(p.id);
+    const hay = [p.name, p.email, p.phone ?? "", adv?.company_name ?? "", adv?.business_number ?? ""].join(" ").toLowerCase();
+    return hay.includes(q);
+  };
+  const matchesTag = (p: (typeof all)[number]) => !tag || (p.operator_tags ?? []).includes(tag);
+  const allTags = [...new Set(all.flatMap((p) => p.operator_tags ?? []))].sort();
   const members = all.filter((p) => {
+    if (!matchesQuery(p) || !matchesTag(p)) return false;
     if (filter === "pending") return !p.approved;
     if (filter === "advertiser") return p.role === "advertiser" && !isAgency(p.id);
     if (filter === "agency") return p.role === "advertiser" && isAgency(p.id);
     if (filter === "influencer") return p.role === "influencer";
     return true;
   });
+  const qs = (over: Record<string, string | undefined>) => {
+    const u = new URLSearchParams();
+    const merged = { filter, q: params.q ?? "", tag, ...over };
+    if (merged.filter) u.set("filter", merged.filter);
+    if (merged.q) u.set("q", merged.q);
+    if (merged.tag) u.set("tag", merged.tag);
+    return `/dashboard/operator/users?${u.toString()}`;
+  };
 
   return (
     <div>
@@ -90,12 +109,34 @@ export default async function OperatorUsersPage({
         categories={categoriesRes.data ?? []}
       />
 
+      {/* 검색 + 태그 필터 */}
+      <form method="get" className="mt-8 flex flex-wrap items-center gap-2">
+        <input type="hidden" name="filter" value={filter} />
+        {tag && <input type="hidden" name="tag" value={tag} />}
+        <input
+          name="q"
+          defaultValue={params.q ?? ""}
+          placeholder="이름·이메일·회사명·사업자번호 검색"
+          className="min-w-[260px] flex-1 rounded-full border border-border bg-background px-4 py-2.5 text-sm outline-none"
+        />
+        <button type="submit" className="rounded-full border border-border bg-background px-4 py-2 text-sm hover:bg-muted">검색</button>
+        {(q || tag) && <Link href={qs({ q: "", tag: "" })} className="text-xs text-muted-foreground hover:text-foreground">초기화</Link>}
+      </form>
+      {allTags.length > 0 && (
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+          <span className="text-[11px] uppercase tracking-wider text-muted-foreground">태그</span>
+          {allTags.map((t) => (
+            <Link key={t} href={qs({ tag: tag === t ? "" : t })} className={`rounded-full border px-2.5 py-1 text-xs ${tag === t ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:bg-muted"}`}>{t}</Link>
+          ))}
+        </div>
+      )}
+
       {/* Filter tabs */}
-      <div className="mt-8 flex flex-wrap gap-2">
+      <div className="mt-4 flex flex-wrap gap-2">
         {TABS.map((t) => (
           <Link
             key={t.key}
-            href={`/dashboard/operator/users?filter=${t.key}`}
+            href={qs({ filter: t.key })}
             className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
               filter === t.key
                 ? "border-foreground bg-foreground text-background"
@@ -130,6 +171,7 @@ export default async function OperatorUsersPage({
               role={p.role}
               approved={p.approved}
               createdAt={p.created_at}
+              tags={p.operator_tags ?? []}
               business={
                 adv
                   ? {
