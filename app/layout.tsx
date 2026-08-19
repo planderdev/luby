@@ -69,8 +69,19 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Luby" },
   // Next.js auto-generates <link rel="icon"> from app/icon.png and
   // <link rel="apple-touch-icon"> from app/apple-icon.png — no manual icons config needed.
+};
+
+export const viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fbf8fc" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0c" },
+  ],
+  width: "device-width",
+  initialScale: 1,
 };
 
 const themeScript = `

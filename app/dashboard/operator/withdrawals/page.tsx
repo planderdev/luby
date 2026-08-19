@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { ExportCsvButton } from "@/components/dashboard/ExportCsvButton";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { WithdrawalRow } from "./WithdrawalRow";
@@ -38,6 +39,7 @@ export default async function OperatorWithdrawalsPage() {
         인플루언서 포인트 출금 신청을 확인하고 지급을 처리합니다. 반려 시 포인트는 자동
         환불됩니다.
       </p>
+      <div className="mt-4"><ExportCsvButton type="withdrawals" label="정산 CSV" /></div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         <div className="rounded-3xl glass-card p-5">

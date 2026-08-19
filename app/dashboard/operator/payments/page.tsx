@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { ExportCsvButton } from "@/components/dashboard/ExportCsvButton";
 import { CreditCard, CheckCircle2, Clock, XCircle } from "lucide-react";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
@@ -63,6 +64,7 @@ export default async function OperatorPaymentsPage() {
       <p className="mt-2 text-sm text-muted-foreground">
         토스페이먼츠 결제 기록 전체를 모니터링합니다. (최근 100건)
       </p>
+      <div className="mt-4"><ExportCsvButton type="payments" label="결제 CSV" /></div>
 
       {/* Summary */}
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
