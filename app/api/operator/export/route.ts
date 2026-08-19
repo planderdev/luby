@@ -41,14 +41,14 @@ export async function GET(request: Request) {
     const { data } = await q;
     const ids = [...new Set((data ?? []).map((p) => p.advertiser_id))];
     const { data: profs } = ids.length ? await supabase.from("profiles").select("id, name, email").in("id", ids) : { data: [] };
-    const { data: advs } = ids.length ? await supabase.from("advertisers").select("profile_id, company_name, business_number").in("profile_id", ids) : { data: [] };
+    const { data: advs } = ids.length ? await supabase.from("advertisers").select("profile_id, company_name, business_number, representative_name, business_address, tax_email").in("profile_id", ids) : { data: [] };
     const pById = new Map((profs ?? []).map((p) => [p.id, p]));
     const aById = new Map((advs ?? []).map((a) => [a.profile_id, a]));
-    header = ["생성일시(KST)", "승인일시(KST)", "주문번호", "상품명", "금액(원)", "상태", "결제수단", "회사명", "사업자번호", "담당자", "이메일", "결제키", "실패사유"];
+    header = ["생성일시(KST)", "승인일시(KST)", "주문번호", "상품명", "금액(원)", "상태", "결제수단", "회사명", "사업자번호", "대표자", "사업장주소", "세금계산서이메일", "담당자", "이메일", "결제키", "실패사유"];
     lines = (data ?? []).map((p) => {
       const pr = pById.get(p.advertiser_id);
       const ad = aById.get(p.advertiser_id);
-      return [kst(p.created_at), kst(p.approved_at), p.order_id, p.order_name, p.amount, p.status, p.method ?? "", ad?.company_name ?? "", ad?.business_number ?? "", pr?.name ?? "", pr?.email ?? "", p.payment_key ?? "", p.fail_reason ?? ""].map(String);
+      return [kst(p.created_at), kst(p.approved_at), p.order_id, p.order_name, p.amount, p.status, p.method ?? "", ad?.company_name ?? "", ad?.business_number ?? "", ad?.representative_name ?? "", ad?.business_address ?? "", ad?.tax_email ?? pr?.email ?? "", pr?.name ?? "", pr?.email ?? "", p.payment_key ?? "", p.fail_reason ?? ""].map(String);
     });
   } else if (type === "withdrawals") {
     let q = supabase

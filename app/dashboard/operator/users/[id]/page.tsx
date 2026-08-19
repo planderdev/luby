@@ -24,7 +24,7 @@ export default async function OperatorMemberDetailPage({ params }: { params: Pro
   const isInf = p.role === "influencer";
 
   const [advRes, infRes, chRes, catRes, subRes, campRes, appRes, wdRes, refRes, auditRes, notiRes] = await Promise.all([
-    isAdv ? supabase.from("advertisers").select("company_name, advertiser_kind, business_number, business_type, representative_name, website, description, contact_phone, contact_email, category_id").eq("profile_id", id).maybeSingle() : Promise.resolve({ data: null }),
+    isAdv ? supabase.from("advertisers").select("company_name, advertiser_kind, business_number, business_type, representative_name, website, description, contact_phone, contact_email, category_id, business_address, tax_email").eq("profile_id", id).maybeSingle() : Promise.resolve({ data: null }),
     isInf ? supabase.from("influencers").select("bio, region_id, total_points, public_profile, regions(name, flag)").eq("profile_id", id).maybeSingle() : Promise.resolve({ data: null }),
     isInf ? supabase.from("influencer_channels").select("url, handle, followers, channel_types(name)").eq("influencer_id", id) : Promise.resolve({ data: [] }),
     isInf ? supabase.from("influencer_categories").select("categories(name, emoji)").eq("influencer_id", id) : Promise.resolve({ data: [] }),
@@ -86,6 +86,8 @@ export default async function OperatorMemberDetailPage({ params }: { params: Pro
             <dl className="mt-3 space-y-2 text-sm">
               <div><dt className="text-xs text-muted-foreground">사업자등록번호</dt><dd className="font-mono">{adv.business_number ?? "미입력"}</dd></div>
               <div><dt className="text-xs text-muted-foreground">대표자</dt><dd>{adv.representative_name ?? "—"}</dd></div>
+              <div><dt className="text-xs text-muted-foreground">사업장 주소</dt><dd>{adv.business_address ?? "—"}</dd></div>
+              <div><dt className="text-xs text-muted-foreground">세금계산서 이메일</dt><dd>{adv.tax_email ?? p.email}</dd></div>
               <div><dt className="text-xs text-muted-foreground">웹사이트</dt><dd>{adv.website ? <a href={adv.website.startsWith("http") ? adv.website : `https://${adv.website}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 underline underline-offset-2">{adv.website} <ExternalLink className="size-3" /></a> : "—"}</dd></div>
               <div><dt className="text-xs text-muted-foreground">소개</dt><dd className="text-muted-foreground">{adv.description ?? "—"}</dd></div>
               <div><dt className="text-xs text-muted-foreground">플랜</dt><dd>{plan?.name ?? "FREE"}{sub?.expires_at ? ` · ${d(sub.expires_at)} 만료` : ""}</dd></div>

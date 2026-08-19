@@ -26,6 +26,7 @@ export type Database = {
           description: string | null
           profile_id: string
           representative_name: string | null
+          tax_email: string | null
           updated_at: string
           website: string | null
         }
@@ -42,6 +43,7 @@ export type Database = {
           description?: string | null
           profile_id: string
           representative_name?: string | null
+          tax_email?: string | null
           updated_at?: string
           website?: string | null
         }
@@ -58,6 +60,7 @@ export type Database = {
           description?: string | null
           profile_id?: string
           representative_name?: string | null
+          tax_email?: string | null
           updated_at?: string
           website?: string | null
         }

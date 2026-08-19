@@ -30,6 +30,10 @@ export function SettingsForm({
     description?: string | null;
     website?: string | null;
     category_id?: string | null;
+    representative_name?: string | null;
+    business_address?: string | null;
+    tax_email?: string | null;
+    business_number?: string | null;
   };
   regions: Region[];
   categories?: Category[];
@@ -45,6 +49,9 @@ export function SettingsForm({
   const [description, setDescription] = useState(extra.description ?? "");
   const [website, setWebsite] = useState(extra.website ?? "");
   const [categoryId, setCategoryId] = useState(extra.category_id ?? "");
+  const [representativeName, setRepresentativeName] = useState(extra.representative_name ?? "");
+  const [businessAddress, setBusinessAddress] = useState(extra.business_address ?? "");
+  const [taxEmail, setTaxEmail] = useState(extra.tax_email ?? "");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -66,6 +73,9 @@ export function SettingsForm({
               description: description || null,
               website: website || null,
               category_id: categoryId || null,
+              representative_name: representativeName || null,
+              business_address: businessAddress || null,
+              tax_email: taxEmail || null,
             }
           : {}),
       };
@@ -239,6 +249,28 @@ export function SettingsForm({
                   className="w-full resize-none rounded-2xl glass-card px-4 py-3 text-sm outline-none focus:border-foreground"
                 />
                 <p className="mt-1 text-[11px] text-muted-foreground">{description.length}/600</p>
+              </div>
+
+              {/* 세금계산서·청구 정보 */}
+              <div className="rounded-2xl border border-border p-4">
+                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">세금계산서 · 청구 정보</div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  BUSINESS 결제 시 세금계산서 발행에 사용됩니다. 사업자등록번호{extra.business_number ? ` ${extra.business_number}` : ""}는 가입 시 등록된 값이 사용돼요.
+                </p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">대표자명</label>
+                    <input type="text" value={representativeName} onChange={(e) => setRepresentativeName(e.target.value)} className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none focus:border-foreground" />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">세금계산서 수신 이메일</label>
+                    <input type="email" value={taxEmail} onChange={(e) => setTaxEmail(e.target.value)} placeholder={profile.email} className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none focus:border-foreground" />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">사업장 주소</label>
+                    <input type="text" value={businessAddress} onChange={(e) => setBusinessAddress(e.target.value)} placeholder="시/도 시/군/구 도로명 상세주소" className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none focus:border-foreground" />
+                  </div>
+                </div>
               </div>
             </>
           )}

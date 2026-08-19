@@ -15,6 +15,10 @@ export type SettingsPayload = {
   description?: string | null;
   website?: string | null;
   category_id?: string | null;
+  // 세금계산서·청구 정보
+  representative_name?: string | null;
+  business_address?: string | null;
+  tax_email?: string | null;
 };
 
 export async function updateProfile(
@@ -60,6 +64,10 @@ export async function updateProfile(
     if (website && !/^(https?:\/\/)?[\w.-]+\.[a-z]{2,}(\/\S*)?$/i.test(website)) {
       return { ok: false, error: "웹사이트 주소 형식이 올바르지 않습니다." };
     }
+    const taxEmail = payload.tax_email?.trim();
+    if (taxEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(taxEmail)) {
+      return { ok: false, error: "세금계산서 수신 이메일 형식이 올바르지 않습니다." };
+    }
     const { error: advError } = await supabase
       .from("advertisers")
       .update({
@@ -70,6 +78,9 @@ export async function updateProfile(
         description: payload.description?.trim().slice(0, 600) || null,
         website: website?.slice(0, 200) ?? null,
         category_id: payload.category_id || null,
+        representative_name: payload.representative_name?.trim().slice(0, 60) || null,
+        business_address: payload.business_address?.trim().slice(0, 200) || null,
+        tax_email: payload.tax_email?.trim().toLowerCase().slice(0, 120) || null,
       })
       .eq("profile_id", user.id);
     if (advError) return { ok: false, error: `회사 정보 저장 실패: ${advError.message}` };
