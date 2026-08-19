@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { ExportCsvButton } from "@/components/dashboard/ExportCsvButton";
+import { TaxInvoiceAction } from "./TaxInvoiceAction";
 import { CreditCard, CheckCircle2, Clock, XCircle } from "lucide-react";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
@@ -35,7 +36,7 @@ export default async function OperatorPaymentsPage() {
     supabase
       .from("payments")
       .select(
-        "id, advertiser_id, plan_id, order_id, order_name, amount, status, method, fail_reason, approved_at, created_at"
+        "id, advertiser_id, plan_id, order_id, order_name, amount, status, method, fail_reason, approved_at, created_at, tax_invoice_requested_at, tax_invoice_issued_at"
       )
       .order("created_at", { ascending: false })
       .limit(100),
@@ -52,6 +53,9 @@ export default async function OperatorPaymentsPage() {
       ? await supabase.from("profiles").select("id, name, email").in("id", advIds)
       : { data: [] };
   const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
+  const { data: advRows } = advIds.length > 0 ? await supabase.from("advertisers").select("profile_id, company_name, tax_email").in("profile_id", advIds) : { data: [] };
+  const advTaxById = new Map((advRows ?? []).map((a) => [a.profile_id, a]));
+  const taxRequested = payments.filter((p) => p.status === "paid" && p.tax_invoice_requested_at && !p.tax_invoice_issued_at).length;
 
   const paidTotal = payments
     .filter((p) => p.status === "paid")
@@ -64,7 +68,10 @@ export default async function OperatorPaymentsPage() {
       <p className="mt-2 text-sm text-muted-foreground">
         토스페이먼츠 결제 기록 전체를 모니터링합니다. (최근 100건)
       </p>
-      <div className="mt-4"><ExportCsvButton type="payments" label="결제 CSV" /></div>
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <ExportCsvButton type="payments" label="결제 CSV" />
+        {taxRequested > 0 && <span className="rounded-full bg-warning-soft px-3 py-1 text-xs font-medium text-warning">세금계산서 요청 {taxRequested}건 대기</span>}
+      </div>
 
       {/* Summary */}
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -125,6 +132,11 @@ export default async function OperatorPaymentsPage() {
                   <div className="text-[11px] text-muted-foreground">
                     {p.approved_at ? `승인 ${fmtDateTime(p.approved_at)}` : `주문 ${fmtDateTime(p.created_at)}`}
                   </div>
+                  {p.status === "paid" && (
+                    <div className="mt-2">
+                      <TaxInvoiceAction paymentId={p.id} requestedAt={p.tax_invoice_requested_at} issuedAt={p.tax_invoice_issued_at} taxEmail={advTaxById.get(p.advertiser_id)?.tax_email ?? buyer?.email ?? null} />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

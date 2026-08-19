@@ -343,3 +343,13 @@ export async function setMemberTags(profileId: string, tags: string[]) {
   revalidatePath("/dashboard/operator/users");
   return { ok: true as const, tags: (data ?? []) as string[] };
 }
+
+/** 운영자: 세금계산서 발행 완료 처리 (홈택스/API 로 발행 후 표시 → 광고주 알림·감사 로그) */
+export async function markTaxInvoiceIssued(paymentId: string, note?: string) {
+  const guard = await ensureOperator();
+  if (!guard.ok) return { ok: false as const, error: guard.error };
+  const { error } = await guard.supabase.rpc("mark_tax_invoice_issued", { p_payment_id: paymentId, p_note: note?.trim() || null });
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath("/dashboard/operator/payments");
+  return { ok: true as const };
+}

@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 import { getAdminSupabase } from "@/lib/supabase/admin";
 import { confirmTossPayment } from "@/lib/payments/toss";
 
@@ -204,4 +205,13 @@ export async function confirmBusinessPayment(params: {
     planName: plan.name,
     expiresAt: expiresAt.toISOString(),
   };
+}
+
+/** 광고주: 완료된 결제에 세금계산서 발행 요청 (운영자에게 알림; 실제 발행은 운영자가 홈택스/API로) */
+export async function requestTaxInvoice(paymentId: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("request_tax_invoice", { p_payment_id: paymentId });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/dashboard/billing");
+  return { ok: true };
 }

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Check, Sparkles } from "lucide-react";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
+import { TaxInvoiceButton } from "./TaxInvoiceButton";
 
 export const metadata = { title: "구독·결제 — 루비AI" };
 
@@ -46,13 +47,14 @@ export default async function BillingPage() {
 
   const supabase = await createClient();
 
-  const [{ data: subscription }, { data: plans }] = await Promise.all([
+  const [{ data: subscription }, { data: plans }, { data: paymentRows }] = await Promise.all([
     supabase
       .from("subscriptions")
       .select("id, status, started_at, expires_at, plan_id")
       .eq("advertiser_id", profile.id)
       .maybeSingle(),
     supabase.from("plans").select("id, name, tier, monthly_price").order("monthly_price"),
+    supabase.from("payments").select("id, order_name, amount, status, approved_at, created_at, tax_invoice_requested_at, tax_invoice_issued_at").eq("advertiser_id", profile.id).order("created_at", { ascending: false }).limit(24),
   ]);
 
   const currentPlan = (plans ?? []).find((p) => p.id === subscription?.plan_id);
@@ -191,6 +193,30 @@ export default async function BillingPage() {
           );
         })}
       </div>
+
+      {/* 결제 내역 + 세금계산서 요청 */}
+      {(paymentRows ?? []).length > 0 && (
+        <section className="mt-10">
+          <h2 className="display text-2xl font-semibold">결제 내역</h2>
+          <p className="mt-1 text-xs text-muted-foreground">카드 결제는 카드 매출전표가 적격증빙이에요. 세금계산서가 필요하면 요청해 주세요 — 설정의 세금계산서 정보(대표자·주소·수신 이메일)로 발행됩니다.</p>
+          <ul className="mt-4 divide-y divide-border rounded-3xl glass-card">
+            {(paymentRows ?? []).map((p) => (
+              <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 text-sm">
+                <div className="min-w-0">
+                  <div className="font-medium">{p.order_name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(p.approved_at ?? p.created_at).toLocaleDateString("ko-KR")} · {p.status === "paid" ? "결제 완료" : p.status === "failed" ? "실패" : p.status}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="font-semibold tabular-nums">₩{p.amount.toLocaleString()}</span>
+                  {p.status === "paid" && <TaxInvoiceButton paymentId={p.id} requestedAt={p.tax_invoice_requested_at} issuedAt={p.tax_invoice_issued_at} />}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="mt-8 rounded-2xl border border-accent/30 bg-accent-soft/50 px-5 py-4 text-sm text-accent-ink">
         💳 BUSINESS 플랜은 토스페이먼츠로 안전하게 결제됩니다. ENTERPRISE 플랜은 상담 문의를

@@ -755,6 +755,9 @@ export type Database = {
           order_id: string
           order_name: string
           payment_key: string | null
+          tax_invoice_requested_at: string | null
+          tax_invoice_issued_at: string | null
+          tax_invoice_note: string | null
           amount: number
           currency: string
           status: string
@@ -772,6 +775,9 @@ export type Database = {
           order_id: string
           order_name: string
           payment_key?: string | null
+          tax_invoice_requested_at?: string | null
+          tax_invoice_issued_at?: string | null
+          tax_invoice_note?: string | null
           amount: number
           currency?: string
           status?: string
@@ -789,6 +795,9 @@ export type Database = {
           order_id?: string
           order_name?: string
           payment_key?: string | null
+          tax_invoice_requested_at?: string | null
+          tax_invoice_issued_at?: string | null
+          tax_invoice_note?: string | null
           amount?: number
           currency?: string
           status?: string
@@ -1216,6 +1225,14 @@ export type Database = {
       set_member_tags: {
         Args: { p_profile_id: string; p_tags: string[] }
         Returns: string[]
+      }
+      request_tax_invoice: {
+        Args: { p_payment_id: string }
+        Returns: undefined
+      }
+      mark_tax_invoice_issued: {
+        Args: { p_payment_id: string; p_note?: string | null }
+        Returns: undefined
       }
       operator_weekly_stats: {
         Args: { p_weeks?: number }
