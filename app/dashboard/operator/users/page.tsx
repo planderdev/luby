@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { MemberRow } from "./MemberRow";
 import { BulkApproveList } from "./BulkApproveList";
 import { InviteMemberPanel } from "./InviteMemberPanel";
+import { BulkImportPanel } from "./BulkImportPanel";
 
 export const metadata = { title: "회원 관리 — 루비AI" };
 
@@ -108,6 +109,7 @@ export default async function OperatorUsersPage({
         channelTypes={channelTypesRes.data ?? []}
         categories={categoriesRes.data ?? []}
       />
+      <BulkImportPanel filter={filter} />
 
       {/* 검색 + 태그 필터 */}
       <form method="get" className="mt-8 flex flex-wrap items-center gap-2">

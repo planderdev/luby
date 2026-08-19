@@ -353,3 +353,51 @@ export async function markTaxInvoiceIssued(paymentId: string, note?: string) {
   revalidatePath("/dashboard/operator/payments");
   return { ok: true as const };
 }
+
+/** 대량 등록 1단계: 파일 파싱·검증 미리보기 (생성 안 함) */
+export async function previewMemberImport(formData: FormData) {
+  const guard = await ensureOperator();
+  if (!guard.ok) return { ok: false as const, error: guard.error };
+  const file = formData.get("file");
+  if (!(file instanceof File)) return { ok: false as const, error: "파일을 선택하세요." };
+  if (file.size > 2 * 1024 * 1024) return { ok: false as const, error: "파일은 2MB 이하여야 합니다." };
+  const [{ data: regions }, { data: channelTypes }, { data: categories }] = await Promise.all([
+    guard.supabase.from("regions").select("id, name").eq("active", true),
+    guard.supabase.from("channel_types").select("id, name, slug").eq("active", true),
+    guard.supabase.from("categories").select("id, name").eq("active", true),
+  ]);
+  const { parseMemberFile } = await import("@/lib/member-import");
+  const parsed = parseMemberFile(await file.arrayBuffer(), { regions: regions ?? [], channelTypes: channelTypes ?? [], categories: categories ?? [] });
+  if (parsed.headerError) return { ok: false as const, error: parsed.headerError };
+  // 기존 가입 이메일 표시
+  const emails = parsed.rows.map((r) => r.email).filter(Boolean);
+  const { data: existing } = emails.length ? await guard.supabase.from("profiles").select("email").in("email", emails) : { data: [] };
+  const exists = new Set((existing ?? []).map((e) => e.email.toLowerCase()));
+  for (const r of parsed.rows) if (exists.has(r.email)) r.errors.push("이미 가입된 이메일");
+  if (parsed.rows.length > 300) return { ok: false as const, error: "한 번에 300명까지 등록할 수 있습니다." };
+  return { ok: true as const, rows: parsed.rows };
+}
+
+/** 대량 등록 2단계: 검증 통과 행 생성. mode 는 비밀번호 열이 비어 있는 행에 적용 */
+export async function commitMemberImport(rows: import("@/lib/member-import").ImportRow[], mode: "invite" | "temp") {
+  const guard = await ensureOperator();
+  if (!guard.ok) return { ok: false as const, error: guard.error };
+  const results: { email: string; name: string; role: string; status: "created" | "invited" | "failed"; password?: string; error?: string }[] = [];
+  for (const r of rows) {
+    if (r.errors.length || !r.role) { results.push({ email: r.email, name: r.name, role: r.role ?? "", status: "failed", error: r.errors.join("; ") }); continue; }
+    const res = await inviteMember({
+      email: r.email, name: r.name, role: r.role, advertiserKind: r.advertiserKind, companyName: r.companyName, businessNumber: r.businessNumber,
+      regionId: r.regionId, channelTypeId: r.channelTypeId, channelUrl: r.channelUrl, categoryIds: r.categoryIds, phone: r.phone,
+      mode: r.password ? "manual" : mode, password: r.password || undefined,
+    });
+    if (!res.ok) results.push({ email: r.email, name: r.name, role: r.role, status: "failed", error: res.error });
+    else results.push({ email: r.email, name: r.name, role: r.role === "advertiser" ? (r.advertiserKind === "agency" ? "대행사" : "광고주") : "크리에이터", status: res.invited ? "invited" : "created", password: res.tempPassword ?? (r.password || undefined) });
+  }
+  await guard.supabase.rpc("push_notification_self_safe", {
+    p_user: guard.user.id, p_type: "operator_notice",
+    p_title: `대량 등록 완료 — 성공 ${results.filter((x) => x.status !== "failed").length} · 실패 ${results.filter((x) => x.status === "failed").length}`,
+    p_body: "회원 관리에서 확인하세요.", p_link: "/dashboard/operator/users?filter=all",
+  });
+  revalidatePath("/dashboard/operator/users");
+  return { ok: true as const, results };
+}
