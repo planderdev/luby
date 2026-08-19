@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AuthShell } from "@/components/AuthShell";
 import { SignupForm } from "./SignupForm";
+import { OAuthButtons } from "@/components/OAuthButtons";
+import { enabledProviders } from "@/lib/auth-providers";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -39,6 +41,17 @@ export default async function SignupPage({
 
   return (
     <AuthShell title="루비AI에 합류하세요" subtitle="역할을 선택하고 30초 안에 가입을 마쳐요.">
+      {enabledProviders().length > 0 && (
+        <div className="mb-6">
+          <OAuthButtons
+            providers={enabledProviders()}
+            next={redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//") ? redirectTo : "/dashboard"}
+            role={initialRole}
+            refId={ref && /^[0-9a-f-]{36}$/.test(ref) ? ref : null}
+            label="소셜 계정으로 빠르게"
+          />
+        </div>
+      )}
       <SignupForm
         regions={regions ?? []}
         channelTypes={channelTypes ?? []}

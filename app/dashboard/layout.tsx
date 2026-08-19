@@ -16,6 +16,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!profile) {
     redirect("/login?redirect=/dashboard");
   }
+  // 소셜 로그인 신규 가입자: 역할 확정 전에는 대시보드 대신 온보딩
+  if (profile.onboarding_done === false) {
+    redirect("/onboarding");
+  }
 
   return (
     <div className="flex min-h-dvh">

@@ -897,6 +897,8 @@ export type Database = {
           approved_by: string | null
           avatar_url: string | null
           email_prefs: Json
+          onboarding_done: boolean
+          referred_by: string | null
           created_at: string
           email: string
           id: string
@@ -911,6 +913,8 @@ export type Database = {
           approved_by?: string | null
           avatar_url?: string | null
           email_prefs?: Json
+          onboarding_done?: boolean
+          referred_by?: string | null
           created_at?: string
           email: string
           id: string
@@ -925,6 +929,8 @@ export type Database = {
           approved_by?: string | null
           avatar_url?: string | null
           email_prefs?: Json
+          onboarding_done?: boolean
+          referred_by?: string | null
           created_at?: string
           email?: string
           id?: string
@@ -1141,6 +1147,10 @@ export type Database = {
         Returns: boolean
       }
       is_operator: { Args: never; Returns: boolean }
+      complete_onboarding: {
+        Args: { p_role: string; p_name?: string | null; p_company_name?: string | null; p_business_number?: string | null; p_advertiser_kind?: string; p_region_id?: string | null; p_referred_by?: string | null }
+        Returns: Json
+      }
       get_my_point_ledger: {
         Args: { p_limit?: number }
         Returns: { occurred_at: string; kind: string; title: string; detail: string; amount: number; ref_id: string | null; link: string | null }[]
