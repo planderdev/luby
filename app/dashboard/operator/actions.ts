@@ -209,3 +209,83 @@ export async function forceMatchCreators(campaignId: string, influencerIds: stri
   const r = data as { assigned: number; skipped: { id: string; reason: string }[] };
   return { ok: true as const, assigned: r.assigned, skipped: r.skipped ?? [] };
 }
+
+/**
+ * 운영자: 회원 추가(초대). Supabase Admin API 로 계정 생성 + 초대 메일(비밀번호 설정 링크).
+ * 역할별 메타데이터를 넣어 handle_new_user 트리거가 프로필/광고주·크리에이터 행을 생성한다.
+ * 크리에이터는 운영자가 만든 것이므로 바로 승인. 초대 메일 발송이 실패해도 계정은 생성됨(비밀번호 재설정으로 안내 가능).
+ */
+export async function inviteMember(input: {
+  email: string;
+  name: string;
+  role: "advertiser" | "influencer";
+  advertiserKind?: "brand" | "agency";
+  companyName?: string;
+  businessNumber?: string;
+  regionId?: string | null;
+  phone?: string;
+  sendInvite?: boolean;
+}): Promise<{ ok: true; id: string; invited: boolean; tempPassword?: string } | { ok: false; error: string }> {
+  const guard = await ensureOperator();
+  if (!guard.ok) return { ok: false, error: guard.error };
+  const email = input.email.trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { ok: false, error: "이메일 형식이 올바르지 않습니다." };
+  if (!input.name.trim()) return { ok: false, error: "이름을 입력하세요." };
+  if (input.role === "advertiser" && !input.companyName?.trim()) return { ok: false, error: "회사·상호명(대행사명)을 입력하세요." };
+
+  const { getAdminSupabase } = await import("@/lib/supabase/admin");
+  const admin = getAdminSupabase();
+  const { data: exists } = await admin.from("profiles").select("id").eq("email", email).maybeSingle();
+  if (exists) return { ok: false, error: "이미 가입된 이메일입니다." };
+
+  const meta: Record<string, string> = { role: input.role, name: input.name.trim() };
+  if (input.phone?.trim()) meta.phone = input.phone.trim();
+  if (input.role === "advertiser") {
+    meta.company_name = input.companyName!.trim();
+    meta.advertiser_kind = input.advertiserKind === "agency" ? "agency" : "brand";
+    const d = (input.businessNumber ?? "").replace(/-/g, "");
+    if (d) {
+      if (!/^\d{10}$/.test(d)) return { ok: false, error: "사업자등록번호는 숫자 10자리여야 합니다." };
+      meta.business_number = `${d.slice(0, 3)}-${d.slice(3, 5)}-${d.slice(5)}`;
+    }
+  } else if (input.regionId) {
+    meta.region_id = input.regionId;
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://luby.im";
+  const sendInvite = input.sendInvite !== false;
+  let userId: string | null = null;
+  let invited = false;
+  let tempPassword: string | undefined;
+
+  if (sendInvite) {
+    const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { data: meta, redirectTo: `${siteUrl}/reset-password` });
+    if (error) return { ok: false, error: `초대 실패: ${error.message}` };
+    userId = data.user.id;
+    invited = true;
+  } else {
+    // 초대 메일 없이 임시 비밀번호로 생성 (운영자가 직접 전달)
+    const { randomBytes } = await import("node:crypto");
+    const alpha = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+    const b = randomBytes(14);
+    let s = "";
+    for (const x of b) s += alpha[x % alpha.length];
+    tempPassword = `${s.slice(0, 5)}-${s.slice(5, 10)}-${s.slice(10)}!`;
+    const { data, error } = await admin.auth.admin.createUser({ email, password: tempPassword, email_confirm: true, user_metadata: meta });
+    if (error) return { ok: false, error: `생성 실패: ${error.message}` };
+    userId = data.user.id;
+  }
+
+  if (input.role === "influencer" && userId) {
+    await admin.from("profiles").update({ approved: true, approved_at: new Date().toISOString(), approved_by: guard.user.id }).eq("id", userId);
+  }
+  await guard.supabase.rpc("push_notification_self_safe", {
+    p_user: guard.user.id,
+    p_type: "operator_notice",
+    p_title: `회원 추가 완료 — ${input.name.trim()}`,
+    p_body: `${email} (${input.role === "advertiser" ? (input.advertiserKind === "agency" ? "대행사" : "광고주") : "크리에이터"})${invited ? " · 초대 메일 발송" : " · 임시 비밀번호 생성"}`,
+    p_link: "/dashboard/operator/users?filter=all",
+  });
+  revalidatePath("/dashboard/operator/users");
+  return { ok: true, id: userId!, invited, tempPassword };
+}

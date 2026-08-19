@@ -4,6 +4,7 @@ import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { MemberRow } from "./MemberRow";
 import { BulkApproveList } from "./BulkApproveList";
+import { InviteMemberPanel } from "./InviteMemberPanel";
 
 export const metadata = { title: "회원 관리 — 루비AI" };
 
@@ -75,8 +76,9 @@ export default async function OperatorUsersPage({
     <div>
       <h1 className="display text-3xl font-semibold lg:text-4xl">회원 관리</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        가입 회원의 사업자 정보·채널 현황을 검수하고, 승인 상태를 관리합니다.
+        가입 회원의 사업자 정보·채널 현황을 검수하고, 승인 상태를 관리합니다. 광고주·대행사·크리에이터를 직접 추가(초대)할 수도 있어요.
       </p>
+      <InviteMemberPanel regions={(regionsRes.data ?? []).map((r) => ({ id: r.id, name: r.name, flag: r.flag }))} />
 
       {/* Filter tabs */}
       <div className="mt-8 flex flex-wrap gap-2">
