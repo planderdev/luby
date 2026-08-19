@@ -15,7 +15,7 @@ export default async function OperatorCampaignsPage() {
   const supabase = await createClient();
   const { data: campaigns } = await supabase
     .from("campaigns")
-    .select("id, title, business_name, status, advertiser_id, recruit_start, recruit_end, created_at, ai_precheck, ai_prechecked_at")
+    .select("id, title, business_name, status, advertiser_id, recruit_start, recruit_end, created_at, ai_precheck, ai_prechecked_at, review_round, review_note")
     .eq("status", "pending_approval")
     .order("created_at", { ascending: false });
 
@@ -55,6 +55,8 @@ export default async function OperatorCampaignsPage() {
               recruitEnd={c.recruit_end}
               initialPrecheck={(c.ai_precheck as Precheck | null) ?? null}
               initialCheckedAt={c.ai_prechecked_at}
+              reviewRound={c.review_round ?? 0}
+              previousNote={c.review_note}
             />
           );
         })}

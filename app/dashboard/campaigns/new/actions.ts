@@ -233,7 +233,7 @@ export async function updateCampaign(
     .eq("id", campaignId)
     .maybeSingle();
   if (!existing || existing.advertiser_id !== user.id) return { ok: false, error: "캠페인을 찾을 수 없습니다." };
-  if (!["draft", "pending_approval", "cancelled"].includes(existing.status)) {
+  if (!["draft", "pending_approval", "cancelled", "rejected"].includes(existing.status)) {
     return { ok: false, error: "모집이 시작된 캠페인은 수정할 수 없습니다. 복제해서 새로 만드세요." };
   }
   if (!draft.recruit_start || !draft.recruit_end) {

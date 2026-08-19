@@ -147,7 +147,7 @@ export async function cancelCampaign(
     .eq("id", campaignId)
     .maybeSingle();
   if (!camp || camp.advertiser_id !== user.id) return { ok: false, error: "캠페인을 찾을 수 없습니다." };
-  if (!["pending_approval", "open", "closed"].includes(camp.status)) {
+  if (!["pending_approval", "open", "closed", "rejected"].includes(camp.status)) {
     return { ok: false, error: "현재 상태에서는 취소할 수 없습니다." };
   }
   // 이미 완료(포인트 지급) 응모가 있으면 취소 대신 종료 처리로 유도

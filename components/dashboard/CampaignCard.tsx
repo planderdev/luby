@@ -7,6 +7,7 @@ const STATUS_LABEL: Record<string, { label: string; tone: "success" | "warning" 
   open: { label: "모집중", tone: "success" },
   closed: { label: "마감", tone: "muted" },
   completed: { label: "완료", tone: "ink" },
+  rejected: { label: "반려 · 수정 필요", tone: "danger" },
   cancelled: { label: "취소", tone: "danger" },
 };
 

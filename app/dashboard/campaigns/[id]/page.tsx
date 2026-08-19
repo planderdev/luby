@@ -20,6 +20,7 @@ const STATUS_LABEL: Record<string, { label: string; tone: string }> = {
   open: { label: "모집중", tone: "bg-success-soft text-success" },
   closed: { label: "마감", tone: "bg-muted text-muted-foreground" },
   completed: { label: "완료", tone: "bg-foreground text-background" },
+  rejected: { label: "반려 · 수정 필요", tone: "bg-danger-soft text-danger" },
   cancelled: { label: "취소", tone: "bg-danger-soft text-danger" },
 };
 
@@ -49,7 +50,7 @@ export default async function CampaignDetailPage({
   const { data: campaign } = await supabase
     .from("campaigns")
     .select(
-      "id, advertiser_id, title, business_name, thumbnail_url, status, region_id, category_id, promotion_type_id, recruit_count, recruit_start, recruit_end, experience_start, experience_end, same_day_reservation, always_open, point_amount"
+      "id, advertiser_id, title, business_name, thumbnail_url, status, region_id, category_id, promotion_type_id, recruit_count, recruit_start, recruit_end, experience_start, experience_end, same_day_reservation, always_open, point_amount, review_note, reviewed_at, review_round"
     )
     .eq("id", id)
     .maybeSingle();
@@ -164,12 +165,12 @@ export default async function CampaignDetailPage({
         {isOwner && (
           <div className="flex flex-wrap items-center gap-2">
             {["open", "closed", "completed"].includes(campaign.status) && <ShareLinkButton campaignId={id} />}
-            {["draft", "pending_approval", "cancelled"].includes(campaign.status) && (
+            {["draft", "pending_approval", "cancelled", "rejected"].includes(campaign.status) && (
               <Link
                 href={`/dashboard/campaigns/${id}/edit`}
                 className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-xs font-medium text-background"
               >
-                <Pencil className="size-3.5" /> {campaign.status === "cancelled" ? "수정 후 다시 요청" : "수정"}
+                <Pencil className="size-3.5" /> {campaign.status === "cancelled" || campaign.status === "rejected" ? "수정 후 다시 검수 요청" : "수정"}
               </Link>
             )}
             <Link
@@ -179,7 +180,7 @@ export default async function CampaignDetailPage({
             >
               <Copy className="size-3.5" /> 이 캠페인으로 새로 만들기
             </Link>
-            {["pending_approval", "open", "closed"].includes(campaign.status) && (
+            {["pending_approval", "open", "closed", "rejected"].includes(campaign.status) && (
               <CancelCampaignButton campaignId={id} applicantCount={applicantCount} />
             )}
           </div>
@@ -203,6 +204,25 @@ export default async function CampaignDetailPage({
           </Link>
         )}
       </header>
+
+      {/* 운영자 반려 사유 (광고주·운영자에게 표시) */}
+      {campaign.status === "rejected" && campaign.review_note && (isOwner || isOperator) && (
+        <section className="mt-6 rounded-3xl border border-danger/30 bg-danger-soft/30 p-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-danger">검수 반려 · 수정 요청{campaign.review_round > 1 ? ` (${campaign.review_round}차 검수)` : ""}</div>
+              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">{campaign.review_note}</p>
+              {campaign.reviewed_at && <p className="mt-2 text-[11px] text-muted-foreground">{new Date(campaign.reviewed_at).toLocaleString("ko-KR")} 운영팀</p>}
+            </div>
+            {isOwner && (
+              <Link href={`/dashboard/campaigns/${id}/edit`} className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background">
+                <Pencil className="size-4" /> 수정 후 다시 검수 요청
+              </Link>
+            )}
+          </div>
+          {isOwner && <p className="mt-3 text-xs text-muted-foreground">위 사항을 반영해 저장하면 운영팀에 재검수 요청이 자동으로 전달됩니다. 문의는 contact@plander.io</p>}
+        </section>
+      )}
 
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Stat

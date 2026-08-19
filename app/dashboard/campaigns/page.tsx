@@ -22,9 +22,10 @@ const STATUS_OPTIONS_ADVERTISER = [
   { value: "open", label: "모집중" },
   { value: "closed", label: "마감" },
   { value: "completed", label: "완료" },
+  { value: "rejected", label: "반려" },
   { value: "cancelled", label: "취소" },
 ];
-const STATUS_LABEL_KO: Record<string, string> = { draft: "초안", pending_approval: "검수중", open: "모집중", closed: "마감", completed: "완료", cancelled: "취소" };
+const STATUS_LABEL_KO: Record<string, string> = { draft: "초안", pending_approval: "검수중", open: "모집중", closed: "마감", completed: "완료", rejected: "반려", cancelled: "취소" };
 
 const SORT_OPTIONS = [
   { value: "", label: "최신순" },

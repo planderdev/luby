@@ -21,6 +21,8 @@ export function CampaignDecisionRow({
   recruitEnd,
   initialPrecheck = null,
   initialCheckedAt = null,
+  reviewRound = 0,
+  previousNote = null,
 }: {
   campaignId: string;
   title: string;
@@ -31,6 +33,10 @@ export function CampaignDecisionRow({
   recruitEnd: string;
   initialPrecheck?: Precheck | null;
   initialCheckedAt?: string | null;
+  /** 검수 회차 (2 이상이면 재신청) */
+  reviewRound?: number;
+  /** 직전 반려 사유 (재신청 시 참고) */
+  previousNote?: string | null;
 }) {
   const [hidden, setHidden] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,10 +58,21 @@ export function CampaignDecisionRow({
     } else setError(r.error);
   }
 
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [note, setNote] = useState("");
+
+  function openReject() {
+    // AI 사전 점검의 수정 제안을 초안으로
+    if (!note && precheck?.issues?.length) {
+      setNote(precheck.issues.map((it, i) => `${i + 1}. [${it.area}] ${it.fix}`).join("\n"));
+    }
+    setRejectOpen(true);
+  }
+
   function decide(decision: "open" | "rejected") {
     setError(null);
     startTransition(async () => {
-      const result = await decideCampaign(campaignId, decision);
+      const result = await decideCampaign(campaignId, decision, decision === "rejected" ? note : undefined);
       if (result.ok) {
         setHidden(true);
       } else {
@@ -72,6 +89,7 @@ export function CampaignDecisionRow({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm font-semibold">{title}</span>
+            {reviewRound > 1 && <span className="rounded-full bg-warning-soft px-2 py-0.5 text-[11px] font-medium text-warning">재신청 {reviewRound}차</span>}
             <Link
               href={`/dashboard/campaigns/${campaignId}`}
               className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
@@ -90,12 +108,12 @@ export function CampaignDecisionRow({
 
         <div className="flex shrink-0 gap-1">
           <button
-            onClick={() => decide("rejected")}
+            onClick={openReject}
             disabled={pending}
             className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-4 py-2 text-xs hover:bg-muted disabled:opacity-50"
           >
-            {pending ? <Loader2 className="size-3.5 animate-spin" /> : <X className="size-3.5" />}
-            반려
+            <X className="size-3.5" />
+            반려 (수정 요청)
           </button>
           <button
             onClick={() => decide("open")}
@@ -107,6 +125,35 @@ export function CampaignDecisionRow({
           </button>
         </div>
       </div>
+      {previousNote && reviewRound > 1 && (
+        <div className="mt-3 rounded-2xl bg-muted/50 px-4 py-3 text-xs">
+          <div className="font-semibold text-muted-foreground">직전 반려 사유</div>
+          <p className="mt-1 whitespace-pre-wrap text-muted-foreground">{previousNote}</p>
+        </div>
+      )}
+      {rejectOpen && (
+        <div className="mt-3 rounded-2xl border border-danger/30 bg-danger-soft/30 p-4">
+          <div className="text-sm font-semibold">반려 — 광고주에게 전달할 수정 요청 사항</div>
+          <p className="mt-1 text-xs text-muted-foreground">광고주는 이 내용을 알림·이메일로 받고, 캠페인을 수정한 뒤 "다시 검수 요청"을 누릅니다. AI 사전 점검 결과가 있으면 초안으로 채워져요.</p>
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={5}
+            placeholder={"예)\n1. [광고 표기] 모든 채널 미션에 #광고 #협찬 표기를 필수로 추가해 주세요.\n2. [제공 내역] 항공 출발지·자기부담금 유무를 명시해 주세요."}
+            className="mt-2 w-full resize-y rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-foreground"
+          />
+          <div className="mt-2 flex items-center justify-between">
+            <span className="text-[11px] text-muted-foreground">{note.trim().length}자 (10자 이상)</span>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setRejectOpen(false)} className="rounded-full px-3 py-1.5 text-xs hover:bg-muted">닫기</button>
+              <button type="button" onClick={() => decide("rejected")} disabled={pending || note.trim().length < 10} className="inline-flex items-center gap-1.5 rounded-full bg-danger px-4 py-1.5 text-xs font-medium text-white disabled:opacity-50">
+                {pending ? <Loader2 className="size-3.5 animate-spin" /> : <X className="size-3.5" />} 반려하고 수정 요청 보내기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* AI 사전 점검 */}
       <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
         {precheck ? (

@@ -18,12 +18,12 @@ export default async function EditCampaignPage({ params }: { params: Promise<{ i
   const supabase = await createClient();
   const { data: src } = await supabase
     .from("campaigns")
-    .select("id, advertiser_id, status, title, business_name, industry_brief, thumbnail_url, contact_phone, region_id, promotion_type_id, category_id, recruit_start, recruit_end, experience_start, experience_end, same_day_reservation, always_open, recruit_count, point_amount")
+    .select("id, advertiser_id, status, title, business_name, industry_brief, thumbnail_url, contact_phone, region_id, promotion_type_id, category_id, recruit_start, recruit_end, experience_start, experience_end, same_day_reservation, always_open, recruit_count, point_amount, review_note")
     .eq("id", id)
     .eq("advertiser_id", profile.id)
     .maybeSingle();
   if (!src) redirect("/dashboard/campaigns");
-  if (!["draft", "pending_approval", "cancelled"].includes(src.status)) redirect(`/dashboard/campaigns/${id}`);
+  if (!["draft", "pending_approval", "cancelled", "rejected"].includes(src.status)) redirect(`/dashboard/campaigns/${id}`);
 
   const [{ data: ch }, { data: ms }, { data: kw }, { data: of }, { data: sc }, catalog] = await Promise.all([
     supabase.from("campaign_channels").select("channel_type_id").eq("campaign_id", id),
@@ -63,6 +63,7 @@ export default async function EditCampaignPage({ params }: { params: Promise<{ i
   return (
     <CampaignBuilder
       editId={id}
+      reviewNote={src.status === "rejected" ? src.review_note : null}
       initial={initial}
       regions={catalog.regions}
       categories={catalog.categories}

@@ -312,6 +312,10 @@ export type Database = {
           recruit_count: number
           recruit_end: string
           recruit_start: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          review_round: number
           region_id: string
           same_day_reservation: boolean
           status: Database["public"]["Enums"]["campaign_status"]
@@ -339,6 +343,10 @@ export type Database = {
           recruit_count?: number
           recruit_end: string
           recruit_start: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          review_round?: number
           region_id: string
           same_day_reservation?: boolean
           status?: Database["public"]["Enums"]["campaign_status"]
@@ -366,6 +374,10 @@ export type Database = {
           recruit_count?: number
           recruit_end?: string
           recruit_start?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          review_round?: number
           region_id?: string
           same_day_reservation?: boolean
           status?: Database["public"]["Enums"]["campaign_status"]
@@ -1315,6 +1327,7 @@ export type Database = {
         | "open"
         | "closed"
         | "completed"
+        | "rejected"
         | "cancelled"
       plan_tier: "free" | "business" | "enterprise"
       subscription_status: "active" | "cancelled" | "expired"

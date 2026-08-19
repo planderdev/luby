@@ -62,6 +62,7 @@ export function CampaignBuilder({
   initial,
   editId = null,
   onBehalfOf = null,
+  reviewNote = null,
 }: {
   regions: Region[];
   categories: Category[];
@@ -73,6 +74,8 @@ export function CampaignBuilder({
   editId?: string | null;
   /** 운영자 대행 등록: 광고주 id·표시명 */
   onBehalfOf?: { id: string; label: string } | null;
+  /** 반려된 캠페인 수정 시 운영자 수정 요청 사항 (빌더 상단에 고정 표시) */
+  reviewNote?: string | null;
 }) {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -188,6 +191,12 @@ export function CampaignBuilder({
               {onBehalfOf.label} 광고주 명의로 작성 중 · "검수 요청"을 누르면 바로 모집이 시작됩니다
             </p>
           )}
+          {reviewNote && (
+            <div className="mt-3 max-w-2xl rounded-2xl border border-danger/30 bg-danger-soft/30 px-4 py-3">
+              <div className="text-xs font-semibold uppercase tracking-wider text-danger">운영팀 수정 요청 사항</div>
+              <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed">{reviewNote}</p>
+            </div>
+          )}
         </div>
       </header>
 
@@ -263,7 +272,7 @@ export function CampaignBuilder({
                 className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background disabled:opacity-50"
               >
                 {pending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
-                검수 요청
+                {reviewNote ? "다시 검수 요청" : "검수 요청"}
               </button>
             </>
           ) : (

@@ -86,20 +86,28 @@ export async function approveUsersBulk(
 
 export async function decideCampaign(
   campaignId: string,
-  decision: "open" | "rejected"
+  decision: "open" | "rejected",
+  /** 반려 시 수정 요청 사항(광고주에게 전달). 10자 이상 필수 */
+  note?: string
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const guard = await ensureOperator();
   if (!guard.ok) return { ok: false, error: guard.error };
 
-  const status = decision === "open" ? "open" : "cancelled";
-  const { error } = await guard.supabase
-    .from("campaigns")
-    .update({
-      status,
-      approved_at: new Date().toISOString(),
-      approved_by: guard.user.id,
-    })
-    .eq("id", campaignId);
+  const now = new Date().toISOString();
+  let error: { message: string } | null = null;
+  if (decision === "open") {
+    ({ error } = await guard.supabase
+      .from("campaigns")
+      .update({ status: "open", approved_at: now, approved_by: guard.user.id, reviewed_at: now, reviewed_by: guard.user.id, review_note: null })
+      .eq("id", campaignId));
+  } else {
+    const text = (note ?? "").trim();
+    if (text.length < 10) return { ok: false, error: "반려 사유(수정 요청 사항)를 10자 이상 적어주세요. 광고주가 그대로 받아봅니다." };
+    ({ error } = await guard.supabase
+      .from("campaigns")
+      .update({ status: "rejected", review_note: text.slice(0, 2000), reviewed_at: now, reviewed_by: guard.user.id })
+      .eq("id", campaignId));
+  }
   if (error) return { ok: false, error: error.message };
 
   revalidatePath("/dashboard/operator/campaigns");
