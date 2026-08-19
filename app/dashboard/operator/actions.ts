@@ -224,6 +224,10 @@ export async function inviteMember(input: {
   businessNumber?: string;
   regionId?: string | null;
   phone?: string;
+  /** invite = 초대 메일(비밀번호 설정 링크) · temp = 임시 비밀번호 자동 생성 · manual = 운영자가 비밀번호 직접 지정 */
+  mode?: "invite" | "temp" | "manual";
+  password?: string;
+  /** 하위 호환 */
   sendInvite?: boolean;
 }): Promise<{ ok: true; id: string; invited: boolean; tempPassword?: string } | { ok: false; error: string }> {
   const guard = await ensureOperator();
@@ -253,12 +257,19 @@ export async function inviteMember(input: {
   }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://luby.im";
-  const sendInvite = input.sendInvite !== false;
+  const mode: "invite" | "temp" | "manual" = input.mode ?? (input.sendInvite === false ? "temp" : "invite");
   let userId: string | null = null;
   let invited = false;
   let tempPassword: string | undefined;
 
-  if (sendInvite) {
+  if (mode === "manual") {
+    const pwd = input.password ?? "";
+    if (pwd.length < 8) return { ok: false, error: "비밀번호는 8자 이상이어야 합니다." };
+    if (!/[0-9]/.test(pwd) || !/[A-Za-z]/.test(pwd)) return { ok: false, error: "비밀번호는 영문과 숫자를 포함해야 합니다." };
+    const { data, error } = await admin.auth.admin.createUser({ email, password: pwd, email_confirm: true, user_metadata: meta });
+    if (error) return { ok: false, error: `생성 실패: ${error.message}` };
+    userId = data.user.id;
+  } else if (mode === "invite") {
     const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { data: meta, redirectTo: `${siteUrl}/reset-password` });
     if (error) return { ok: false, error: `초대 실패: ${error.message}` };
     userId = data.user.id;
@@ -283,7 +294,7 @@ export async function inviteMember(input: {
     p_user: guard.user.id,
     p_type: "operator_notice",
     p_title: `회원 추가 완료 — ${input.name.trim()}`,
-    p_body: `${email} (${input.role === "advertiser" ? (input.advertiserKind === "agency" ? "대행사" : "광고주") : "크리에이터"})${invited ? " · 초대 메일 발송" : " · 임시 비밀번호 생성"}`,
+    p_body: `${email} (${input.role === "advertiser" ? (input.advertiserKind === "agency" ? "대행사" : "광고주") : "크리에이터"})${invited ? " · 초대 메일 발송" : mode === "manual" ? " · 비밀번호 직접 지정" : " · 임시 비밀번호 생성"}`,
     p_link: "/dashboard/operator/users?filter=all",
   });
   revalidatePath("/dashboard/operator/users");

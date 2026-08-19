@@ -18,7 +18,9 @@ export function InviteMemberPanel({ regions }: { regions: { id: string; name: st
   const [companyName, setCompanyName] = useState("");
   const [businessNumber, setBusinessNumber] = useState("");
   const [regionId, setRegionId] = useState(regions[0]?.id ?? "");
-  const [sendInvite, setSendInvite] = useState(true);
+  const [mode, setMode] = useState<"invite" | "temp" | "manual">("invite");
+  const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const [result, setResult] = useState<{ invited: boolean; tempPassword?: string; email: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -29,13 +31,13 @@ export function InviteMemberPanel({ regions }: { regions: { id: string; name: st
     setError(null);
     setResult(null);
     startTransition(async () => {
-      const r = await inviteMember({ email, name, role, advertiserKind: kind, companyName, businessNumber, regionId: role === "influencer" ? regionId : null, phone, sendInvite });
+      const r = await inviteMember({ email, name, role, advertiserKind: kind, companyName, businessNumber, regionId: role === "influencer" ? regionId : null, phone, mode, password: mode === "manual" ? password : undefined });
       if (!r.ok) {
         setError(r.error);
         return;
       }
-      setResult({ invited: r.invited, tempPassword: r.tempPassword, email: email.trim().toLowerCase() });
-      setEmail(""); setName(""); setPhone(""); setCompanyName(""); setBusinessNumber("");
+      setResult({ invited: r.invited, tempPassword: r.tempPassword ?? (mode === "manual" ? password : undefined), email: email.trim().toLowerCase() });
+      setEmail(""); setName(""); setPhone(""); setCompanyName(""); setBusinessNumber(""); setPassword("");
     });
   }
 
@@ -75,22 +77,43 @@ export function InviteMemberPanel({ regions }: { regions: { id: string; name: st
             )}
             <div><label className="text-xs font-medium text-muted-foreground">연락처 (선택)</label><input className={`${input} mt-1`} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="010-0000-0000" /></div>
           </div>
-          <label className="mt-4 flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={sendInvite} onChange={(e) => setSendInvite(e.target.checked)} className="size-4" />
-            초대 메일 보내기 (비밀번호 설정 링크) — 끄면 임시 비밀번호를 생성해 직접 전달
-          </label>
+          <div className="mt-4">
+            <div className="text-xs font-medium text-muted-foreground">계정 전달 방식</div>
+            <div className="mt-2 grid gap-2 sm:grid-cols-3">
+              {([
+                { v: "invite", t: "초대 메일", d: "비밀번호 설정 링크를 메일로 보냄" },
+                { v: "temp", t: "임시 비밀번호 생성", d: "랜덤 비밀번호를 만들어 화면에 표시" },
+                { v: "manual", t: "비밀번호 직접 지정", d: "운영자가 정한 비밀번호로 바로 생성" },
+              ] as const).map((o) => (
+                <button key={o.v} type="button" onClick={() => setMode(o.v)} aria-pressed={mode === o.v} className={`rounded-2xl border px-4 py-3 text-left ${mode === o.v ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:bg-muted"}`}>
+                  <div className="text-sm font-semibold">{o.t}</div>
+                  <div className={`mt-0.5 text-xs ${mode === o.v ? "text-background/70" : "text-muted-foreground"}`}>{o.d}</div>
+                </button>
+              ))}
+            </div>
+            {mode === "manual" && (
+              <div className="mt-3 max-w-sm">
+                <label className="text-xs font-medium text-muted-foreground">비밀번호 (8자 이상, 영문+숫자)</label>
+                <div className="mt-1 flex gap-2">
+                  <input className={input} type={showPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" placeholder="예: Luby2026!team" />
+                  <button type="button" onClick={() => setShowPw((v) => !v)} className="shrink-0 rounded-2xl border border-border px-3 text-xs hover:bg-muted">{showPw ? "숨김" : "표시"}</button>
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">회원에게 안전한 경로로 전달하고 첫 로그인 후 변경하도록 안내하세요.</p>
+              </div>
+            )}
+          </div>
           <p className="mt-1 text-xs text-muted-foreground">크리에이터는 운영자가 추가하므로 바로 승인 상태로 생성됩니다. 광고주는 가입 즉시 활동 가능합니다.</p>
           {ADVERTISER_KINDS.length > 0 && role === "advertiser" && kind === "agency" && <p className="mt-1 text-xs text-muted-foreground">대행사는 캠페인마다 클라이언트 상호를 따로 입력할 수 있어요.</p>}
           <div className="mt-4 flex items-center gap-2">
-            <button type="button" onClick={submit} disabled={pending} className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background disabled:opacity-60">
-              {pending ? <Loader2 className="size-4 animate-spin" /> : <UserPlus className="size-4" />} {sendInvite ? "초대 보내기" : "계정 생성"}
+            <button type="button" onClick={submit} disabled={pending || (mode === "manual" && password.length < 8)} className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background disabled:opacity-60">
+              {pending ? <Loader2 className="size-4 animate-spin" /> : <UserPlus className="size-4" />} {mode === "invite" ? "초대 보내기" : "계정 생성"}
             </button>
             <button type="button" onClick={() => setOpen(false)} className="rounded-full px-3 py-2 text-sm text-muted-foreground hover:text-foreground">닫기</button>
           </div>
           {error && <p className="mt-3 text-sm text-danger">{error}</p>}
           {result && (
             <div className="mt-3 rounded-2xl bg-success-soft px-4 py-3 text-sm text-success">
-              <div className="flex items-center gap-2"><Check className="size-4" /> {result.email} 추가 완료{result.invited ? " — 초대 메일을 보냈어요 (링크에서 비밀번호 설정)" : " — 임시 비밀번호를 전달하세요"}</div>
+              <div className="flex items-center gap-2"><Check className="size-4" /> {result.email} 추가 완료{result.invited ? " — 초대 메일을 보냈어요 (링크에서 비밀번호 설정)" : " — 아래 비밀번호를 회원에게 전달하세요"}</div>
               {result.tempPassword && (
                 <div className="mt-2 flex items-center gap-2 text-foreground">
                   <code className="rounded-lg bg-background px-2 py-1 text-xs">{result.tempPassword}</code>
