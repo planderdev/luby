@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Calendar, Users, MapPin, Tag, Coins, Copy } from "lucide-react";
+import { ArrowLeft, Calendar, Users, MapPin, Tag, Coins, Copy, Pencil } from "lucide-react";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { getEntitlements } from "@/lib/plans/entitlements";
@@ -164,6 +164,14 @@ export default async function CampaignDetailPage({
         {isOwner && (
           <div className="flex flex-wrap items-center gap-2">
             {["open", "closed", "completed"].includes(campaign.status) && <ShareLinkButton campaignId={id} />}
+            {["draft", "pending_approval", "cancelled"].includes(campaign.status) && (
+              <Link
+                href={`/dashboard/campaigns/${id}/edit`}
+                className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-xs font-medium text-background"
+              >
+                <Pencil className="size-3.5" /> {campaign.status === "cancelled" ? "수정 후 다시 요청" : "수정"}
+              </Link>
+            )}
             <Link
               href={`/dashboard/campaigns/new?from=${id}`}
               className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-xs font-medium hover:bg-muted"

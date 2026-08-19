@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, Loader2, Save } from "lucide-react";
-import { createCampaign, type CampaignDraft } from "./actions";
+import { createCampaign, updateCampaign, type CampaignDraft } from "./actions";
 import { Step1Basic } from "./steps/Step1Basic";
 import { Step2Promotion } from "./steps/Step2Promotion";
 import { Step3Schedule } from "./steps/Step3Schedule";
@@ -60,6 +60,7 @@ export function CampaignBuilder({
   channels,
   promotionTypes,
   initial,
+  editId = null,
 }: {
   regions: Region[];
   categories: Category[];
@@ -67,6 +68,8 @@ export function CampaignBuilder({
   promotionTypes: PromotionType[];
   /** 캠페인 복제 시 프리필 값 (일정은 비워서 광고주가 새로 지정) */
   initial?: Partial<CampaignDraft> | null;
+  /** 수정 모드: 기존 캠페인 id (초안·검수중·반려 상태) */
+  editId?: string | null;
 }) {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -155,9 +158,10 @@ export function CampaignBuilder({
     }
     setError(null);
     startTransition(async () => {
-      const result = await createCampaign(draft, submit);
+      const result = editId ? await updateCampaign(editId, draft, submit) : await createCampaign(draft, submit);
       if (result.ok) {
         router.push(`/dashboard/campaigns/${result.id}`);
+        if (editId) router.refresh();
       } else {
         setError(result.error);
       }
@@ -175,7 +179,7 @@ export function CampaignBuilder({
             <ArrowLeft className="size-3.5" />
             캠페인 목록
           </Link>
-          <h1 className="display mt-2 text-3xl font-semibold lg:text-4xl">새 캠페인</h1>
+          <h1 className="display mt-2 text-3xl font-semibold lg:text-4xl">{editId ? "캠페인 수정" : "새 캠페인"}</h1>
         </div>
       </header>
 

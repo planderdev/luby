@@ -2,6 +2,7 @@
 import { trackServer } from "@/lib/analytics-server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getEntitlements } from "@/lib/plans/entitlements";
 
@@ -186,4 +187,93 @@ export async function createCampaignAndRedirect(draft: CampaignDraft, submit: bo
     redirect(`/dashboard/campaigns/${result.id}`);
   }
   return result;
+}
+
+/**
+ * 캠페인 수정 — 초안·검수중·반려(취소) 상태에서만. 소유주 전용.
+ * 하위 항목(채널·미션·키워드·제공·일정)은 교체. submit=true 면 검수 요청(pending_approval), false 면 초안 유지/복귀.
+ */
+export async function updateCampaign(
+  campaignId: string,
+  draft: CampaignDraft,
+  submit: boolean
+): Promise<CampaignActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+
+  const { data: existing } = await supabase
+    .from("campaigns")
+    .select("id, status, advertiser_id")
+    .eq("id", campaignId)
+    .maybeSingle();
+  if (!existing || existing.advertiser_id !== user.id) return { ok: false, error: "캠페인을 찾을 수 없습니다." };
+  if (!["draft", "pending_approval", "cancelled"].includes(existing.status)) {
+    return { ok: false, error: "모집이 시작된 캠페인은 수정할 수 없습니다. 복제해서 새로 만드세요." };
+  }
+  if (!draft.recruit_start || !draft.recruit_end) {
+    return { ok: false, error: "모집 기간(시작일·종료일)을 입력해주세요. (STEP 3 체험 일정)" };
+  }
+
+  const { error: upErr } = await supabase
+    .from("campaigns")
+    .update({
+      region_id: draft.region_id,
+      category_id: draft.category_id,
+      promotion_type_id: draft.promotion_type_id,
+      title: draft.title,
+      business_name: draft.business_name,
+      industry_brief: draft.industry_brief?.trim() || null,
+      thumbnail_url: draft.thumbnail_url || null,
+      contact_phone: draft.contact_phone || null,
+      recruit_start: draft.recruit_start,
+      recruit_end: draft.recruit_end,
+      experience_start: draft.experience_start || null,
+      experience_end: draft.experience_end || null,
+      same_day_reservation: draft.same_day_reservation,
+      always_open: draft.always_open,
+      recruit_count: draft.recruit_count,
+      point_amount: draft.point_amount,
+      status: submit ? "pending_approval" : "draft",
+    })
+    .eq("id", campaignId);
+  if (upErr) return { ok: false, error: `캠페인 수정 실패: ${upErr.message}` };
+
+  // 하위 항목 교체
+  await Promise.all([
+    supabase.from("campaign_channels").delete().eq("campaign_id", campaignId),
+    supabase.from("campaign_missions").delete().eq("campaign_id", campaignId),
+    supabase.from("campaign_keywords").delete().eq("campaign_id", campaignId),
+    supabase.from("campaign_offerings").delete().eq("campaign_id", campaignId),
+    supabase.from("campaign_schedules").delete().eq("campaign_id", campaignId),
+  ]);
+  if (draft.channel_type_ids.length > 0) {
+    const { error } = await supabase.from("campaign_channels").insert(draft.channel_type_ids.map((id) => ({ campaign_id: campaignId, channel_type_id: id })));
+    if (error) return { ok: false, error: `채널 저장 실패: ${error.message}` };
+  }
+  const validMissions = draft.missions.filter((m) => m.description.trim() && draft.channel_type_ids.includes(m.channel_type_id));
+  if (validMissions.length > 0) {
+    const { error } = await supabase.from("campaign_missions").insert(validMissions.map((m) => ({ campaign_id: campaignId, channel_type_id: m.channel_type_id, description: m.description.trim() })));
+    if (error) return { ok: false, error: `미션 저장 실패: ${error.message}` };
+  }
+  const cleanKeywords = [...new Set(draft.keywords.map((k) => k.trim()).filter(Boolean))];
+  if (cleanKeywords.length > 0) {
+    const { error } = await supabase.from("campaign_keywords").insert(cleanKeywords.map((k) => ({ campaign_id: campaignId, keyword: k })));
+    if (error) return { ok: false, error: `키워드 저장 실패: ${error.message}` };
+  }
+  const validOfferings = draft.offerings.filter((o) => o.title.trim());
+  if (validOfferings.length > 0) {
+    const { error } = await supabase.from("campaign_offerings").insert(validOfferings.map((o) => ({ campaign_id: campaignId, title: o.title.trim(), description: o.description.trim() || null, estimated_value: o.estimated_value })));
+    if (error) return { ok: false, error: `제공내역 저장 실패: ${error.message}` };
+  }
+  if (draft.schedules.length > 0) {
+    const { error } = await supabase.from("campaign_schedules").insert(draft.schedules.map((s) => ({ campaign_id: campaignId, day_of_week: s.day_of_week, start_time: s.start_time || null, end_time: s.end_time || null })));
+    if (error) return { ok: false, error: `일정 저장 실패: ${error.message}` };
+  }
+
+  revalidatePath(`/dashboard/campaigns/${campaignId}`);
+  revalidatePath("/dashboard/campaigns");
+  return { ok: true, id: campaignId };
 }
