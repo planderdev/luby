@@ -1141,6 +1141,10 @@ export type Database = {
         Returns: boolean
       }
       is_operator: { Args: never; Returns: boolean }
+      get_my_point_ledger: {
+        Args: { p_limit?: number }
+        Returns: { occurred_at: string; kind: string; title: string; detail: string; amount: number; ref_id: string | null; link: string | null }[]
+      }
       get_my_referral_stats: {
         Args: Record<string, never>
         Returns: Json
