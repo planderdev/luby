@@ -180,3 +180,32 @@ export async function precheckCampaignAction(
   await supabase.from("campaigns").update({ ai_precheck: r.result, ai_prechecked_at: checkedAt }).eq("id", campaignId);
   return { ok: true, result: r.result, checkedAt };
 }
+
+/** 운영자: 캠페인 강제 매칭용 크리에이터 검색 */
+export async function searchCreatorsForCampaign(campaignId: string, query: string) {
+  const guard = await ensureOperator();
+  if (!guard.ok) return { ok: false as const, error: guard.error };
+  const { data, error } = await guard.supabase.rpc("operator_search_creators_for_campaign", {
+    p_campaign_id: campaignId,
+    p_query: query.trim() || null,
+    p_limit: 20,
+  });
+  if (error) return { ok: false as const, error: error.message };
+  return { ok: true as const, rows: data ?? [] };
+}
+
+/** 운영자: 캠페인에 크리에이터 강제 배정(선정) */
+export async function forceMatchCreators(campaignId: string, influencerIds: string[], note?: string) {
+  const guard = await ensureOperator();
+  if (!guard.ok) return { ok: false as const, error: guard.error };
+  if (influencerIds.length === 0) return { ok: false as const, error: "배정할 크리에이터를 선택하세요." };
+  const { data, error } = await guard.supabase.rpc("operator_force_match", {
+    p_campaign_id: campaignId,
+    p_influencer_ids: influencerIds,
+    p_note: note?.trim() || null,
+  });
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath(`/dashboard/campaigns/${campaignId}`);
+  const r = data as { assigned: number; skipped: { id: string; reason: string }[] };
+  return { ok: true as const, assigned: r.assigned, skipped: r.skipped ?? [] };
+}

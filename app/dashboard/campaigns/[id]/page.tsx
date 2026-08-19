@@ -11,6 +11,7 @@ import { AIMatches } from "./AIMatches";
 import { CampaignPerformance } from "./CampaignPerformance";
 import { CancelCampaignButton } from "./CancelCampaignButton";
 import { ShareLinkButton } from "./ShareLinkButton";
+import { OperatorForceMatch } from "./OperatorForceMatch";
 import { Skeleton } from "@/components/dashboard/Skeleton";
 
 const STATUS_LABEL: Record<string, { label: string; tone: string }> = {
@@ -336,6 +337,8 @@ export default async function CampaignDetailPage({
           )}
         </div>
       </div>
+
+      {isOperator && <OperatorForceMatch campaignId={id} campaignStatus={campaign.status} />}
 
       {/* Advertiser: AI influencer matching + applicants */}
       {isOwner && (

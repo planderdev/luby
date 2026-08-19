@@ -1179,6 +1179,14 @@ export type Database = {
         Args: { p_profile_id: string }
         Returns: Json
       }
+      operator_force_match: {
+        Args: { p_campaign_id: string; p_influencer_ids: string[]; p_note?: string | null }
+        Returns: Json
+      }
+      operator_search_creators_for_campaign: {
+        Args: { p_campaign_id: string; p_query?: string | null; p_limit?: number }
+        Returns: { id: string; name: string; email: string; avatar_url: string | null; region_name: string | null; total_followers: number; categories: string; current_status: string | null }[]
+      }
       operator_weekly_stats: {
         Args: { p_weeks?: number }
         Returns: {
