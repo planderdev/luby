@@ -732,6 +732,12 @@ export type Database = {
           },
         ]
       }
+      operator_audit_log: {
+        Row: { id: number; actor_id: string | null; action: string; target_type: string; target_id: string | null; target_label: string | null; meta: Json; created_at: string }
+        Insert: { id?: number; actor_id?: string | null; action: string; target_type: string; target_id?: string | null; target_label?: string | null; meta?: Json; created_at?: string }
+        Update: { id?: number; actor_id?: string | null; action?: string; target_type?: string; target_id?: string | null; target_label?: string | null; meta?: Json; created_at?: string }
+        Relationships: []
+      }
       payments: {
         Row: {
           id: string

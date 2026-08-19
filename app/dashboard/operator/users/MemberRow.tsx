@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { Check, X, Loader2, Building2, Radio } from "lucide-react";
 import { approveUser } from "../actions";
 
@@ -74,9 +75,9 @@ export function MemberRow({
         <div className="min-w-0 flex-1">
           {/* 이름 + 배지 줄 */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-semibold">{name}</span>
+            <Link href={`/dashboard/operator/users/${profileId}`} className="text-sm font-semibold hover:underline underline-offset-2">{name}</Link>
             <span className="rounded-full bg-muted px-2 py-0.5 text-[11px]">
-              {role === "advertiser" ? "광고주" : "인플루언서"}
+              {role === "advertiser" ? (business?.advertiserKind === "agency" ? "대행사" : "광고주") : "인플루언서"}
             </span>
             <span
               className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
@@ -86,6 +87,7 @@ export function MemberRow({
               {isApproved ? "승인됨" : "승인 대기"}
             </span>
             <span className="text-[11px] text-muted-foreground">가입 {joined}</span>
+            <Link href={`/dashboard/operator/users/${profileId}`} className="ml-auto text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground">상세 →</Link>
           </div>
 
           {/* 연락처 줄 */}

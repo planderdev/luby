@@ -8,12 +8,13 @@ import { InviteMemberPanel } from "./InviteMemberPanel";
 
 export const metadata = { title: "회원 관리 — 루비AI" };
 
-type Filter = "pending" | "all" | "advertiser" | "influencer";
+type Filter = "pending" | "all" | "advertiser" | "agency" | "influencer";
 
 const TABS: { key: Filter; label: string }[] = [
   { key: "pending", label: "승인 대기" },
   { key: "all", label: "전체" },
   { key: "advertiser", label: "광고주" },
+  { key: "agency", label: "대행사" },
   { key: "influencer", label: "인플루언서" },
 ];
 
@@ -58,16 +59,19 @@ export default async function OperatorUsersPage({
   }
 
   const all = (profilesRes.data ?? []).filter((p) => p.role !== "operator");
+  const isAgency = (id: string) => advertiserById.get(id)?.advertiser_kind === "agency";
   const counts: Record<Filter, number> = {
     pending: all.filter((p) => !p.approved).length,
     all: all.length,
-    advertiser: all.filter((p) => p.role === "advertiser").length,
+    advertiser: all.filter((p) => p.role === "advertiser" && !isAgency(p.id)).length,
+    agency: all.filter((p) => p.role === "advertiser" && isAgency(p.id)).length,
     influencer: all.filter((p) => p.role === "influencer").length,
   };
 
   const members = all.filter((p) => {
     if (filter === "pending") return !p.approved;
-    if (filter === "advertiser") return p.role === "advertiser";
+    if (filter === "advertiser") return p.role === "advertiser" && !isAgency(p.id);
+    if (filter === "agency") return p.role === "advertiser" && isAgency(p.id);
     if (filter === "influencer") return p.role === "influencer";
     return true;
   });
