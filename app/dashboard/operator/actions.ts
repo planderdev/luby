@@ -289,3 +289,34 @@ export async function inviteMember(input: {
   revalidatePath("/dashboard/operator/users");
   return { ok: true, id: userId!, invited, tempPassword };
 }
+
+/** 운영자: 회원 메모 추가 */
+export async function addMemberNote(profileId: string, body: string, pinned = false) {
+  const guard = await ensureOperator();
+  if (!guard.ok) return { ok: false as const, error: guard.error };
+  const text = body.trim();
+  if (!text) return { ok: false as const, error: "메모 내용을 입력하세요." };
+  const { error } = await guard.supabase.from("member_notes").insert({ profile_id: profileId, author_id: guard.user.id, body: text.slice(0, 2000), pinned });
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath(`/dashboard/operator/users/${profileId}`);
+  return { ok: true as const };
+}
+/** 운영자: 회원 메모 삭제 (작성자 본인 또는 아무 운영자) */
+export async function deleteMemberNote(noteId: string, profileId: string) {
+  const guard = await ensureOperator();
+  if (!guard.ok) return { ok: false as const, error: guard.error };
+  const { error } = await guard.supabase.from("member_notes").delete().eq("id", noteId);
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath(`/dashboard/operator/users/${profileId}`);
+  return { ok: true as const };
+}
+/** 운영자: 회원 태그 설정 */
+export async function setMemberTags(profileId: string, tags: string[]) {
+  const guard = await ensureOperator();
+  if (!guard.ok) return { ok: false as const, error: guard.error };
+  const { data, error } = await guard.supabase.rpc("set_member_tags", { p_profile_id: profileId, p_tags: tags });
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath(`/dashboard/operator/users/${profileId}`);
+  revalidatePath("/dashboard/operator/users");
+  return { ok: true as const, tags: (data ?? []) as string[] };
+}

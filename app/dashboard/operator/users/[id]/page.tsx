@@ -4,6 +4,7 @@ import { ArrowLeft, Building2, Sparkles, Mail, Phone, CalendarDays, Coins, Exter
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { MemberActions } from "./MemberActions";
+import { MemberNotes } from "./MemberNotes";
 
 export const metadata = { title: "회원 상세 — 루비AI" };
 
@@ -17,7 +18,7 @@ export default async function OperatorMemberDetailPage({ params }: { params: Pro
   if (me.role !== "operator") redirect("/dashboard");
   const supabase = await createClient();
 
-  const { data: p } = await supabase.from("profiles").select("id, email, name, phone, avatar_url, role, approved, approved_at, created_at, referred_by, onboarding_done, email_prefs").eq("id", id).maybeSingle();
+  const { data: p } = await supabase.from("profiles").select("id, email, name, phone, avatar_url, role, approved, approved_at, created_at, referred_by, onboarding_done, email_prefs, operator_tags").eq("id", id).maybeSingle();
   if (!p) notFound();
   const isAdv = p.role === "advertiser";
   const isInf = p.role === "influencer";
@@ -35,13 +36,14 @@ export default async function OperatorMemberDetailPage({ params }: { params: Pro
     supabase.from("operator_audit_log").select("id, action, created_at, actor_id, target_label").eq("target_id", id).order("created_at", { ascending: false }).limit(10),
     supabase.from("notifications").select("title, created_at, read_at").eq("user_id", id).order("created_at", { ascending: false }).limit(8),
   ]);
+  const { data: noteRows } = await supabase.from("member_notes").select("id, body, pinned, created_at, author_id").eq("profile_id", id).order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(50);
   type Named = { name: string; flag?: string; emoji?: string } | { name: string; flag?: string; emoji?: string }[] | null;
   const one = (n: Named) => (Array.isArray(n) ? n[0] : n);
   const adv = advRes.data; const inf = infRes.data; const sub = subRes.data;
   const region = inf ? one(inf.regions as Named) : null;
   const plan = sub ? one(sub.plans as Named) : null;
   const refBy = refRes.data;
-  const actorIds = [...new Set((auditRes.data ?? []).map((a) => a.actor_id).filter(Boolean))] as string[];
+  const actorIds = [...new Set([...(auditRes.data ?? []).map((a) => a.actor_id), ...(noteRows ?? []).map((n) => n.author_id)].filter(Boolean))] as string[];
   const { data: actors } = actorIds.length ? await supabase.from("profiles").select("id, name").in("id", actorIds) : { data: [] };
   const actorName = new Map((actors ?? []).map((a) => [a.id, a.name]));
   const roleLabel = isAdv ? (adv?.advertiser_kind === "agency" ? "대행사 · 실행사" : "광고주") : isInf ? "크리에이터" : "운영자";
@@ -63,6 +65,7 @@ export default async function OperatorMemberDetailPage({ params }: { params: Pro
             <span className="rounded-full bg-muted px-2.5 py-1 text-xs">{roleLabel}</span>
             <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${p.approved ? "bg-success-soft text-success" : "bg-warning-soft text-warning"}`}>{p.approved ? "승인됨" : "승인 대기"}</span>
             {p.onboarding_done === false && <span className="rounded-full bg-muted px-2.5 py-1 text-xs text-muted-foreground">온보딩 미완료</span>}
+            {(p.operator_tags ?? []).map((t) => <span key={t} className="rounded-full bg-foreground px-2 py-0.5 text-[11px] text-background">{t}</span>)}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
             {isAdv && <span>담당자 {p.name}</span>}
@@ -134,6 +137,12 @@ export default async function OperatorMemberDetailPage({ params }: { params: Pro
             </>
           )}
         </section>
+
+        <MemberNotes
+          profileId={p.id}
+          tags={p.operator_tags ?? []}
+          notes={(noteRows ?? []).map((n) => ({ id: n.id, body: n.body, pinned: n.pinned, created_at: n.created_at, author_name: actorName.get(n.author_id ?? "") ?? null }))}
+        />
 
         {/* 운영 기록 · 알림 */}
         <section className="rounded-3xl glass-card p-6 lg:col-span-3">

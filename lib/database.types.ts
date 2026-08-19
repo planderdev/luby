@@ -649,6 +649,12 @@ export type Database = {
           },
         ]
       }
+      member_notes: {
+        Row: { id: string; profile_id: string; author_id: string | null; body: string; pinned: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; profile_id: string; author_id?: string | null; body: string; pinned?: boolean; created_at?: string; updated_at?: string }
+        Update: { id?: string; profile_id?: string; author_id?: string | null; body?: string; pinned?: boolean; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
       messages: {
         Row: {
           application_id: string
@@ -904,6 +910,7 @@ export type Database = {
           avatar_url: string | null
           email_prefs: Json
           onboarding_done: boolean
+          operator_tags: string[]
           referred_by: string | null
           created_at: string
           email: string
@@ -920,6 +927,7 @@ export type Database = {
           avatar_url?: string | null
           email_prefs?: Json
           onboarding_done?: boolean
+          operator_tags?: string[]
           referred_by?: string | null
           created_at?: string
           email: string
@@ -936,6 +944,7 @@ export type Database = {
           avatar_url?: string | null
           email_prefs?: Json
           onboarding_done?: boolean
+          operator_tags?: string[]
           referred_by?: string | null
           created_at?: string
           email?: string
@@ -1200,6 +1209,10 @@ export type Database = {
       get_operator_audit_log: {
         Args: { p_limit?: number; p_action?: string | null; p_actor?: string | null }
         Returns: { id: number; created_at: string; actor_id: string | null; actor_name: string | null; actor_email: string | null; action: string; target_type: string; target_id: string | null; target_label: string | null; meta: Json }[]
+      }
+      set_member_tags: {
+        Args: { p_profile_id: string; p_tags: string[] }
+        Returns: string[]
       }
       operator_weekly_stats: {
         Args: { p_weeks?: number }
