@@ -61,6 +61,7 @@ export function CampaignBuilder({
   promotionTypes,
   initial,
   editId = null,
+  onBehalfOf = null,
 }: {
   regions: Region[];
   categories: Category[];
@@ -70,6 +71,8 @@ export function CampaignBuilder({
   initial?: Partial<CampaignDraft> | null;
   /** 수정 모드: 기존 캠페인 id (초안·검수중·반려 상태) */
   editId?: string | null;
+  /** 운영자 대행 등록: 광고주 id·표시명 */
+  onBehalfOf?: { id: string; label: string } | null;
 }) {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -158,7 +161,7 @@ export function CampaignBuilder({
     }
     setError(null);
     startTransition(async () => {
-      const result = editId ? await updateCampaign(editId, draft, submit) : await createCampaign(draft, submit);
+      const result = editId ? await updateCampaign(editId, draft, submit) : await createCampaign(draft, submit, onBehalfOf?.id ?? null);
       if (result.ok) {
         router.push(`/dashboard/campaigns/${result.id}`);
         if (editId) router.refresh();
@@ -179,7 +182,12 @@ export function CampaignBuilder({
             <ArrowLeft className="size-3.5" />
             캠페인 목록
           </Link>
-          <h1 className="display mt-2 text-3xl font-semibold lg:text-4xl">{editId ? "캠페인 수정" : "새 캠페인"}</h1>
+          <h1 className="display mt-2 text-3xl font-semibold lg:text-4xl">{editId ? "캠페인 수정" : onBehalfOf ? "운영자 대행 캠페인" : "새 캠페인"}</h1>
+          {onBehalfOf && (
+            <p className="mt-2 inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent-ink">
+              {onBehalfOf.label} 광고주 명의로 작성 중 · "검수 요청"을 누르면 바로 모집이 시작됩니다
+            </p>
+          )}
         </div>
       </header>
 

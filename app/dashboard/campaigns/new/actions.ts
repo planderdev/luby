@@ -45,7 +45,9 @@ export type CampaignActionResult =
 
 export async function createCampaign(
   draft: CampaignDraft,
-  submit: boolean
+  submit: boolean,
+  /** 운영자 대행 등록: 이 광고주 명의로 생성. 운영자만 허용, 검수 요청 시 바로 모집중(운영자가 검수자) */
+  onBehalfOf?: string | null
 ): Promise<CampaignActionResult> {
   const supabase = await createClient();
 
@@ -54,13 +56,24 @@ export async function createCampaign(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
 
-  // 플랜 제한: FREE는 캠페인 1건 (UI만이 아니라 서버에서도 차단)
-  const ent = await getEntitlements(user.id);
-  if (ent.maxCampaigns !== null) {
+  let ownerId = user.id;
+  let operatorMode = false;
+  if (onBehalfOf && onBehalfOf !== user.id) {
+    const { data: me } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+    if (me?.role !== "operator") return { ok: false, error: "운영자만 다른 광고주 명의로 등록할 수 있습니다." };
+    const { data: adv } = await supabase.from("profiles").select("id, role").eq("id", onBehalfOf).maybeSingle();
+    if (!adv || adv.role !== "advertiser") return { ok: false, error: "광고주 계정을 찾을 수 없습니다." };
+    ownerId = onBehalfOf;
+    operatorMode = true;
+  }
+
+  // 플랜 제한: FREE는 캠페인 1건 (UI만이 아니라 서버에서도 차단) — 운영자 대행은 제한 없음
+  const ent = await getEntitlements(ownerId);
+  if (!operatorMode && ent.maxCampaigns !== null) {
     const { count } = await supabase
       .from("campaigns")
       .select("id", { count: "exact", head: true })
-      .eq("advertiser_id", user.id);
+      .eq("advertiser_id", ownerId);
     if ((count ?? 0) >= ent.maxCampaigns) {
       return {
         ok: false,
@@ -79,7 +92,7 @@ export async function createCampaign(
   const { data: campaign, error: campErr } = await supabase
     .from("campaigns")
     .insert({
-      advertiser_id: user.id,
+      advertiser_id: ownerId,
       region_id: draft.region_id,
       category_id: draft.category_id,
       promotion_type_id: draft.promotion_type_id,
@@ -96,7 +109,8 @@ export async function createCampaign(
       always_open: draft.always_open,
       recruit_count: draft.recruit_count,
       point_amount: draft.point_amount,
-      status: submit ? "pending_approval" : "draft",
+      status: submit ? (operatorMode ? "open" : "pending_approval") : "draft",
+      ...(operatorMode && submit ? { approved_at: new Date().toISOString(), approved_by: user.id } : {}),
     })
     .select("id")
     .single();
@@ -174,11 +188,20 @@ export async function createCampaign(
     if (error) return rollback(`일정 저장 실패: ${error.message}`);
   }
 
+  if (operatorMode) {
+    await supabase.rpc("push_notification_self_safe", {
+      p_user: ownerId,
+      p_type: "operator_created_campaign",
+      p_title: submit ? "운영자가 캠페인을 대신 등록하고 모집을 시작했어요" : "운영자가 캠페인 초안을 대신 작성했어요",
+      p_body: `${draft.title} — 캠페인 상세에서 내용을 확인하세요. 수정이 필요하면 운영팀에 알려주세요.`,
+      p_link: `/dashboard/campaigns/${campaignId}`,
+    });
+  }
   return { ok: true, id: campaignId };
 }
 
-export async function createCampaignAndRedirect(draft: CampaignDraft, submit: boolean) {
-  const result = await createCampaign(draft, submit);
+export async function createCampaignAndRedirect(draft: CampaignDraft, submit: boolean, onBehalfOf?: string | null) {
+  const result = await createCampaign(draft, submit, onBehalfOf);
   if (result.ok) {
     await trackServer("campaign_created", {
       mode: submit ? "submit" : "draft",

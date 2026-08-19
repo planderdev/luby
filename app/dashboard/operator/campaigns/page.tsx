@@ -28,10 +28,17 @@ export default async function OperatorCampaignsPage() {
 
   return (
     <div>
-      <h1 className="display text-3xl font-semibold lg:text-4xl">캠페인 검수 대기</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        광고주가 검수 요청한 캠페인입니다. 내용을 확인하고 승인/반려하세요.
-      </p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="display text-3xl font-semibold lg:text-4xl">캠페인 검수 대기</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            광고주가 검수 요청한 캠페인입니다. 내용을 확인하고 승인/반려하세요.
+          </p>
+        </div>
+        <Link href="/dashboard/operator/campaigns/new" className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-3 text-sm font-medium text-background">
+          광고주 대신 캠페인 만들기
+        </Link>
+      </div>
 
       <div className="mt-8 space-y-2">
         {(campaigns ?? []).map((c) => {
