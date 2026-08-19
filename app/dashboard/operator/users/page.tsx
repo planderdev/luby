@@ -33,7 +33,7 @@ export default async function OperatorUsersPage({
   const supabase = await createClient();
 
   // 전체 회원 + 역할별 상세를 병렬 로드 (운영자 RLS로 전부 열람 가능)
-  const [profilesRes, advertisersRes, influencersRes, channelsRes, regionsRes] =
+  const [profilesRes, advertisersRes, influencersRes, channelsRes, regionsRes, channelTypesRes, categoriesRes] =
     await Promise.all([
       supabase
         .from("profiles")
@@ -45,6 +45,8 @@ export default async function OperatorUsersPage({
       supabase.from("influencers").select("profile_id, region_id, bio, total_points"),
       supabase.from("influencer_channels").select("influencer_id, followers"),
       supabase.from("regions").select("id, flag, name"),
+      supabase.from("channel_types").select("id, name").eq("active", true).order("sort_order"),
+      supabase.from("categories").select("id, name, emoji").eq("active", true).order("sort_order"),
     ]);
 
   const advertiserById = new Map((advertisersRes.data ?? []).map((a) => [a.profile_id, a]));
@@ -82,7 +84,11 @@ export default async function OperatorUsersPage({
       <p className="mt-2 text-sm text-muted-foreground">
         가입 회원의 사업자 정보·채널 현황을 검수하고, 승인 상태를 관리합니다. 광고주·대행사·크리에이터를 직접 추가(초대)할 수도 있어요.
       </p>
-      <InviteMemberPanel regions={(regionsRes.data ?? []).map((r) => ({ id: r.id, name: r.name, flag: r.flag }))} />
+      <InviteMemberPanel
+        regions={(regionsRes.data ?? []).map((r) => ({ id: r.id, name: r.name, flag: r.flag }))}
+        channelTypes={channelTypesRes.data ?? []}
+        categories={categoriesRes.data ?? []}
+      />
 
       {/* Filter tabs */}
       <div className="mt-8 flex flex-wrap gap-2">

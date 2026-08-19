@@ -8,7 +8,15 @@ import { ADVERTISER_KINDS, type AdvertiserKind } from "@/lib/advertiser-kind";
 type Role = "advertiser" | "influencer";
 
 /** 운영자 회원 추가(초대) — 광고주·대행사·크리에이터 */
-export function InviteMemberPanel({ regions }: { regions: { id: string; name: string; flag: string }[] }) {
+export function InviteMemberPanel({
+  regions,
+  channelTypes = [],
+  categories = [],
+}: {
+  regions: { id: string; name: string; flag: string }[];
+  channelTypes?: { id: string; name: string }[];
+  categories?: { id: string; name: string; emoji: string | null }[];
+}) {
   const [open, setOpen] = useState(false);
   const [role, setRole] = useState<Role>("advertiser");
   const [kind, setKind] = useState<AdvertiserKind>("brand");
@@ -18,6 +26,9 @@ export function InviteMemberPanel({ regions }: { regions: { id: string; name: st
   const [companyName, setCompanyName] = useState("");
   const [businessNumber, setBusinessNumber] = useState("");
   const [regionId, setRegionId] = useState(regions[0]?.id ?? "");
+  const [channelTypeId, setChannelTypeId] = useState(channelTypes[0]?.id ?? "");
+  const [channelUrl, setChannelUrl] = useState("");
+  const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [mode, setMode] = useState<"invite" | "temp" | "manual">("invite");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
@@ -31,13 +42,13 @@ export function InviteMemberPanel({ regions }: { regions: { id: string; name: st
     setError(null);
     setResult(null);
     startTransition(async () => {
-      const r = await inviteMember({ email, name, role, advertiserKind: kind, companyName, businessNumber, regionId: role === "influencer" ? regionId : null, phone, mode, password: mode === "manual" ? password : undefined });
+      const r = await inviteMember({ email, name, role, advertiserKind: kind, companyName, businessNumber, regionId: role === "influencer" ? regionId : null, channelTypeId: role === "influencer" ? channelTypeId : null, channelUrl: role === "influencer" ? channelUrl : undefined, categoryIds: role === "influencer" ? categoryIds : [], phone, mode, password: mode === "manual" ? password : undefined });
       if (!r.ok) {
         setError(r.error);
         return;
       }
       setResult({ invited: r.invited, tempPassword: r.tempPassword ?? (mode === "manual" ? password : undefined), email: email.trim().toLowerCase() });
-      setEmail(""); setName(""); setPhone(""); setCompanyName(""); setBusinessNumber(""); setPassword("");
+      setEmail(""); setName(""); setPhone(""); setCompanyName(""); setBusinessNumber(""); setPassword(""); setChannelUrl(""); setCategoryIds([]);
     });
   }
 
@@ -68,12 +79,31 @@ export function InviteMemberPanel({ regions }: { regions: { id: string; name: st
             {role === "advertiser" ? (
               <>
                 <div><label className="text-xs font-medium text-muted-foreground">{kind === "agency" ? "대행사명" : "회사·상호명"}</label><input className={`${input} mt-1`} value={companyName} onChange={(e) => setCompanyName(e.target.value)} /></div>
-                <div><label className="text-xs font-medium text-muted-foreground">사업자등록번호 (선택)</label><input className={`${input} mt-1`} value={businessNumber} onChange={(e) => setBusinessNumber(e.target.value)} placeholder="123-45-67890" /></div>
+                <div><label className="text-xs font-medium text-muted-foreground">사업자등록번호 (필수 · 숫자 10자리)</label><input className={`${input} mt-1`} value={businessNumber} onChange={(e) => setBusinessNumber(e.target.value)} placeholder="123-45-67890" required /></div>
               </>
             ) : (
+              <>
               <div><label className="text-xs font-medium text-muted-foreground">활동 지역</label>
                 <select className={`${input} mt-1`} value={regionId} onChange={(e) => setRegionId(e.target.value)}>{regions.map((r) => <option key={r.id} value={r.id}>{r.flag} {r.name}</option>)}</select>
               </div>
+              <div><label className="text-xs font-medium text-muted-foreground">대표 SNS 채널</label>
+                <select className={`${input} mt-1`} value={channelTypeId} onChange={(e) => setChannelTypeId(e.target.value)}>{channelTypes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
+              </div>
+              <div><label className="text-xs font-medium text-muted-foreground">채널 URL (선택)</label><input className={`${input} mt-1`} type="url" value={channelUrl} onChange={(e) => setChannelUrl(e.target.value)} placeholder="https://instagram.com/..." /></div>
+              <div className="md:col-span-2">
+                <label className="text-xs font-medium text-muted-foreground">전문 분야 (최대 3개) · {categoryIds.length}/3</label>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {categories.map((c) => {
+                    const on = categoryIds.includes(c.id);
+                    return (
+                      <button key={c.id} type="button" onClick={() => setCategoryIds((s) => (on ? s.filter((x) => x !== c.id) : s.length >= 3 ? s : [...s, c.id]))} aria-pressed={on} className={`rounded-full border px-3 py-1 text-xs ${on ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:bg-muted"}`}>
+                        {c.emoji ?? ""} {c.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              </>
             )}
             <div><label className="text-xs font-medium text-muted-foreground">연락처 (선택)</label><input className={`${input} mt-1`} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="010-0000-0000" /></div>
           </div>

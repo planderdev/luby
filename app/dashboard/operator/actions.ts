@@ -223,6 +223,9 @@ export async function inviteMember(input: {
   companyName?: string;
   businessNumber?: string;
   regionId?: string | null;
+  channelTypeId?: string | null;
+  channelUrl?: string;
+  categoryIds?: string[];
   phone?: string;
   /** invite = 초대 메일(비밀번호 설정 링크) · temp = 임시 비밀번호 자동 생성 · manual = 운영자가 비밀번호 직접 지정 */
   mode?: "invite" | "temp" | "manual";
@@ -236,6 +239,10 @@ export async function inviteMember(input: {
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { ok: false, error: "이메일 형식이 올바르지 않습니다." };
   if (!input.name.trim()) return { ok: false, error: "이름을 입력하세요." };
   if (input.role === "advertiser" && !input.companyName?.trim()) return { ok: false, error: "회사·상호명(대행사명)을 입력하세요." };
+  if (input.role === "advertiser") {
+    const d0 = (input.businessNumber ?? "").replace(/-/g, "");
+    if (!/^\d{10}$/.test(d0)) return { ok: false, error: "사업자등록번호는 숫자 10자리로 입력해주세요. (예: 123-45-67890)" };
+  }
 
   const { getAdminSupabase } = await import("@/lib/supabase/admin");
   const admin = getAdminSupabase();
@@ -252,8 +259,13 @@ export async function inviteMember(input: {
       if (!/^\d{10}$/.test(d)) return { ok: false, error: "사업자등록번호는 숫자 10자리여야 합니다." };
       meta.business_number = `${d.slice(0, 3)}-${d.slice(3, 5)}-${d.slice(5)}`;
     }
-  } else if (input.regionId) {
-    meta.region_id = input.regionId;
+  } else {
+    if (input.regionId) meta.region_id = input.regionId;
+    if (input.channelTypeId && input.channelUrl?.trim()) {
+      meta.channel_type_id = input.channelTypeId;
+      meta.channel_url = input.channelUrl.trim();
+    }
+    if (input.categoryIds?.length) meta.category_ids = input.categoryIds.slice(0, 3).join(",");
   }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://luby.im";
