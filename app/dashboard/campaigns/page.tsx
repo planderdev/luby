@@ -22,7 +22,9 @@ const STATUS_OPTIONS_ADVERTISER = [
   { value: "open", label: "모집중" },
   { value: "closed", label: "마감" },
   { value: "completed", label: "완료" },
+  { value: "cancelled", label: "취소" },
 ];
+const STATUS_LABEL_KO: Record<string, string> = { draft: "초안", pending_approval: "검수중", open: "모집중", closed: "마감", completed: "완료", cancelled: "취소" };
 
 const SORT_OPTIONS = [
   { value: "", label: "최신순" },
@@ -63,7 +65,7 @@ export default async function CampaignsPage({
   let query = supabase
     .from("campaigns")
     .select(
-      "id, title, business_name, thumbnail_url, status, recruit_start, recruit_end, recruit_count, point_amount, region_id, category_id"
+      "id, title, business_name, thumbnail_url, status, recruit_start, recruit_end, recruit_count, point_amount, region_id, category_id, advertiser_id"
     );
 
   const isInfluencer = profile.role === "influencer";
@@ -121,6 +123,19 @@ export default async function CampaignsPage({
   const campaigns = personalize ? rankCampaigns(rawCampaigns ?? [], signals) : rawCampaigns;
   const hasPersonalSignal = hasSignal(signals);
 
+  // 운영자: 상태별 건수(전체 기준) + 광고주 회사명
+  let statusCounts: Record<string, number> = {};
+  const advertiserNameById = new Map<string, string>();
+  if (profile.role === "operator") {
+    const { data: allStatus } = await supabase.from("campaigns").select("status");
+    for (const r of allStatus ?? []) statusCounts[r.status] = (statusCounts[r.status] ?? 0) + 1;
+    const advIds = [...new Set((campaigns ?? []).map((c) => c.advertiser_id).filter(Boolean))] as string[];
+    if (advIds.length) {
+      const { data: advs } = await supabase.from("advertisers").select("profile_id, company_name, advertiser_kind").in("profile_id", advIds);
+      for (const a of advs ?? []) advertiserNameById.set(a.profile_id, `${a.company_name}${a.advertiser_kind === "agency" ? " (대행사)" : ""}`);
+    }
+  }
+
   // 광고주·운영자: 카드별 응모 집계 (응모/선정 대기/선정/승인) — 한 번의 조회로 메모리 집계
   type CardStats = { applied: number; pending: number; selected: number; approved: number };
   const statsById = new Map<string, CardStats>();
@@ -150,8 +165,29 @@ export default async function CampaignsPage({
           <h1 className="display mt-2 text-3xl font-semibold lg:text-4xl">
             {profile.role === "advertiser" && "내 캠페인"}
             {profile.role === "influencer" && "지금 모집중인 캠페인"}
-            {profile.role === "operator" && "전체 캠페인"}
+            {profile.role === "operator" && "캠페인 풀"}
           </h1>
+          {profile.role === "operator" && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {[
+                ["", "전체", Object.values(statusCounts).reduce((a, b) => a + b, 0)],
+                ...Object.entries(STATUS_LABEL_KO).map(([k, v]) => [k, v, statusCounts[k] ?? 0] as const),
+              ].map(([k, v, n]) => {
+                const on = (status ?? "") === k;
+                const qs = new URLSearchParams();
+                if (k) qs.set("status", String(k));
+                return (
+                  <Link
+                    key={String(k)}
+                    href={`/dashboard/campaigns${qs.toString() ? `?${qs}` : ""}`}
+                    className={`rounded-full border px-3 py-1 text-xs ${on ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:bg-muted"}`}
+                  >
+                    {v} <span className={on ? "text-background/70" : "text-muted-foreground"}>{n}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {profile.role === "advertiser" && (
@@ -201,7 +237,7 @@ export default async function CampaignsPage({
               key={c.id}
               id={c.id}
               title={c.title}
-              businessName={c.business_name}
+              businessName={profile.role === "operator" && advertiserNameById.get(c.advertiser_id) ? `${c.business_name} · ${advertiserNameById.get(c.advertiser_id)}` : c.business_name}
               status={c.status}
               thumbnail={c.thumbnail_url}
               recruitStart={c.recruit_start}

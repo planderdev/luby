@@ -53,6 +53,7 @@ export const dashboardNav: Record<UserRole, NavItem[]> = {
     { href: "/dashboard", label: "개요", icon: LayoutDashboard, primary: true },
     { href: "/dashboard/operator/users", label: "회원 관리", short: "회원", icon: Users, primary: true },
     { href: "/dashboard/creators", label: "크리에이터 풀", short: "크리에이터", icon: UserSearch },
+    { href: "/dashboard/campaigns", label: "캠페인 풀", short: "캠페인", icon: Megaphone },
     { href: "/dashboard/operator/campaigns", label: "캠페인 검수", short: "검수", icon: ShieldCheck, primary: true },
     { href: "/dashboard/operator/payments", label: "결제 내역", short: "결제", icon: CreditCard },
     { href: "/dashboard/operator/withdrawals", label: "정산 관리", short: "정산", icon: Banknote, primary: true },
