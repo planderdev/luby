@@ -1191,6 +1191,10 @@ export type Database = {
         Args: { p_user: string; p_type: string; p_title: string; p_body: string; p_link: string }
         Returns: undefined
       }
+      get_operator_audit_log: {
+        Args: { p_limit?: number; p_action?: string | null; p_actor?: string | null }
+        Returns: { id: number; created_at: string; actor_id: string | null; actor_name: string | null; actor_email: string | null; action: string; target_type: string; target_id: string | null; target_label: string | null; meta: Json }[]
+      }
       operator_weekly_stats: {
         Args: { p_weeks?: number }
         Returns: {

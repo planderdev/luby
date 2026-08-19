@@ -13,7 +13,7 @@ import {
   UserSearch,
   Mail,
   BarChart3,
-} from "lucide-react";
+ ScrollText } from "lucide-react";
 import type { UserRole } from "@/lib/supabase/queries";
 
 export type NavItem = {
@@ -57,6 +57,7 @@ export const dashboardNav: Record<UserRole, NavItem[]> = {
     { href: "/dashboard/operator/payments", label: "결제 내역", short: "결제", icon: CreditCard },
     { href: "/dashboard/operator/withdrawals", label: "정산 관리", short: "정산", icon: Banknote, primary: true },
     { href: "/dashboard/operator/stats", label: "통계", icon: BarChart3, primary: true },
+    { href: "/dashboard/operator/audit", label: "운영 기록", short: "기록", icon: ScrollText },
   ],
 };
 
