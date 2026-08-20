@@ -2,35 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
-
-type Opt = { value: string; label: string };
-
-function Select({
-  value,
-  options,
-  onChange,
-  ariaLabel,
-}: {
-  value: string;
-  options: Opt[];
-  onChange: (v: string) => void;
-  ariaLabel: string;
-}) {
-  return (
-    <select
-      aria-label={ariaLabel}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="rounded-full border border-border bg-background px-4 py-2.5 text-sm outline-none"
-    >
-      {options.map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
-      ))}
-    </select>
-  );
-}
+import { FilterSelect, type FilterOption as Opt } from "@/components/dashboard/FilterSelect";
 
 const FOLLOWER_OPTIONS: Opt[] = [
   { value: "", label: "팔로워 전체" },
@@ -122,33 +94,34 @@ export function CreatorFilters({
           className="w-full rounded-full border border-border bg-background py-2.5 pl-11 pr-4 text-sm outline-none"
         />
       </form>
-      <Select
+      <FilterSelect
         ariaLabel="업종"
         value={params.get("category") ?? ""}
         options={[{ value: "", label: "업종 전체" }, ...categories]}
         onChange={(v) => setParam("category", v)}
       />
-      <Select
+      <FilterSelect
         ariaLabel="지역"
         value={params.get("region") ?? ""}
         options={[{ value: "", label: "지역 전체" }, ...regions]}
         onChange={(v) => setParam("region", v)}
       />
-      <Select
+      <FilterSelect
         ariaLabel="채널"
         value={params.get("channel") ?? ""}
         options={[{ value: "", label: "채널 전체" }, ...channels]}
         onChange={(v) => setParam("channel", v)}
       />
-      <Select
+      <FilterSelect
         ariaLabel="팔로워"
         value={params.get("followers") ?? ""}
         options={FOLLOWER_OPTIONS}
         onChange={(v) => setParam("followers", v)}
       />
-      <Select
+      <FilterSelect
         ariaLabel="정렬"
         value={params.get("sort") ?? "followers"}
+        defaultValue="followers"
         options={SORT_OPTIONS}
         onChange={(v) => setParam("sort", v)}
       />

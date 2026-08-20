@@ -2,35 +2,10 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
+import { FilterSelect } from "@/components/dashboard/FilterSelect";
 
-export type FilterOption = { value: string; label: string };
-
-function FilterSelect({
-  value,
-  options,
-  onChange,
-  ariaLabel,
-}: {
-  value: string;
-  options: FilterOption[];
-  onChange: (v: string) => void;
-  ariaLabel: string;
-}) {
-  return (
-    <select
-      aria-label={ariaLabel}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="rounded-full border border-border bg-background px-4 py-2.5 text-sm outline-none"
-    >
-      {options.map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
-      ))}
-    </select>
-  );
-}
+export type { FilterOption } from "@/components/dashboard/FilterSelect";
+import type { FilterOption } from "@/components/dashboard/FilterSelect";
 
 /**
  * 캠페인 목록 필터바 — 선택 즉시 URL 쿼리로 반영 (서버 컴포넌트가 다시 조회).
