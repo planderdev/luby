@@ -171,3 +171,55 @@ export async function cancelCampaign(
   revalidatePath("/dashboard/campaigns");
   return { ok: true };
 }
+
+/**
+ * 모집중(open) 캠페인 조정: 모집 마감 연장·인원 증원만 허용.
+ * 그 외 변경은 DB 트리거(trg_protect_campaign_updates)가 이중으로 차단한다.
+ */
+export async function adjustOpenCampaign(
+  campaignId: string,
+  input: { recruitEnd?: string; recruitCount?: number }
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+
+  const { data: camp } = await supabase
+    .from("campaigns")
+    .select("id, status, advertiser_id, recruit_end, recruit_count, always_open")
+    .eq("id", campaignId)
+    .maybeSingle();
+  if (!camp || camp.advertiser_id !== user.id) return { ok: false, error: "캠페인을 찾을 수 없습니다." };
+  if (camp.status !== "open") return { ok: false, error: "모집중인 캠페인만 조정할 수 있습니다." };
+
+  const patch: { recruit_end?: string; recruit_count?: number } = {};
+
+  if (input.recruitEnd) {
+    // datetime-local 값은 빌더와 동일하게 UTC 로 해석한다
+    const next = new Date(input.recruitEnd.length === 16 ? `${input.recruitEnd}:00Z` : input.recruitEnd);
+    if (Number.isNaN(next.getTime())) return { ok: false, error: "마감 일시가 올바르지 않습니다." };
+    if (next.getTime() < new Date(camp.recruit_end).getTime()) {
+      return { ok: false, error: "모집 마감은 연장만 할 수 있습니다." };
+    }
+    patch.recruit_end = next.toISOString();
+  }
+
+  if (typeof input.recruitCount === "number") {
+    if (!Number.isInteger(input.recruitCount) || input.recruitCount < camp.recruit_count) {
+      return { ok: false, error: "모집 인원은 현재보다 줄일 수 없습니다." };
+    }
+    if (input.recruitCount > 1000) return { ok: false, error: "모집 인원은 최대 1,000명입니다." };
+    if (input.recruitCount !== camp.recruit_count) patch.recruit_count = input.recruitCount;
+  }
+
+  if (Object.keys(patch).length === 0) return { ok: false, error: "변경할 내용이 없습니다." };
+
+  const { error } = await supabase.from("campaigns").update(patch).eq("id", campaignId);
+  if (error) return { ok: false, error: "저장하지 못했습니다. 잠시 후 다시 시도해주세요." };
+
+  revalidatePath(`/dashboard/campaigns/${campaignId}`);
+  revalidatePath("/dashboard/campaigns");
+  return { ok: true };
+}

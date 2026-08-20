@@ -12,6 +12,7 @@ import { CampaignPerformance } from "./CampaignPerformance";
 import { CancelCampaignButton } from "./CancelCampaignButton";
 import { ShareLinkButton } from "./ShareLinkButton";
 import { OperatorForceMatch } from "./OperatorForceMatch";
+import { AdjustOpenCampaign } from "./AdjustOpenCampaign";
 import { Skeleton } from "@/components/dashboard/Skeleton";
 
 const STATUS_LABEL: Record<string, { label: string; tone: string }> = {
@@ -371,6 +372,14 @@ export default async function CampaignDetailPage({
       {/* Advertiser: AI influencer matching + applicants */}
       {isOwner && (
         <>
+          {campaign.status === "open" && (
+            <AdjustOpenCampaign
+              campaignId={id}
+              recruitEnd={campaign.recruit_end}
+              recruitCount={campaign.recruit_count}
+              alwaysOpen={campaign.always_open}
+            />
+          )}
           <Suspense fallback={<Skeleton className="mt-10 h-64 rounded-3xl" />}>
             <CampaignPerformance
               campaignId={id}
