@@ -4,6 +4,7 @@ import { getCurrentProfile } from "@/lib/supabase/queries";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { MobileNav } from "@/components/dashboard/MobileNav";
 import { NotificationBell } from "@/components/dashboard/NotificationBell";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { SubscriptionBanner } from "@/components/dashboard/SubscriptionBanner";
 
 // Dashboard is private — exclude from search engines
@@ -30,12 +31,18 @@ export default async function DashboardLayout({ children }: { children: React.Re
           role={profile.role}
           name={profile.name}
           avatarUrl={profile.avatar_url}
-          bell={<NotificationBell userId={profile.id} />}
+          bell={
+            <>
+              <RefreshButton />
+              <NotificationBell userId={profile.id} />
+            </>
+          }
         />
 
         {/* 데스크톱: 우상단 알림 벨 */}
         <div className="mx-auto hidden w-full max-w-6xl px-5 pt-5 md:px-8 lg:block lg:px-12">
-          <div className="flex justify-end">
+          <div className="flex items-center justify-end gap-2">
+            <RefreshButton />
             <NotificationBell userId={profile.id} />
           </div>
         </div>
