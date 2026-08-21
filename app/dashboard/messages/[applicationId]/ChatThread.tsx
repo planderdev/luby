@@ -13,7 +13,8 @@ type Message = {
   created_at: string;
 };
 
-const POLL_MS = 4000;
+// Realtime 구독이 기본, 폴링은 연결 끊김 대비 느린 폴백
+const POLL_MS = 30000;
 
 function fmtTime(iso: string) {
   return new Date(iso).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
@@ -62,9 +63,29 @@ export function ChatThread({
 
   useEffect(() => {
     void markThreadRead(applicationId);
+    const supabase = createClient();
+    void supabase.auth.getSession().then(({ data }) => {
+      if (data.session) supabase.realtime.setAuth(data.session.access_token);
+    });
+    const channel = supabase
+      .channel(`messages:${applicationId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages", filter: `application_id=eq.${applicationId}` },
+        (payload) => {
+          const m = payload.new as Message;
+          setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
+          countRef.current += 1;
+          if (m.sender_id !== currentUserId) void markThreadRead(applicationId);
+        }
+      )
+      .subscribe();
     const t = setInterval(refresh, POLL_MS);
-    return () => clearInterval(t);
-  }, [applicationId, refresh]);
+    return () => {
+      clearInterval(t);
+      void supabase.removeChannel(channel);
+    };
+  }, [applicationId, currentUserId, refresh]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: "end" });
