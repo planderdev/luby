@@ -13,6 +13,7 @@ const config: Config = {
         display: ["var(--font-display)", "var(--font-pretendard)", "system-ui", "sans-serif"],
       },
       colors: {
+        canvas: "rgb(var(--canvas) / <alpha-value>)",
         background: "rgb(var(--background) / <alpha-value>)",
         foreground: "rgb(var(--foreground) / <alpha-value>)",
         muted: "rgb(var(--muted) / <alpha-value>)",

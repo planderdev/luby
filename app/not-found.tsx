@@ -6,7 +6,7 @@ export const metadata = { title: "페이지를 찾을 수 없어요" };
 
 export default function NotFound() {
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center bg-background px-6 py-16 text-center">
+    <main className="flex min-h-dvh flex-col items-center justify-center bg-canvas px-6 py-16 text-center">
       <Link href="/" aria-label="루비AI 홈" className="mb-12 inline-flex">
         <Image src="/logo.png" alt="루비AI" width={1298} height={410} className="h-7 w-auto invert dark:invert-0" />
       </Link>

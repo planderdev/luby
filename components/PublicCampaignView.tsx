@@ -108,7 +108,7 @@ export async function PublicCampaignView({ id, locale, refId = null }: { id: str
   };
 
   return (
-    <main lang={locale === "zh" ? "zh-CN" : locale} className="min-h-dvh bg-background">
+    <main lang={locale === "zh" ? "zh-CN" : locale} className="min-h-dvh bg-canvas">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {/* Top bar */}
       <div className="border-b border-border">

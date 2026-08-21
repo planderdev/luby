@@ -85,7 +85,7 @@ export async function PublicCreatorView({ id, locale = "ko" }: { id: string; loc
   };
 
   return (
-    <main lang={locale === "zh" ? "zh-CN" : locale} className="min-h-dvh bg-background">
+    <main lang={locale === "zh" ? "zh-CN" : locale} className="min-h-dvh bg-canvas">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <div className="border-b border-border">
         <div className="mx-auto flex h-14 w-full max-w-4xl items-center justify-between px-5">

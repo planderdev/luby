@@ -16,7 +16,7 @@ export default function ErrorPage({
   }, [error]);
 
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center bg-background px-6 py-16 text-center">
+    <main className="flex min-h-dvh flex-col items-center justify-center bg-canvas px-6 py-16 text-center">
       <p className="text-xs uppercase tracking-[0.24em] text-danger">문제가 발생했어요</p>
       <h1 className="display mt-4 text-3xl font-semibold lg:text-5xl">잠시 후 다시 시도해 주세요</h1>
       <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground lg:text-base">

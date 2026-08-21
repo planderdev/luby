@@ -20,7 +20,7 @@ export function LegalDocument({
   const d = c[doc];
 
   return (
-    <main className="relative min-h-dvh bg-background">
+    <main className="relative min-h-dvh bg-canvas">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 w-full max-w-3xl items-center justify-between px-5 md:px-8">

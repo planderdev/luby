@@ -14,12 +14,14 @@
   --font-pretendard: "Pretendard Variable", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-display: "Pretendard Variable", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 
-  /* RUBY 디자인 시스템 — 라이트 (라일락빛 캔버스) */
-  --background: 251 248 252;          /* #fbf8fc */
+  /* RUBY 디자인 시스템 — 라이트 (B안 2026-08-20: 흰 면 + 옅은 라일락 캔버스)
+     canvas = 페이지 바닥, background = 올라온 면(카드·사이드바·인풋·팝오버) */
+  --canvas: 250 249 251;              /* #faf9fb */
+  --background: 255 255 255;          /* #ffffff */
   --foreground: 21 18 23;             /* ink #151217 */
-  --muted: 240 235 242;               /* #f0ebf2 */
-  --muted-foreground: 108 98 112;     /* #6c6270 */
-  --border: 227 221 231;              /* #e3dde7 */
+  --muted: 243 240 245;               /* #f3f0f5 — 인셋(배너·빈 상태)에만 */
+  --muted-foreground: 107 100 114;    /* #6b6472 */
+  --border: 235 230 239;              /* #ebe6ef hairline */
 
   /* 네온 핑크 액센트 */
   --accent: 255 42 167;               /* #ff2aa7 */
@@ -31,6 +33,7 @@
 
 .dark {
   /* RUBY 디자인 시스템 — 다크 (블랙 캔버스) */
+  --canvas: 5 5 5;                    /* #050505 */
   --background: 5 5 5;                /* #050505 */
   --foreground: 255 255 255;          /* #ffffff */
   --muted: 17 17 19;                  /* graphite-900 #111113 */
@@ -50,7 +53,7 @@ html {
 }
 
 body {
-  background: rgb(var(--background));
+  background: rgb(var(--canvas));
   color: rgb(var(--foreground));
   font-family: var(--font-pretendard);
   -webkit-font-smoothing: antialiased;
@@ -133,20 +136,24 @@ body {
    RUBY 디자인 시스템 — 유리질 서피스 (glass surfaces)
    ============================================================ */
 :root {
-  --glass-bg: rgba(21, 18, 23, 0.045);
-  --glass-bg-hover: rgba(255, 42, 167, 0.06);
-  --glass-border: rgba(21, 18, 23, 0.12);
+  /* 라이트: 순백 카드 + hairline + 아주 약한 그림자 (회색 반투명 카드 폐기) */
+  --glass-bg: #ffffff;
+  --glass-bg-hover: #fff7fb;
+  --glass-border: rgba(21, 18, 23, 0.08);
+  --glass-shadow: 0 1px 2px rgba(21, 18, 23, 0.04), 0 10px 28px -16px rgba(21, 18, 23, 0.12);
 }
 
 .dark {
   --glass-bg: rgba(255, 255, 255, 0.055);
   --glass-bg-hover: rgba(255, 42, 167, 0.08);
   --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-shadow: none;
 }
 
 .glass-card {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }
 
 a.glass-card:hover,
