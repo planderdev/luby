@@ -1,6 +1,7 @@
 import { BarChart3, Users, Radio, Coins, Timer } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ReportShareButton } from "./ReportShareButton";
+import type { ReportSummary } from "@/lib/ai/report-summary";
 
 /**
  * 광고주용 캠페인 성과 요약 — 응모→선정→제출→승인 퍼널, 모집 진행률,
@@ -14,6 +15,8 @@ export async function CampaignPerformance({
   pointAmount,
   status,
   reportToken,
+  reportSummary,
+  reportSummaryAt,
 }: {
   campaignId: string;
   recruitCount: number;
@@ -21,6 +24,8 @@ export async function CampaignPerformance({
   pointAmount: number;
   status: string;
   reportToken: string | null;
+  reportSummary: ReportSummary | null;
+  reportSummaryAt: string | null;
 }) {
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://luby.im").replace(/\/$/, "");
   const supabase = await createClient();
@@ -103,10 +108,18 @@ export async function CampaignPerformance({
             </span>
           )}
           {["open", "closed", "completed"].includes(status) && (
-            <ReportShareButton campaignId={campaignId} initialToken={reportToken} siteUrl={siteUrl} />
+            <ReportShareButton campaignId={campaignId} initialToken={reportToken} siteUrl={siteUrl} initialSummary={reportSummary} initialSummaryAt={reportSummaryAt} />
           )}
         </div>
       </div>
+
+      {reportSummary && (
+        <div className="mt-5 rounded-2xl border border-accent/20 bg-accent-soft/30 px-4 py-3">
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-accent-ink">AI 요약</div>
+          <div className="mt-1 text-sm font-semibold">{reportSummary.headline}</div>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{reportSummary.summary}</p>
+        </div>
+      )}
 
       {/* 핵심 지표 4종 */}
       <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">

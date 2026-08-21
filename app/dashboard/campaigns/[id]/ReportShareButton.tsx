@@ -1,21 +1,30 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Check, Copy, ExternalLink, FileBarChart, Loader2 } from "lucide-react";
+import { Check, Copy, ExternalLink, FileBarChart, Loader2, Sparkles } from "lucide-react";
 import { setReportSharing } from "./actions";
+import { generateReportSummary } from "./ai-report-actions";
+import type { ReportSummary } from "@/lib/ai/report-summary";
 
 /** 성과 리포트 공유 — 토큰 링크 발급·복사·끄기 (캠페인 소유자 전용) */
 export function ReportShareButton({
   campaignId,
   initialToken,
   siteUrl,
+  initialSummary,
+  initialSummaryAt,
 }: {
   campaignId: string;
   initialToken: string | null;
   siteUrl: string;
+  initialSummary: ReportSummary | null;
+  initialSummaryAt: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const [token, setToken] = useState<string | null>(initialToken);
+  const [summary, setSummary] = useState<ReportSummary | null>(initialSummary);
+  const [summaryAt, setSummaryAt] = useState<string | null>(initialSummaryAt);
+  const [aiPending, startAi] = useTransition();
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -28,6 +37,18 @@ export function ReportShareButton({
       const r = await setReportSharing(campaignId, on);
       if (!r.ok) setError(r.error);
       else setToken(r.token);
+    });
+  }
+
+  function runSummary() {
+    setError(null);
+    startAi(async () => {
+      const r = await generateReportSummary(campaignId);
+      if (!r.ok) setError(r.error);
+      else {
+        setSummary(r.summary);
+        setSummaryAt(r.generatedAt);
+      }
     });
   }
 
@@ -87,6 +108,34 @@ export function ReportShareButton({
               {pending && <Loader2 className="size-3.5 animate-spin" />} 공유 링크 만들기
             </button>
           )}
+          {/* AI 요약 */}
+          <div className="mt-4 border-t border-border pt-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-xs font-semibold">
+                <Sparkles className="size-3.5 text-accent-ink" /> AI 요약
+              </div>
+              <button
+                type="button"
+                onClick={runSummary}
+                disabled={aiPending}
+                className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1 text-[11px] font-medium hover:bg-muted disabled:opacity-60"
+              >
+                {aiPending ? <Loader2 className="size-3 animate-spin" /> : null}
+                {aiPending ? "작성 중…" : summary ? "다시 생성" : "요약 생성"}
+              </button>
+            </div>
+            {summary ? (
+              <div className="mt-2 rounded-xl bg-muted/40 px-3 py-2.5">
+                <div className="text-xs font-semibold">{summary.headline}</div>
+                <p className="mt-1 line-clamp-3 text-[11px] leading-relaxed text-muted-foreground">{summary.summary}</p>
+                {summaryAt && <div className="mt-1.5 text-[10px] text-muted-foreground">{new Date(summaryAt).toLocaleString("ko-KR")} 생성 · 리포트 상단에 표시됩니다</div>}
+              </div>
+            ) : (
+              <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
+                집계를 바탕으로 보고서 상단 요약(결과 한 줄·해석·다음 제안)을 AI가 작성합니다. BUSINESS 플랜부터.
+              </p>
+            )}
+          </div>
           {error && <p className="mt-2 text-xs text-danger">{error}</p>}
         </div>
       )}

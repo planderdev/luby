@@ -55,6 +55,8 @@ type Report = {
     creator_name: string | null;
     channels: { channel: string; handle: string | null; followers: number | null }[] | null;
   }[];
+  ai_summary: { headline: string; summary: string; highlights: string[]; next_steps: string[] } | null;
+  ai_summary_at: string | null;
   generated_at: string;
 };
 
@@ -123,6 +125,36 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
             <div><span className="text-foreground">크리에이터 보상</span> {c.point_amount.toLocaleString()}P / 인</div>
           </div>
         </header>
+
+        {/* AI 요약 */}
+        {report.ai_summary && (
+          <section className="mt-6 rounded-3xl border border-accent/25 bg-accent-soft/30 p-6 md:p-8 print:border print:border-border print:bg-white">
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-accent-ink">AI 요약 · 루비AI</div>
+              {report.ai_summary_at && <div className="text-[11px] text-muted-foreground">{fmtDate(report.ai_summary_at)} 생성</div>}
+            </div>
+            <h2 className="display mt-2 text-xl font-semibold md:text-2xl" style={{ textWrap: "balance" }}>{report.ai_summary.headline}</h2>
+            <p className="mt-3 max-w-3xl text-sm leading-relaxed md:text-[15px]">{report.ai_summary.summary}</p>
+            <div className="mt-5 grid gap-5 md:grid-cols-2 print:grid-cols-2">
+              {report.ai_summary.highlights.length > 0 && (
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">주요 포인트</div>
+                  <ul className="mt-2 space-y-1.5 text-sm">
+                    {report.ai_summary.highlights.map((h, i) => <li key={i} className="flex gap-2"><span className="mt-[7px] size-1.5 shrink-0 rounded-full bg-accent" />{h}</li>)}
+                  </ul>
+                </div>
+              )}
+              {report.ai_summary.next_steps.length > 0 && (
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">다음 제안</div>
+                  <ul className="mt-2 space-y-1.5 text-sm">
+                    {report.ai_summary.next_steps.map((h, i) => <li key={i} className="flex gap-2"><span className="mt-[7px] size-1.5 shrink-0 rounded-full bg-foreground/60" />{h}</li>)}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* 핵심 지표 */}
         <section className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4 print:grid-cols-4">
