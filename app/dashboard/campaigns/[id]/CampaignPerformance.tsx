@@ -1,5 +1,6 @@
 import { BarChart3, Users, Radio, Coins, Timer } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { ReportShareButton } from "./ReportShareButton";
 
 /**
  * 광고주용 캠페인 성과 요약 — 응모→선정→제출→승인 퍼널, 모집 진행률,
@@ -12,13 +13,16 @@ export async function CampaignPerformance({
   recruitEnd,
   pointAmount,
   status,
+  reportToken,
 }: {
   campaignId: string;
   recruitCount: number;
   recruitEnd: string;
   pointAmount: number;
   status: string;
+  reportToken: string | null;
 }) {
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://luby.im").replace(/\/$/, "");
   const supabase = await createClient();
 
   const { data: apps } = await supabase
@@ -87,16 +91,21 @@ export async function CampaignPerformance({
             <p className="mt-0.5 text-sm text-muted-foreground">응모부터 포인트 지급까지 한눈에</p>
           </div>
         </div>
-        {status === "open" && (
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
-              daysLeft <= 3 ? "bg-warning-soft text-warning" : "bg-muted text-muted-foreground"
-            }`}
-          >
-            <Timer className="size-3.5" />
-            {daysLeft > 0 ? `모집 마감 D-${daysLeft}` : "모집 마감"}
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {status === "open" && (
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
+                daysLeft <= 3 ? "bg-warning-soft text-warning" : "bg-muted text-muted-foreground"
+              }`}
+            >
+              <Timer className="size-3.5" />
+              {daysLeft > 0 ? `모집 마감 D-${daysLeft}` : "모집 마감"}
+            </span>
+          )}
+          {["open", "closed", "completed"].includes(status) && (
+            <ReportShareButton campaignId={campaignId} initialToken={reportToken} siteUrl={siteUrl} />
+          )}
+        </div>
       </div>
 
       {/* 핵심 지표 4종 */}

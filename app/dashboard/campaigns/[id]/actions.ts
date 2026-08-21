@@ -223,3 +223,37 @@ export async function adjustOpenCampaign(
   revalidatePath("/dashboard/campaigns");
   return { ok: true };
 }
+
+/**
+ * 성과 리포트 공유 링크 켜기/끄기 (소유 광고주·대행사).
+ * 켜면 토큰이 발급되어 /r/<token> 에서 로그인 없이 열람 가능, 끄면 즉시 무효.
+ */
+export async function setReportSharing(
+  campaignId: string,
+  on: boolean
+): Promise<{ ok: true; token: string | null } | { ok: false; error: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+
+  const { data: camp } = await supabase
+    .from("campaigns")
+    .select("id, advertiser_id, status, report_token")
+    .eq("id", campaignId)
+    .maybeSingle();
+  if (!camp || camp.advertiser_id !== user.id) return { ok: false, error: "캠페인을 찾을 수 없습니다." };
+  if (on && !["open", "closed", "completed"].includes(camp.status)) {
+    return { ok: false, error: "모집중 이후 상태의 캠페인만 리포트를 공유할 수 있습니다." };
+  }
+
+  const token = on ? (camp.report_token ?? crypto.randomUUID()) : null;
+  if (token !== camp.report_token) {
+    const { error } = await supabase.from("campaigns").update({ report_token: token }).eq("id", campaignId);
+    if (error) return { ok: false, error: "저장하지 못했습니다. 잠시 후 다시 시도해주세요." };
+  }
+
+  revalidatePath(`/dashboard/campaigns/${campaignId}`);
+  return { ok: true, token };
+}

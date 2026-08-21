@@ -51,7 +51,7 @@ export default async function CampaignDetailPage({
   const { data: campaign } = await supabase
     .from("campaigns")
     .select(
-      "id, advertiser_id, title, business_name, thumbnail_url, status, region_id, category_id, promotion_type_id, recruit_count, recruit_start, recruit_end, experience_start, experience_end, same_day_reservation, always_open, point_amount, review_note, reviewed_at, review_round"
+      "id, advertiser_id, title, business_name, thumbnail_url, status, region_id, category_id, promotion_type_id, recruit_count, recruit_start, recruit_end, experience_start, experience_end, same_day_reservation, always_open, point_amount, review_note, reviewed_at, review_round, report_token"
     )
     .eq("id", id)
     .maybeSingle();
@@ -387,6 +387,7 @@ export default async function CampaignDetailPage({
               recruitEnd={campaign.recruit_end}
               pointAmount={campaign.point_amount}
               status={campaign.status}
+              reportToken={campaign.report_token}
             />
           </Suspense>
           <AIMatches

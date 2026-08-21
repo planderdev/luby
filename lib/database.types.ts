@@ -312,6 +312,7 @@ export type Database = {
           recruit_count: number
           recruit_end: string
           recruit_start: string
+          report_token: string | null
           review_note: string | null
           reviewed_at: string | null
           reviewed_by: string | null
@@ -343,6 +344,7 @@ export type Database = {
           recruit_count?: number
           recruit_end: string
           recruit_start: string
+          report_token?: string | null
           review_note?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -374,6 +376,7 @@ export type Database = {
           recruit_count?: number
           recruit_end?: string
           recruit_start?: string
+          report_token?: string | null
           review_note?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -1205,6 +1208,10 @@ export type Database = {
       list_public_creator_ids: {
         Args: { p_limit?: number }
         Returns: { id: string; updated_at: string }[]
+      }
+      get_campaign_report: {
+        Args: { p_token: string }
+        Returns: Json
       }
       get_public_campaign: {
         Args: { p_id: string }
