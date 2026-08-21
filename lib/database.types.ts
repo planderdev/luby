@@ -1217,6 +1217,10 @@ export type Database = {
         Args: { p_id: string }
         Returns: Json
       }
+      list_public_campaigns: {
+        Args: { p_limit?: number; p_offset?: number; p_channel?: string | null; p_region?: string | null }
+        Returns: Json
+      }
       list_public_campaign_ids: {
         Args: { p_limit?: number }
         Returns: { id: string; updated_at: string }[]

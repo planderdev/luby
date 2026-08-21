@@ -67,6 +67,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
       alternates: { languages },
     },
+    ...(["", "/en", "/zh"] as const).map((l) => ({
+      url: `${base}${l}/c`,
+      lastModified: now,
+      changeFrequency: "hourly" as const,
+      priority: 0.9,
+      alternates: { languages: { "ko-KR": `${base}/c`, en: `${base}/en/c`, "zh-CN": `${base}/zh/c`, "x-default": `${base}/c` } },
+    })),
     {
       url: `${base}/signup`,
       lastModified: now,

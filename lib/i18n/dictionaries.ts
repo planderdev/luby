@@ -17,6 +17,7 @@ const ko = {
   nav: {
     home: "루비AI 홈",
     menu: [
+      { label: "캠페인", href: "/c" },
       { label: "AI 기능", href: "#ai" },
       { label: "서비스", href: "#features" },
       { label: "작동 방식", href: "#how" },
@@ -239,6 +240,7 @@ const ko = {
       {
         title: "제품",
         links: [
+          { label: "모집중 캠페인", href: "/c" },
           { label: "기능 소개", href: "#features" },
           { label: "AI 기능", href: "#ai" },
           { label: "요금제", href: "#pricing" },
@@ -302,6 +304,7 @@ const en: Dict = {
   nav: {
     home: "Luby AI home",
     menu: [
+      { label: "Campaigns", href: "/en/c" },
       { label: "AI", href: "#ai" },
       { label: "Product", href: "#features" },
       { label: "How it works", href: "#how" },
@@ -524,6 +527,7 @@ const en: Dict = {
       {
         title: "Product",
         links: [
+          { label: "Open campaigns", href: "/en/c" },
           { label: "Features", href: "#features" },
           { label: "AI", href: "#ai" },
           { label: "Pricing", href: "#pricing" },
@@ -585,6 +589,7 @@ const zh: Dict = {
   nav: {
     home: "Luby AI 首页",
     menu: [
+      { label: "活动", href: "/zh/c" },
       { label: "AI 功能", href: "#ai" },
       { label: "产品", href: "#features" },
       { label: "运作方式", href: "#how" },
@@ -807,6 +812,7 @@ const zh: Dict = {
       {
         title: "产品",
         links: [
+          { label: "招募中的活动", href: "/zh/c" },
           { label: "功能介绍", href: "#features" },
           { label: "AI 功能", href: "#ai" },
           { label: "价格方案", href: "#pricing" },
