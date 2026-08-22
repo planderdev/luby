@@ -3,6 +3,8 @@ import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { SettingsForm } from "./SettingsForm";
 import { EmailPrefsForm } from "./EmailPrefsForm";
+import { PushToggle } from "./PushToggle";
+import { countPushSubscriptions } from "./actions";
 import { PublicProfileToggle } from "./PublicProfileToggle";
 import { normalizePrefs } from "@/lib/notification-categories";
 import { CompletenessCard } from "@/components/dashboard/CompletenessCard";
@@ -73,6 +75,7 @@ export default async function SettingsPage() {
   const extra = extraRes.data ?? {};
   const { data: prefRow } = await supabase.from("profiles").select("email_prefs").eq("id", profile.id).maybeSingle();
   const emailPrefs = normalizePrefs(prefRow?.email_prefs);
+  const pushCount = await countPushSubscriptions();
   const advCompleteness = isAdvertiser
     ? advertiserCompleteness({
         avatarUrl: profile.avatar_url,
@@ -145,6 +148,7 @@ export default async function SettingsPage() {
           />
         )}
 
+        <PushToggle subscriptionCount={pushCount} />
         <EmailPrefsForm initial={emailPrefs} showDigest />
       </div>
     </div>

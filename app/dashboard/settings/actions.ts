@@ -219,3 +219,44 @@ export async function setPublicProfile(enabled: boolean): Promise<ActionResult> 
   revalidatePath("/dashboard/settings");
   return { ok: true };
 }
+
+/** 웹 푸시 구독 저장 (브라우저/기기별 endpoint 로 upsert) */
+export async function savePushSubscription(sub: { endpoint: string; p256dh: string; auth: string }, userAgent?: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+  if (!sub.endpoint?.startsWith("https://") || !sub.p256dh || !sub.auth) return { ok: false, error: "구독 정보가 올바르지 않습니다." };
+  const { error } = await supabase.from("push_subscriptions").upsert(
+    { user_id: user.id, endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth, user_agent: userAgent?.slice(0, 200) ?? null, last_seen_at: new Date().toISOString(), failed_count: 0 },
+    { onConflict: "endpoint" }
+  );
+  if (error) return { ok: false, error: "구독을 저장하지 못했습니다." };
+  return { ok: true };
+}
+
+/** 웹 푸시 구독 해제 (endpoint 지정 없으면 내 구독 전부) */
+export async function removePushSubscription(endpoint?: string | null): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+  let q = supabase.from("push_subscriptions").delete().eq("user_id", user.id);
+  if (endpoint) q = q.eq("endpoint", endpoint);
+  const { error } = await q;
+  if (error) return { ok: false, error: "구독을 해제하지 못했습니다." };
+  return { ok: true };
+}
+
+/** 내 푸시 구독 수 (설정 화면 표시용) */
+export async function countPushSubscriptions(): Promise<number> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return 0;
+  const { count } = await supabase.from("push_subscriptions").select("id", { count: "exact", head: true }).eq("user_id", user.id);
+  return count ?? 0;
+}

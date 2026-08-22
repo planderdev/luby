@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAdminSupabase } from "@/lib/supabase/admin";
 import { categoryOf, normalizePrefs } from "@/lib/notification-categories";
 import { renderNotificationEmail } from "@/lib/notifications/email-template";
+import { sendPushToUser } from "@/lib/notifications/push";
 
 export const maxDuration = 15;
 
@@ -33,12 +34,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "missing fields" }, { status: 400 });
   }
 
-  const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey) {
-    // 이메일 발송 미설정 — 인앱 알림만 사용 중
-    return NextResponse.json({ skipped: true, reason: "RESEND_API_KEY not configured" });
-  }
-
   // 수신자 조회 (service role — 웹훅은 인증 사용자 컨텍스트가 없음)
   const admin = getAdminSupabase();
   const { data: profile } = await admin
@@ -51,18 +46,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ skipped: true, reason: "recipient not found" });
   }
 
-  // 이메일 수신 설정 존중 (인앱 알림은 이미 생성됨)
+  // 수신 설정(카테고리)은 이메일·푸시에 동일 적용 (인앱 알림은 이미 생성됨)
   const category = categoryOf(payload.type);
   const prefs = normalizePrefs(profile.email_prefs);
   if (!prefs[category]) {
-    return NextResponse.json({ skipped: true, reason: `email pref off: ${category}` });
+    return NextResponse.json({ skipped: true, reason: `pref off: ${category}` });
+  }
+
+  // 1) 웹 푸시 — 구독한 기기가 있으면 발송 (도메인 제외 규칙과 무관)
+  const push = await sendPushToUser(payload.user_id, { title: payload.title, body: payload.body, link: payload.link, tag: payload.type ?? undefined });
+
+  // 2) 이메일
+  const resendKey = process.env.RESEND_API_KEY;
+  if (!resendKey) {
+    return NextResponse.json({ push, email: { skipped: true, reason: "RESEND_API_KEY not configured" } });
   }
   // 발송 제외 도메인: @ruby-ai.kr(테스트 가상 주소), @luby.im(수신 MX 미설정 — 반송 방지. 수신함 개설 후 NOTIFY_SKIP_DOMAINS 에서 제거)
   const skipDomains = (process.env.NOTIFY_SKIP_DOMAINS ?? "ruby-ai.kr,luby.im")
     .split(",").map((d) => d.trim().toLowerCase()).filter(Boolean);
   const domain = profile.email.split("@")[1]?.toLowerCase() ?? "";
   if (skipDomains.includes(domain)) {
-    return NextResponse.json({ skipped: true, reason: `skip domain ${domain}` });
+    return NextResponse.json({ push, email: { skipped: true, reason: `skip domain ${domain}` } });
   }
 
   const { subject, html } = renderNotificationEmail({
@@ -90,8 +94,8 @@ export async function POST(request: Request) {
   if (!res.ok) {
     const err = await res.text();
     console.error("Resend 발송 실패:", res.status, err.slice(0, 200));
-    return NextResponse.json({ ok: false, status: res.status });
+    return NextResponse.json({ ok: false, push, status: res.status });
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, push });
 }
