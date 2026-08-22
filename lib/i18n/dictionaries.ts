@@ -18,6 +18,7 @@ const ko = {
     home: "루비AI 홈",
     menu: [
       { label: "캠페인", href: "/c" },
+      { label: "크리에이터", href: "/creators" },
       { label: "AI 기능", href: "#ai" },
       { label: "서비스", href: "#features" },
       { label: "작동 방식", href: "#how" },
@@ -241,6 +242,7 @@ const ko = {
         title: "제품",
         links: [
           { label: "모집중 캠페인", href: "/c" },
+          { label: "크리에이터로 시작하기", href: "/creators" },
           { label: "기능 소개", href: "#features" },
           { label: "AI 기능", href: "#ai" },
           { label: "요금제", href: "#pricing" },
@@ -305,6 +307,7 @@ const en: Dict = {
     home: "Luby AI home",
     menu: [
       { label: "Campaigns", href: "/en/c" },
+      { label: "Creators", href: "/en/creators" },
       { label: "AI", href: "#ai" },
       { label: "Product", href: "#features" },
       { label: "How it works", href: "#how" },
@@ -528,6 +531,7 @@ const en: Dict = {
         title: "Product",
         links: [
           { label: "Open campaigns", href: "/en/c" },
+          { label: "Become a creator", href: "/en/creators" },
           { label: "Features", href: "#features" },
           { label: "AI", href: "#ai" },
           { label: "Pricing", href: "#pricing" },
@@ -590,6 +594,7 @@ const zh: Dict = {
     home: "Luby AI 首页",
     menu: [
       { label: "活动", href: "/zh/c" },
+      { label: "创作者", href: "/zh/creators" },
       { label: "AI 功能", href: "#ai" },
       { label: "产品", href: "#features" },
       { label: "运作方式", href: "#how" },
@@ -813,6 +818,7 @@ const zh: Dict = {
         title: "产品",
         links: [
           { label: "招募中的活动", href: "/zh/c" },
+          { label: "成为体验官", href: "/zh/creators" },
           { label: "功能介绍", href: "#features" },
           { label: "AI 功能", href: "#ai" },
           { label: "价格方案", href: "#pricing" },

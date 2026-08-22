@@ -74,6 +74,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
       alternates: { languages: { "ko-KR": `${base}/c`, en: `${base}/en/c`, "zh-CN": `${base}/zh/c`, "x-default": `${base}/c` } },
     })),
+    ...(["", "/en", "/zh"] as const).map((l) => ({
+      url: `${base}${l}/creators`,
+      lastModified: now,
+      changeFrequency: "daily" as const,
+      priority: 0.8,
+      alternates: { languages: { "ko-KR": `${base}/creators`, en: `${base}/en/creators`, "zh-CN": `${base}/zh/creators`, "x-default": `${base}/creators` } },
+    })),
     {
       url: `${base}/signup`,
       lastModified: now,

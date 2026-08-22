@@ -1407,6 +1407,10 @@ export type Database = {
         Args: { p_creator: string; p_source: string; p_lang: string; p_hash: string }
         Returns: boolean
       }
+      public_creator_landing_stats: {
+        Args: Record<string, never>
+        Returns: Json
+      }
       campaign_applicant_counts: {
         Args: { p_ids: string[] }
         Returns: { campaign_id: string; applied: number }[]
