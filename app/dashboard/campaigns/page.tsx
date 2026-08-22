@@ -122,6 +122,12 @@ export default async function CampaignsPage({
   }
 
   const campaigns = personalize ? rankCampaigns(rawCampaigns ?? [], signals) : rawCampaigns;
+  // 크리에이터: 모집 인원보다 응모가 적은 캠페인에 "자리 남음" 배지
+  const appliedById = new Map<string, number>();
+  if (isInfluencer && (rawCampaigns ?? []).length > 0) {
+    const { data: cnt } = await supabase.rpc("campaign_applicant_counts", { p_ids: (rawCampaigns ?? []).map((c) => c.id) });
+    for (const r of cnt ?? []) appliedById.set(r.campaign_id, r.applied);
+  }
   const hasPersonalSignal = hasSignal(signals);
 
   // 운영자: 상태별 건수(전체 기준) + 광고주 회사명
@@ -251,7 +257,7 @@ export default async function CampaignsPage({
               recruitEnd={c.recruit_end}
               recruitCount={c.recruit_count}
               pointAmount={c.point_amount}
-              badges={isInfluencer ? campaignBadges(c, signals) : []}
+              badges={isInfluencer ? [...(c.status === "open" && (appliedById.get(c.id) ?? 0) < c.recruit_count ? [`자리 ${c.recruit_count - (appliedById.get(c.id) ?? 0)}개 남음`] : []), ...campaignBadges(c, signals)] : []}
               stats={isInfluencer ? undefined : statsById.get(c.id) ?? { applied: 0, pending: 0, selected: 0, approved: 0 }}
               regionFlag={region?.flag ?? ""}
               regionName={region?.name ?? ""}

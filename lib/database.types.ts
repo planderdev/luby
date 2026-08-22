@@ -1407,6 +1407,10 @@ export type Database = {
         Args: { p_creator: string; p_source: string; p_lang: string; p_hash: string }
         Returns: boolean
       }
+      campaign_applicant_counts: {
+        Args: { p_ids: string[] }
+        Returns: { campaign_id: string; applied: number }[]
+      }
       campaign_view_counts: {
         Args: { p_ids: string[] }
         Returns: { campaign_id: string; views: number; uniques: number }[]

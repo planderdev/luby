@@ -176,6 +176,9 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
                         className={`object-cover transition-transform duration-500 group-hover:scale-[1.03] ${c.thumbnail_url ? "" : "object-left"}`}
                       />
                       <span className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-[11px] font-semibold backdrop-blur ${urgent ? "bg-warning-soft text-warning" : "bg-background/90 text-foreground"}`}>{badge}</span>
+                      {c.applied < c.recruit_count && (
+                        <span className="absolute right-3 top-3 rounded-full bg-accent px-2.5 py-1 text-[11px] font-semibold text-white shadow-pink-sm">{t.spotsLeft(c.recruit_count - c.applied)}</span>
+                      )}
                     </div>
                     <div className="flex flex-1 flex-col p-4">
                       <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
