@@ -1424,7 +1424,7 @@ export type Database = {
         Returns: Json
       }
       list_public_campaigns: {
-        Args: { p_limit?: number; p_offset?: number; p_channel?: string | null; p_region?: string | null }
+        Args: { p_limit?: number; p_offset?: number; p_channel?: string | null; p_region?: string | null; p_sort?: string }
         Returns: Json
       }
       list_public_campaign_ids: {

@@ -33,17 +33,21 @@ type Directory = {
   regions: { id: string; name: string; flag: string }[];
 };
 
-export type DirectoryParams = { channel?: string; region?: string; page?: string };
+export type DirectoryParams = { channel?: string; region?: string; page?: string; sort?: string };
+const SORTS = ["deadline", "new", "points"] as const;
+type Sort = (typeof SORTS)[number];
 
 async function fetchDirectory(params: DirectoryParams): Promise<Directory & { page: number }> {
   const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
   const channel = params.channel && /^[a-z0-9_-]{1,32}$/.test(params.channel) ? params.channel : null;
   const region = params.region && /^[0-9a-f-]{36}$/.test(params.region) ? params.region : null;
+  const sort: Sort = (SORTS as readonly string[]).includes(params.sort ?? "") ? (params.sort as Sort) : "deadline";
   const { data } = await getStaticSupabase().rpc("list_public_campaigns", {
     p_limit: PAGE_SIZE,
     p_offset: (page - 1) * PAGE_SIZE,
     p_channel: channel,
     p_region: region,
+    p_sort: sort,
   });
   const d = (data as Directory | null) ?? { total: 0, items: [], channels: [], regions: [] };
   return { ...d, page };
@@ -74,9 +78,10 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
 
   const qs = (over: Partial<DirectoryParams>) => {
     const n = new URLSearchParams();
-    const merged = { channel: params.channel, region: params.region, ...over };
+    const merged = { channel: params.channel, region: params.region, sort: params.sort, ...over };
     if (merged.channel) n.set("channel", merged.channel);
     if (merged.region) n.set("region", merged.region);
+    if (merged.sort && merged.sort !== "deadline") n.set("sort", merged.sort);
     if (merged.page && merged.page !== "1") n.set("page", merged.page);
     const s = n.toString();
     return `${pfx}/c${s ? `?${s}` : ""}`;
@@ -126,6 +131,17 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
             {dir.channels.map((c) => (
               <Link key={c.slug} href={qs({ channel: params.channel === c.slug ? undefined : c.slug, page: undefined })} className={chip(params.channel === c.slug)}>{c.name}</Link>
             ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="mr-1 text-[11px] uppercase tracking-wider text-muted-foreground">{t.dirSort}</span>
+            {SORTS.map((k) => {
+              const active = ((SORTS as readonly string[]).includes(params.sort ?? "") ? params.sort : "deadline") === k;
+              return (
+                <Link key={k} href={qs({ sort: k === "deadline" ? undefined : k, page: undefined })} className={chip(active)}>
+                  {k === "deadline" ? t.dirSortDeadline : k === "new" ? t.dirSortNew : t.dirSortPoints}
+                </Link>
+              );
+            })}
           </div>
           {dir.regions.length > 1 && (
             <div className="flex flex-wrap items-center gap-1.5">
