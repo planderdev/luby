@@ -3,6 +3,11 @@ import path from "node:path";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  images: {
+    // 공개 카드 썸네일: Supabase Storage 원본·자체 OG 카드(PNG)를 WebP·적정 폭으로 최적화해 내려준다
+    remotePatterns: [{ protocol: "https", hostname: "ncyuljyeyuorgsfuzzmw.supabase.co", pathname: "/storage/v1/object/public/**" }],
+    formats: ["image/avif", "image/webp"],
+  },
   turbopack: {
     root: path.resolve(__dirname),
   },

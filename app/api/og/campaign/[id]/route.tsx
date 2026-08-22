@@ -8,7 +8,7 @@ import { fetchPublicCampaign } from "@/components/PublicCampaignView";
  */
 export const revalidate = 3600;
 
-const FALLBACK_HEADERS = { "Cache-Control": "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400" };
+const FALLBACK_HEADERS = { "Cache-Control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400" };
 
 async function loadFont(text: string, weight: 400 | 700): Promise<ArrayBuffer | null> {
   try {

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+// Pretendard Variable — 유니코드 범위별 동적 서브셋 92개를 셀프호스팅 (jsDelivr 경로 404 사고 이후, 2026-08-23)
+import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import "./globals.css";
 import { SITE, getSiteUrl } from "@/lib/seo/site";
 import { GoogleAds } from "@/components/GoogleAds";

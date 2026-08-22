@@ -143,7 +143,7 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
           <div className="mt-10 rounded-3xl glass-card p-10 text-center text-sm text-muted-foreground">{t.dirEmpty}</div>
         ) : (
           <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {dir.items.map((c) => {
+            {dir.items.map((c, idx) => {
               const daysLeft = Math.ceil((new Date(c.recruit_end).getTime() - Date.now()) / 864e5);
               const badge = c.always_open ? t.statusAlways : daysLeft <= 0 ? t.closesToday : t.closesIn(daysLeft);
               const urgent = !c.always_open && daysLeft <= 3;
@@ -151,8 +151,14 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
                 <li key={c.id}>
                   <Link href={`${pfx}/c/${c.id}`} className="group flex h-full flex-col overflow-hidden rounded-3xl glass-card transition-transform hover:-translate-y-0.5">
                     <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={c.thumbnail_url ?? `/api/og/campaign/${c.id}`} alt={c.title} loading="lazy" className={`size-full object-cover transition-transform duration-500 group-hover:scale-[1.03] ${c.thumbnail_url ? "" : "object-left"}`} />
+                      <Image
+                        src={c.thumbnail_url ?? `/api/og/campaign/${c.id}`}
+                        alt={c.title}
+                        fill
+                        sizes="(min-width: 1024px) 380px, (min-width: 640px) 50vw, 100vw"
+                        priority={idx < 2}
+                        className={`object-cover transition-transform duration-500 group-hover:scale-[1.03] ${c.thumbnail_url ? "" : "object-left"}`}
+                      />
                       <span className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-[11px] font-semibold backdrop-blur ${urgent ? "bg-warning-soft text-warning" : "bg-background/90 text-foreground"}`}>{badge}</span>
                     </div>
                     <div className="flex flex-1 flex-col p-4">
