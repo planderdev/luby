@@ -182,3 +182,28 @@ select:focus-visible {
   --danger: 255 84 126;
   --danger-soft: 61 12 26;
 }
+
+/* 가이드 문서 본문 (docs/manuals markdown) */
+.docs-prose { font-size: 0.95rem; line-height: 1.75; color: rgb(var(--foreground)); }
+.docs-prose > * + * { margin-top: 0.9em; }
+.docs-prose h3 { margin-top: 2.2em; font-size: 1.15rem; font-weight: 600; letter-spacing: -0.01em; word-break: keep-all; }
+.docs-prose h4 { margin-top: 1.6em; font-size: 1rem; font-weight: 600; }
+.docs-prose h3 .anchor, .docs-prose h4 .anchor { color: inherit; text-decoration: none; }
+.docs-prose h3 .anchor:hover::after, .docs-prose h4 .anchor:hover::after { content: " #"; color: rgb(var(--muted-foreground)); }
+.docs-prose p { word-break: keep-all; }
+.docs-prose ul, .docs-prose ol { padding-left: 1.4em; }
+.docs-prose ul { list-style: disc; }
+.docs-prose ol { list-style: decimal; }
+.docs-prose li + li { margin-top: 0.35em; }
+.docs-prose li > ul, .docs-prose li > ol { margin-top: 0.35em; }
+.docs-prose a { color: rgb(var(--accent-ink)); text-decoration: underline; text-underline-offset: 3px; }
+.docs-prose strong { font-weight: 600; }
+.docs-prose code { font-size: 0.85em; padding: 0.1em 0.4em; border-radius: 0.4rem; background: rgb(var(--muted)); }
+.docs-prose pre { overflow-x: auto; border-radius: 1rem; padding: 1rem; background: rgb(var(--muted)); }
+.docs-prose pre code { padding: 0; background: transparent; }
+.docs-prose blockquote { border-left: 3px solid rgb(var(--accent)); padding: 0.5em 1em; border-radius: 0 1rem 1rem 0; background: rgb(var(--accent-soft) / 0.5); color: rgb(var(--foreground) / 0.85); }
+.docs-prose table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; font-size: 0.875rem; }
+.docs-prose th, .docs-prose td { border: 1px solid rgb(var(--border)); padding: 0.5em 0.75em; text-align: left; vertical-align: top; }
+.docs-prose th { background: rgb(var(--muted) / 0.6); font-weight: 600; white-space: nowrap; }
+.docs-prose hr { border: 0; border-top: 1px solid rgb(var(--border)); }
+.docs-prose img { max-width: 100%; border-radius: 1rem; }

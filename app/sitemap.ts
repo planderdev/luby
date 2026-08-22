@@ -1,3 +1,4 @@
+import { loadDocs } from "@/lib/docs/content";
 import type { MetadataRoute } from "next";
 import { getSiteUrl } from "@/lib/seo/site";
 import { getStaticSupabase } from "@/lib/supabase/static";
@@ -74,6 +75,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
       alternates: { languages: { "ko-KR": `${base}/c`, en: `${base}/en/c`, "zh-CN": `${base}/zh/c`, "x-default": `${base}/c` } },
     })),
+    { url: `${base}/docs`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.7 },
+    ...loadDocs().flatMap((g) => g.pages.map((p) => ({ url: `${base}/docs/${g.key}/${p.slug}`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.6 }))),
     ...(["", "/en", "/zh"] as const).map((l) => ({
       url: `${base}${l}/creators`,
       lastModified: now,

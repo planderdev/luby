@@ -261,6 +261,7 @@ const ko = {
       {
         title: "리소스",
         links: [
+          { label: "사용 가이드", href: "/docs" },
           { label: "자주 묻는 질문", href: "#faq" },
           { label: "요금 안내", href: "#pricing" },
           { label: "고객 지원", href: "mailto:contact@plander.io" },
@@ -550,6 +551,7 @@ const en: Dict = {
       {
         title: "Resources",
         links: [
+          { label: "User guide (KR)", href: "/docs" },
           { label: "FAQ", href: "#faq" },
           { label: "Pricing", href: "#pricing" },
           { label: "Support", href: "mailto:contact@plander.io" },
@@ -837,6 +839,7 @@ const zh: Dict = {
       {
         title: "资源",
         links: [
+          { label: "使用指南（韩文）", href: "/docs" },
           { label: "常见问题", href: "#faq" },
           { label: "价格说明", href: "#pricing" },
           { label: "客户支持", href: "mailto:contact@plander.io" },
