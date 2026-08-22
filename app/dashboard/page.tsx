@@ -184,7 +184,9 @@ export default async function DashboardPage() {
     const region = regionRes.data;
 
     const { data: refStats } = await supabase.rpc("get_my_referral_stats");
-    const referrals = Number((refStats as { total?: number } | null)?.total ?? 0);
+    const ref = (refStats as { total?: number; rewarded?: number; reward_points?: number; rewarded_this_month?: number } | null) ?? null;
+    const referrals = Number(ref?.total ?? 0);
+    const referralStats = { total: referrals, rewarded: Number(ref?.rewarded ?? 0), rewardPoints: Number(ref?.reward_points ?? 0), monthRewarded: Number(ref?.rewarded_this_month ?? 0) };
 
     // 프로필 완성도 (승인 여부와 무관 — 승인 대기 중에도 채우도록 유도)
     const [{ data: myChannels }, { data: myCatRows }] = await Promise.all([
@@ -254,6 +256,8 @@ export default async function DashboardPage() {
         recommended={recommended}
         completeness={completeness}
         referrals={referrals}
+        referralStats={referralStats}
+        profileId={profile.id}
       />
     );
   }

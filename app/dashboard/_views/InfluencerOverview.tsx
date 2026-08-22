@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { TodoList, type TodoItem } from "@/components/dashboard/TodoList";
 import { CompletenessCard } from "@/components/dashboard/CompletenessCard";
+import { ReferralCard } from "@/components/dashboard/ReferralCard";
 import type { CompletenessItem } from "@/lib/profile-completeness";
 
 export type RecommendedCampaign = {
@@ -49,6 +50,8 @@ export function InfluencerOverview({
   recommended = [],
   completeness,
   referrals = 0,
+  referralStats,
+  profileId,
 }: {
   name: string;
   approved: boolean;
@@ -61,6 +64,8 @@ export function InfluencerOverview({
   completeness?: { percent: number; items: CompletenessItem[]; next: CompletenessItem | null };
   /** 내 공유 링크로 가입한 사람 수 */
   referrals?: number;
+  referralStats?: { total: number; rewarded: number; rewardPoints: number; monthRewarded: number };
+  profileId?: string;
 }) {
   const todoItems: TodoItem[] = [
     {
@@ -175,6 +180,10 @@ export function InfluencerOverview({
           hint={referrals > 0 ? "친구가 첫 체험을 완료하면 500P" : "친구 초대 → 첫 체험 완료 시 500P"}
         />
       </div>
+
+      {approved && profileId && referralStats && (
+        <ReferralCard profileId={profileId} {...referralStats} />
+      )}
 
       {completeness && completeness.percent < 100 && (
         <div className="mt-8">

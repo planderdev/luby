@@ -8,6 +8,7 @@ import { getSiteUrl, SITE } from "@/lib/seo/site";
 import type { Locale } from "@/lib/i18n/config";
 import { localePrefix, publicCampaignDict } from "@/lib/i18n/public-campaign";
 import { creatorLandingDict } from "@/lib/i18n/creator-landing";
+import { RefAwareLink } from "@/components/RefAwareLink";
 
 /** 크리에이터 모집 랜딩 — 실시간 공개 집계(모집 수·남은 자리·포인트)와 상위 포인트 캠페인으로 가입 유도. ISR 10분 */
 
@@ -70,9 +71,9 @@ export async function CreatorLanding({ locale }: { locale: Locale }) {
           <h1 className="display mt-3 whitespace-pre-line break-keep text-4xl font-semibold leading-[1.1] md:text-5xl" style={{ textWrap: "balance" }}>{t.title}</h1>
           <p className="mt-5 max-w-2xl text-base text-muted-foreground md:text-lg">{t.sub}</p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link href={signupHref} className="inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3.5 text-sm font-medium text-background transition-transform hover:scale-[1.02]">
+            <RefAwareLink href={signupHref} className="inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3.5 text-sm font-medium text-background transition-transform hover:scale-[1.02]">
               {t.ctaPrimary} <ArrowRight className="size-4" />
-            </Link>
+            </RefAwareLink>
             <Link href={`${pfx}/c`} className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-6 py-3.5 text-sm font-medium hover:bg-muted">{t.ctaSecondary}</Link>
           </div>
           {s && (
@@ -179,9 +180,9 @@ export async function CreatorLanding({ locale }: { locale: Locale }) {
         <div className="rounded-4xl bg-foreground px-8 py-12 text-center text-background">
           <h2 className="display break-keep text-2xl font-semibold md:text-3xl" style={{ textWrap: "balance" }}>{t.finalTitle}</h2>
           <p className="mt-2 text-sm opacity-70">{t.finalSub}</p>
-          <Link href={signupHref} className="mt-7 inline-flex items-center gap-2 rounded-full bg-background px-6 py-3.5 text-sm font-medium text-foreground hover:opacity-90">
+          <RefAwareLink href={signupHref} className="mt-7 inline-flex items-center gap-2 rounded-full bg-background px-6 py-3.5 text-sm font-medium text-foreground hover:opacity-90">
             {t.ctaPrimary} <ArrowRight className="size-4" />
-          </Link>
+          </RefAwareLink>
         </div>
       </section>
 
