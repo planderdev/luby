@@ -6,6 +6,7 @@ import type { CampaignDraft } from "../actions";
 import { StepHeader, Field, NumberInput } from "./_shared";
 import { AIButton } from "../AIButton";
 import { suggestRecruitAndKeywords } from "../ai-actions";
+import { BenchmarkHint } from "../BenchmarkHint";
 
 export function Step4Recruit({
   draft,
@@ -90,6 +91,7 @@ export function Step4Recruit({
           min={1}
           max={1000}
         />
+        <BenchmarkHint categoryId={draft.category_id || null} mode="recruit" value={draft.recruit_count} />
       </Field>
 
       <Field label="키워드 / 해시태그" hint="콘텐츠에 포함될 핵심 키워드 (Enter로 추가)">

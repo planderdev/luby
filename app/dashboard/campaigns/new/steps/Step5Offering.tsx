@@ -5,6 +5,7 @@ import { Plus, Trash2 } from "lucide-react";
 import type { CampaignDraft } from "../actions";
 import { StepHeader, Field, TextInput, NumberInput, TextArea } from "./_shared";
 import { AIButton } from "../AIButton";
+import { BenchmarkHint } from "../BenchmarkHint";
 import { suggestOfferingsAndPoints } from "../ai-actions";
 
 export function Step5Offering({
@@ -143,6 +144,7 @@ export function Step5Offering({
           />
           <span className="shrink-0 text-sm text-muted-foreground">원/포인트</span>
         </div>
+        <BenchmarkHint categoryId={draft.category_id || null} mode="points" value={draft.point_amount} />
       </Field>
 
       <div className="rounded-2xl border border-accent/30 bg-accent-soft px-5 py-4 text-sm text-accent-ink">
