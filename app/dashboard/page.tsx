@@ -128,7 +128,7 @@ export default async function DashboardPage() {
       supabase.from("applications").select("id, status, campaign_id").eq("influencer_id", profile.id),
       supabase
         .from("influencers")
-        .select("total_points, region_id, bio")
+        .select("total_points, region_id, bio, public_profile")
         .eq("profile_id", profile.id)
         .maybeSingle(),
       supabase
@@ -195,6 +195,7 @@ export default async function DashboardPage() {
       channelCount: (myChannels ?? []).length,
       channelsWithFollowers: (myChannels ?? []).filter((c) => (c.followers ?? 0) > 0).length,
       categoryCount: (myCatRows ?? []).length,
+      publicProfile: !!influencer?.public_profile,
     });
 
     // 추천 캠페인 3개 (승인된 크리에이터만) — 목록 페이지와 같은 랭킹 로직

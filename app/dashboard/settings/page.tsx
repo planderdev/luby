@@ -90,6 +90,7 @@ export default async function SettingsPage() {
         channelCount: (channelsRes.data ?? []).length,
         channelsWithFollowers: (channelsRes.data ?? []).filter((c) => (c.followers ?? 0) > 0).length,
         categoryCount: (myCatsRes.data ?? []).length,
+        publicProfile: !!(extra as { public_profile?: boolean }).public_profile,
       })
     : null;
 

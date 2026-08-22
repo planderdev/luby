@@ -9,6 +9,8 @@ export type CreatorProfileFacts = {
   channelCount: number;
   channelsWithFollowers: number;
   categoryCount: number;
+  /** 공개 프로필(/p) 옵트인 */
+  publicProfile?: boolean;
 };
 
 export type CompletenessItem = { key: string; label: string; done: boolean; weight: number; hint: string; href: string };
@@ -18,9 +20,10 @@ export function creatorCompleteness(f: CreatorProfileFacts): { percent: number; 
     { key: "channel", label: "SNS 채널 1개 이상", done: f.channelCount > 0, weight: 30, hint: "채널이 있어야 광고주 검색·AI 매칭에 노출돼요", href: "/dashboard/settings#channels" },
     { key: "category", label: "전문 분야 선택", done: f.categoryCount > 0, weight: 25, hint: "내 업종 캠페인이 우선 추천되고 초대가 늘어요", href: "/dashboard/settings#categories" },
     { key: "followers", label: "채널 팔로워 수 입력", done: f.channelCount > 0 && f.channelsWithFollowers === f.channelCount, weight: 15, hint: "팔로워 수는 예상 도달 계산과 광고주 필터에 쓰여요", href: "/dashboard/settings#channels" },
-    { key: "bio", label: "한 줄 소개", done: !!f.bio && f.bio.trim().length >= 10, weight: 15, hint: "광고주가 선정할 때 가장 먼저 읽는 문장이에요", href: "/dashboard/settings" },
+    { key: "bio", label: "한 줄 소개", done: !!f.bio && f.bio.trim().length >= 10, weight: 10, hint: "광고주가 선정할 때 가장 먼저 읽는 문장이에요", href: "/dashboard/settings" },
     { key: "region", label: "활동 지역", done: !!f.regionId, weight: 10, hint: "지역 기반 캠페인 추천에 필요해요", href: "/dashboard/settings" },
     { key: "avatar", label: "프로필 사진", done: !!f.avatarUrl, weight: 5, hint: "사진이 있는 프로필이 선정률이 높아요", href: "/dashboard/settings" },
+    { key: "public", label: "공개 프로필 켜기", done: !!f.publicProfile, weight: 5, hint: "링크 하나로 광고주에게 포트폴리오를 보여주고 검색 노출도 늘어요", href: "/dashboard/settings#public" },
   ];
   const percent = items.reduce((s, i) => s + (i.done ? i.weight : 0), 0);
   const next = items.find((i) => !i.done) ?? null;
