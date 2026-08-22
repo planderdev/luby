@@ -19,7 +19,7 @@ const REMINDER_TYPES = new Set([
   "nudge_first_campaign", "nudge_draft_campaign", "nudge_select_applicants", "nudge_submit_content",
   "nudge_review_submission", "nudge_complete_profile", "closing_soon_for_you", "welcome", "subscription_expiring",
 ]);
-const DIGEST_TYPES = new Set(["operator_daily_digest", "advertiser_weekly_digest", "creator_weekly_digest"]);
+const DIGEST_TYPES = new Set(["operator_daily_digest", "advertiser_weekly_digest", "creator_weekly_digest", "operator_weekly_report"]);
 
 export function categoryOf(type: string | null | undefined): EmailCategory {
   if (!type) return "transactional";
