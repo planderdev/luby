@@ -76,6 +76,8 @@ export type Database = {
       }
       applications: {
         Row: {
+          ai_fit: Json | null
+          ai_fit_at: string | null
           campaign_id: string
           created_at: string
           id: string
@@ -87,6 +89,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ai_fit?: Json | null
+          ai_fit_at?: string | null
           campaign_id: string
           created_at?: string
           id?: string
@@ -98,6 +102,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ai_fit?: Json | null
+          ai_fit_at?: string | null
           campaign_id?: string
           created_at?: string
           id?: string

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Lock } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ApplicantRow } from "./ApplicantRow";
+import { AiFitButton } from "./AiFitButton";
+import type { ApplicantFit } from "@/lib/ai/applicant-fit";
 
 export async function ApplicantList({
   campaignId,
@@ -18,12 +20,20 @@ export async function ApplicantList({
 
   const { data: allApplications, count: totalCount } = await supabase
     .from("applications")
-    .select("id, message, status, created_at, influencer_id", { count: "exact" })
+    .select("id, message, status, created_at, influencer_id, ai_fit", { count: "exact" })
     .eq("campaign_id", campaignId)
     .order("created_at", { ascending: false });
 
-  const applications =
-    maxVisible !== null ? (allApplications ?? []).slice(0, maxVisible) : allApplications;
+  // 대기 응모자는 AI 적합도 점수가 있으면 점수순(미평가는 뒤), 나머지는 최신순 유지
+  const fitOf = (a: { ai_fit: unknown }) => (a.ai_fit as ApplicantFit | null)?.score ?? -1;
+  const sorted = [...(allApplications ?? [])].sort((a, b) => {
+    if (a.status === "pending" && b.status === "pending") return fitOf(b) - fitOf(a);
+    return 0;
+  });
+  const applications = maxVisible !== null ? sorted.slice(0, maxVisible) : sorted;
+  const pendingAll = (allApplications ?? []).filter((a) => a.status === "pending");
+  const unscored = pendingAll.filter((a) => !a.ai_fit).length;
+  const scoredCount = pendingAll.length - unscored;
   const hiddenCount =
     maxVisible !== null ? Math.max(0, (totalCount ?? 0) - maxVisible) : 0;
 
@@ -79,7 +89,12 @@ export async function ApplicantList({
 
   return (
     <section>
-      <h3 className="display text-2xl font-semibold">응모자 ({totalCount ?? applications.length})</h3>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <h3 className="display text-2xl font-semibold">응모자 ({totalCount ?? applications.length})</h3>
+        {canAiReview && pendingAll.length > 0 && (
+          <AiFitButton campaignId={campaignId} unscored={unscored} scored={scoredCount} />
+        )}
+      </div>
       <div className="mt-4 space-y-2">
         {applications.map((a) => {
           const profile = profileById.get(a.influencer_id);
@@ -104,6 +119,7 @@ export async function ApplicantList({
                 followers: c.followers,
               }))}
               canAiReview={canAiReview}
+              aiFit={(a.ai_fit as ApplicantFit | null) ?? null}
               submission={
                 sub
                   ? {

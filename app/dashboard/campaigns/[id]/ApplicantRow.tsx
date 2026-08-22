@@ -15,6 +15,13 @@ import {
 import { selectApplicant, approveSubmission, requestSubmissionRevision } from "./actions";
 import { aiReviewSubmission } from "./ai-review-actions";
 import type { ContentReview } from "@/lib/ai/content-review";
+import type { ApplicantFit } from "@/lib/ai/applicant-fit";
+
+const FIT_TONE: Record<ApplicantFit["fit"], { label: string; cls: string }> = {
+  high: { label: "적합도 높음", cls: "bg-success-soft text-success" },
+  medium: { label: "적합도 보통", cls: "bg-warning-soft text-warning" },
+  low: { label: "적합도 낮음", cls: "bg-muted text-muted-foreground" },
+};
 
 const STATUS_LABEL: Record<string, { label: string; tone: string }> = {
   pending: { label: "대기", tone: "bg-warning-soft text-warning" },
@@ -47,6 +54,7 @@ export function ApplicantRow({
   channels,
   submission = null,
   canAiReview = false,
+  aiFit = null,
 }: {
   applicationId: string;
   campaignId: string;
@@ -60,6 +68,7 @@ export function ApplicantRow({
   channels: { handle: string; followers: number }[];
   submission?: SubmissionInfo;
   canAiReview?: boolean;
+  aiFit?: ApplicantFit | null;
 }) {
   const [currentStatus, setCurrentStatus] = useState(status);
   const [sub, setSub] = useState(submission);
@@ -168,6 +177,15 @@ export function ApplicantRow({
           {message && (
             <div className="mt-2 rounded-xl bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
               {message}
+            </div>
+          )}
+          {aiFit && currentStatus === "pending" && (
+            <div className="mt-2 flex flex-wrap items-start gap-x-3 gap-y-1 text-xs">
+              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-semibold ${FIT_TONE[aiFit.fit].cls}`}>
+                <Sparkles className="size-3" /> {aiFit.score}점 · {FIT_TONE[aiFit.fit].label}
+              </span>
+              <span className="text-muted-foreground">{aiFit.reasons.join(" · ")}</span>
+              {aiFit.caution && <span className="text-warning">확인: {aiFit.caution}</span>}
             </div>
           )}
         </div>
