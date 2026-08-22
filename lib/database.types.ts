@@ -1379,6 +1379,10 @@ export type Database = {
         Args: { p_id: string; p_limit?: number }
         Returns: Json
       }
+      advertiser_overview_stats: {
+        Args: { p_days?: number }
+        Returns: Json
+      }
       campaign_fit_hint: {
         Args: { p_campaign: string }
         Returns: Json

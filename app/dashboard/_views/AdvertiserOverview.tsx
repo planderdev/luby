@@ -10,12 +10,26 @@ import {
   Timer,
   FileEdit,
   Sparkles,
+  Eye,
 } from "lucide-react";
+import { viewSourceRows } from "@/lib/view-sources";
 import { TodoList, type TodoItem } from "@/components/dashboard/TodoList";
 import { CompletenessCard } from "@/components/dashboard/CompletenessCard";
 import type { CompletenessItem } from "@/lib/profile-completeness";
 
 type Plan = { name: string; tier: string; monthly_price: number } | null;
+
+export type AdvertiserFunnel = {
+  days: number;
+  views: number;
+  uniques: number;
+  by_source: Record<string, number>;
+  applied: number;
+  selected: number;
+  approved: number;
+  top_campaign: { id: string; title: string; views: number } | null;
+  has_public: boolean;
+};
 
 type AdvertiserTodo = {
   pendingApplicants: number;
@@ -29,6 +43,7 @@ type AdvertiserTodo = {
 
 export function AdvertiserOverview({
   name,
+  funnel,
   campaignCount,
   openCount,
   plan,
@@ -36,6 +51,7 @@ export function AdvertiserOverview({
   completeness,
 }: {
   name: string;
+  funnel?: AdvertiserFunnel | null;
   campaignCount: number;
   openCount: number;
   plan: Plan;
@@ -146,6 +162,59 @@ export function AdvertiserOverview({
           hint={plan ? `${plan.monthly_price.toLocaleString()}원/월` : ""}
         />
       </div>
+
+      {funnel && funnel.has_public && (
+        <section className="mt-8 rounded-3xl glass-card p-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <div>
+              <h2 className="text-base font-semibold tracking-tight">최근 {funnel.days}일 퍼널</h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">공개 페이지 조회부터 콘텐츠 발행까지, 내 캠페인 전체</p>
+            </div>
+            {funnel.top_campaign && funnel.top_campaign.views > 0 && (
+              <Link href={`/dashboard/campaigns/${funnel.top_campaign.id}`} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+                <Eye className="size-3.5" /> 가장 많이 본 캠페인: <span className="max-w-[14rem] truncate font-medium text-foreground">{funnel.top_campaign.title}</span> ({funnel.top_campaign.views})
+              </Link>
+            )}
+          </div>
+          {(() => {
+            const pct = (n: number, d: number) => (d > 0 ? `${Math.round((n / d) * 100)}%` : null);
+            const steps = [
+              { l: "공개 페이지 방문", v: funnel.uniques, s: funnel.views > 0 ? `조회 ${funnel.views.toLocaleString()}회` : "아직 없음", r: null as string | null },
+              { l: "응모", v: funnel.applied, s: "취소 제외", r: pct(funnel.applied, funnel.uniques) },
+              { l: "선정", v: funnel.selected, s: "선정·완료", r: pct(funnel.selected, funnel.applied) },
+              { l: "콘텐츠 발행", v: funnel.approved, s: "승인·포인트 지급", r: pct(funnel.approved, funnel.selected) },
+            ];
+            const max = Math.max(1, ...steps.map((x) => x.v));
+            return (
+              <div className="mt-5 grid gap-3 md:grid-cols-4">
+                {steps.map((x) => (
+                  <div key={x.l} className="rounded-2xl bg-muted/50 px-4 py-3">
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-[11px] uppercase tracking-wider text-muted-foreground">{x.l}</span>
+                      {x.r && <span className="text-[11px] tabular-nums text-muted-foreground">{x.r}</span>}
+                    </div>
+                    <div className="display mt-1 text-2xl font-semibold tabular-nums">{x.v.toLocaleString()}</div>
+                    <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-border">
+                      <div className="h-full rounded-full bg-accent/80" style={{ width: `${Math.max(3, (x.v / max) * 100)}%` }} />
+                    </div>
+                    <div className="mt-1 text-[11px] text-muted-foreground">{x.s}</div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+          {funnel.views > 0 ? (
+            <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">유입 경로</span>
+              {viewSourceRows(funnel.by_source).map((r) => (
+                <span key={r.key}>{r.label} <b className="text-foreground">{r.views.toLocaleString()}</b></span>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-3 text-xs text-muted-foreground">공유 링크·QR 포스터로 공개 페이지를 알리면 조회와 유입 경로가 여기에 쌓여요.</p>
+          )}
+        </section>
+      )}
 
       {completeness && completeness.percent < 100 && (
         <div className="mt-8">

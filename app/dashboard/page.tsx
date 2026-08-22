@@ -1,6 +1,6 @@
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
-import { AdvertiserOverview } from "./_views/AdvertiserOverview";
+import { AdvertiserOverview, type AdvertiserFunnel } from "./_views/AdvertiserOverview";
 import { InfluencerOverview } from "./_views/InfluencerOverview";
 import { OperatorOverview } from "./_views/OperatorOverview";
 import { redirect } from "next/navigation";
@@ -86,6 +86,8 @@ export default async function DashboardPage() {
     ]);
 
     const plan = planRes.data;
+    const { data: funnelRaw } = await supabase.rpc("advertiser_overview_stats", { p_days: 30 });
+    const funnel = (funnelRaw as AdvertiserFunnel | null) ?? null;
     const { data: advRow } = await supabase
       .from("advertisers")
       .select("description, website, category_id, contact_phone")
@@ -107,6 +109,7 @@ export default async function DashboardPage() {
     return (
       <AdvertiserOverview
         name={profile.name}
+        funnel={funnel}
         campaignCount={campaignCount}
         openCount={openCount}
         plan={plan}
