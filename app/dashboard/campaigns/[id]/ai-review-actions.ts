@@ -87,7 +87,7 @@ export async function aiReviewSubmission(submissionId: string): Promise<Result> 
     keywords: (keywords.data ?? []).map((k) => k.keyword),
     contentUrl: sub.content_url,
     note: sub.note,
-  });
+  }, { userId: user.id, campaignId: campaign.id });
   if (!result.ok) return result;
 
   // 결과 캐시 (service_role — submissions에 광고주 UPDATE 정책 없음)

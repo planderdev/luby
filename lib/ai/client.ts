@@ -38,3 +38,82 @@ export function stopReasonError(stopReason: string | null): string | null {
   }
   return null;
 }
+
+/* ============================================================
+   사용량 추적 — 모든 AI 호출은 trackedCreate 를 통해 ai_usage 에 기록된다.
+   (service_role 로 insert, 실패해도 본 호출에는 영향 없음)
+   ============================================================ */
+import type { MessageCreateParamsNonStreaming, Message } from "@anthropic-ai/sdk/resources/messages";
+
+export type AiContext = {
+  /** 기능 식별자: campaign_copy | campaign_draft | creator_match | applicant_fit | content_review | campaign_precheck | apply_message | report_summary */
+  feature: string;
+  userId?: string | null;
+  campaignId?: string | null;
+};
+
+/** USD / 1M tokens — Anthropic 1st-party 요율 (2026-08). Sonnet 5 는 8/31 까지 인트로 요율. */
+const PRICE: Record<string, { input: number; output: number; introUntil?: string; introInput?: number; introOutput?: number }> = {
+  "claude-opus-5": { input: 5, output: 25 },
+  "claude-sonnet-5": { input: 3, output: 15, introUntil: "2026-08-31", introInput: 2, introOutput: 10 },
+  "claude-haiku-4-5": { input: 1, output: 5 },
+};
+
+export function estimateCostUsd(model: string, u: { input_tokens: number; output_tokens: number; cache_read_input_tokens?: number | null; cache_creation_input_tokens?: number | null }): number {
+  const p = PRICE[model];
+  if (!p) return 0;
+  const intro = p.introUntil && new Date().toISOString().slice(0, 10) <= p.introUntil;
+  const inPrice = intro ? p.introInput! : p.input;
+  const outPrice = intro ? p.introOutput! : p.output;
+  const cacheRead = u.cache_read_input_tokens ?? 0;
+  const cacheWrite = u.cache_creation_input_tokens ?? 0;
+  const usd =
+    (u.input_tokens * inPrice + cacheRead * inPrice * 0.1 + cacheWrite * inPrice * 1.25 + u.output_tokens * outPrice) / 1_000_000;
+  return Math.round(usd * 1_000_000) / 1_000_000;
+}
+
+async function logUsage(row: {
+  feature: string; model: string; user_id: string | null; campaign_id: string | null;
+  input_tokens: number; output_tokens: number; cache_read_tokens: number; cache_write_tokens: number;
+  duration_ms: number; ok: boolean; error: string | null; cost_usd: number;
+}) {
+  try {
+    const { getAdminSupabase } = await import("@/lib/supabase/admin");
+    await getAdminSupabase().from("ai_usage").insert(row);
+  } catch (e) {
+    console.error("[ai_usage] log failed", e instanceof Error ? e.message : e);
+  }
+}
+
+/**
+ * client.messages.create 와 동일하지만 소요 시간·토큰·추정 비용을 ai_usage 에 남긴다.
+ * 예외는 그대로 던지므로 호출부의 try/catch 패턴은 변경 불필요.
+ */
+export async function trackedCreate(params: MessageCreateParamsNonStreaming, ctx: AiContext): Promise<Message> {
+  const t0 = Date.now();
+  try {
+    const r = await getAnthropic().messages.create(params);
+    void logUsage({
+      feature: ctx.feature,
+      model: params.model,
+      user_id: ctx.userId ?? null,
+      campaign_id: ctx.campaignId ?? null,
+      input_tokens: r.usage.input_tokens,
+      output_tokens: r.usage.output_tokens,
+      cache_read_tokens: r.usage.cache_read_input_tokens ?? 0,
+      cache_write_tokens: r.usage.cache_creation_input_tokens ?? 0,
+      duration_ms: Date.now() - t0,
+      ok: r.stop_reason !== "refusal" && r.stop_reason !== "max_tokens",
+      error: r.stop_reason === "refusal" ? "refusal" : r.stop_reason === "max_tokens" ? "max_tokens" : null,
+      cost_usd: estimateCostUsd(params.model, r.usage),
+    });
+    return r;
+  } catch (e) {
+    void logUsage({
+      feature: ctx.feature, model: params.model, user_id: ctx.userId ?? null, campaign_id: ctx.campaignId ?? null,
+      input_tokens: 0, output_tokens: 0, cache_read_tokens: 0, cache_write_tokens: 0,
+      duration_ms: Date.now() - t0, ok: false, error: (e instanceof Error ? e.message : String(e)).slice(0, 500), cost_usd: 0,
+    });
+    throw e;
+  }
+}

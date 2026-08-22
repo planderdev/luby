@@ -1,6 +1,6 @@
 "use server";
 
-import { getAnthropic, AI_MODEL_REASONING, stopReasonError } from "@/lib/ai/client";
+import { trackedCreate, AI_MODEL_REASONING, stopReasonError } from "@/lib/ai/client";
 import { buildSystemBlocks, fetchCatalog } from "@/lib/ai/system";
 import { createClient } from "@/lib/supabase/server";
 import { getEntitlements } from "@/lib/plans/entitlements";
@@ -163,8 +163,7 @@ ${influencerSummaries}
 풀에 인플루언서가 5명 미만이면 그 만큼만 반환하세요.`;
 
   try {
-    const client = getAnthropic();
-    const response = await client.messages.create({
+    const response = await trackedCreate({
       // 매칭은 판단 품질이 핵심 → Opus 5. medium effort로도 이전 세대 high 이상.
       model: AI_MODEL_REASONING,
       // max_tokens는 thinking + 응답 JSON의 합산 상한 — 부족하면 JSON이 잘린다.
@@ -201,7 +200,7 @@ ${influencerSummaries}
         },
       },
       messages: [{ role: "user", content: userPrompt }],
-    });
+    }, { feature: "creator_match", userId: user.id, campaignId });
 
     const stopErr = stopReasonError(response.stop_reason);
     if (stopErr) return { ok: false, error: stopErr };

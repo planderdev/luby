@@ -63,7 +63,7 @@ export async function generateReportSummary(campaignId: string): Promise<Result>
     alwaysOpen: Boolean(c.always_open),
     metrics: report.metrics,
     contents: report.contents ?? [],
-  });
+  }, { userId: user.id, campaignId });
   if (!result.ok) return result;
 
   const generatedAt = new Date().toISOString();

@@ -1,6 +1,6 @@
 "use server";
 
-import { getAnthropic, AI_MODEL_FAST, stopReasonError } from "@/lib/ai/client";
+import { trackedCreate, AI_MODEL_FAST, stopReasonError } from "@/lib/ai/client";
 import { buildSystemBlocks, fetchCatalog } from "@/lib/ai/system";
 import { createClient } from "@/lib/supabase/server";
 
@@ -8,13 +8,13 @@ import { createClient } from "@/lib/supabase/server";
 
 type AIResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
-async function ensureAuth(): Promise<{ ok: true } | { ok: false; error: string }> {
+async function ensureAuth(): Promise<{ ok: true; userId: string } | { ok: false; error: string }> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
-  return { ok: true };
+  return { ok: true, userId: user.id };
 }
 
 /**
@@ -30,11 +30,13 @@ async function callAI<T>(opts: {
   maxTokens?: number;
   /** true = adaptive thinking + effort medium (전체 초안 등 무거운 작업 전용) */
   deep?: boolean;
+  /** ai_usage 기록용 */
+  feature: string;
+  userId: string;
 }): Promise<AIResult<T>> {
   try {
-    const client = getAnthropic();
     const catalog = await fetchCatalog();
-    const response = await client.messages.create({
+    const response = await trackedCreate({
       model: AI_MODEL_FAST,
       // max_tokens는 thinking + 응답 JSON의 "합산" 상한 — 낮으면 JSON이 중간에 잘려
       // "Unterminated string in JSON" 파싱 오류가 난다. 5세대 토크나이저는 한국어를
@@ -52,7 +54,7 @@ async function callAI<T>(opts: {
         },
       },
       messages: [{ role: "user", content: opts.userPrompt }],
-    });
+    }, { feature: opts.feature, userId: opts.userId });
 
     const stopErr = stopReasonError(response.stop_reason);
     if (stopErr) return { ok: false, error: stopErr };
@@ -85,7 +87,7 @@ export async function suggestTitles(input: {
     return { ok: false, error: "업종 설명과 상호명이 필요합니다." };
   }
 
-  return callAI<TitleSuggestion>({    userPrompt: `다음 정보로 인플루언서가 클릭하고 싶어할 만한 캠페인 제목 3개를 만들어주세요.
+  return callAI<TitleSuggestion>({ feature: "campaign_copy_title", userId: auth.userId,    userPrompt: `다음 정보로 인플루언서가 클릭하고 싶어할 만한 캠페인 제목 3개를 만들어주세요.
 
 상호명: ${input.businessName}
 업종 설명: ${input.industryBrief}
@@ -155,7 +157,7 @@ export async function suggestPromotionAndChannels(input: {
   if (!auth.ok) return auth;
   if (!input.industryBrief?.trim()) return { ok: false, error: "업종 설명이 필요합니다." };
 
-  const r = await callAI<PromotionSuggestion>({    userPrompt: `상호명: ${input.businessName}
+  const r = await callAI<PromotionSuggestion>({ feature: "campaign_copy_channels", userId: auth.userId,    userPrompt: `상호명: ${input.businessName}
 업종 설명: ${input.industryBrief}
 
 위 정보를 보고:
@@ -214,7 +216,7 @@ export async function suggestRecruitAndKeywords(input: {
   if (!auth.ok) return auth;
   if (!input.industryBrief?.trim()) return { ok: false, error: "업종 설명이 필요합니다." };
 
-  return callAI<RecruitSuggestion>({    userPrompt: `상호명: ${input.businessName}
+  return callAI<RecruitSuggestion>({ feature: "campaign_copy_recruit", userId: auth.userId,    userPrompt: `상호명: ${input.businessName}
 업종 설명: ${input.industryBrief}
 
 위 정보를 보고:
@@ -253,7 +255,7 @@ export async function suggestOfferingsAndPoints(input: {
   if (!auth.ok) return auth;
   if (!input.industryBrief?.trim()) return { ok: false, error: "업종 설명이 필요합니다." };
 
-  return callAI<OfferingSuggestion>({    userPrompt: `상호명: ${input.businessName}
+  return callAI<OfferingSuggestion>({ feature: "campaign_copy_offerings", userId: auth.userId,    userPrompt: `상호명: ${input.businessName}
 업종 설명: ${input.industryBrief}
 
 위 정보를 보고:
@@ -310,7 +312,7 @@ export async function suggestEverything(input: {
     return { ok: false, error: "업종 설명과 상호명이 필요합니다." };
   }
 
-  const r = await callAI<FullDraftSuggestion>({
+  const r = await callAI<FullDraftSuggestion>({ feature: "campaign_draft", userId: auth.userId,
     maxTokens: 16000,
     deep: true,
     userPrompt: `상호명: ${input.businessName}

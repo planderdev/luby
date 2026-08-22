@@ -1,4 +1,4 @@
-import { getAnthropic, AI_MODEL_REASONING, stopReasonError } from "./client";
+import { trackedCreate, AI_MODEL_REASONING, stopReasonError, type AiContext } from "./client";
 
 /**
  * AI 콘텐츠 사전 검수 — 제출된 콘텐츠(URL + 메모)를 캠페인 미션과 대조해
@@ -66,9 +66,8 @@ const REVIEW_SCHEMA = {
   additionalProperties: false,
 } as const;
 
-export async function reviewSubmissionContent(input: ContentReviewInput): Promise<Result> {
+export async function reviewSubmissionContent(input: ContentReviewInput, ctx?: Omit<AiContext, "feature">): Promise<Result> {
   try {
-    const client = getAnthropic();
 
     const missionLines = input.missions.length
       ? input.missions
@@ -102,7 +101,7 @@ ${missionLines}
 6. advertiser_actions는 광고주가 콘텐츠를 열어 직접 확인할 일 2~4개, 한 문장씩.
 7. summary는 2문장 이내 한국어.`;
 
-    const response = await client.messages.create({
+    const response = await trackedCreate({
       // 검수는 "확인 가능한 것만 판정" 같은 절제된 판단이 핵심 → Opus 5.
       // adaptive + low: 5세대에서 disabled 대신 권장되는 저비용 설정.
       model: AI_MODEL_REASONING,
@@ -113,7 +112,7 @@ ${missionLines}
         format: { type: "json_schema", schema: REVIEW_SCHEMA as Record<string, unknown> },
       },
       messages: [{ role: "user", content: userPrompt }],
-    });
+    }, { feature: "content_review", ...ctx });
 
     const stopErr = stopReasonError(response.stop_reason);
     if (stopErr) return { ok: false, error: stopErr };

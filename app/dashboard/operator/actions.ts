@@ -182,7 +182,7 @@ export async function precheckCampaignAction(
     pointAmount: c.point_amount,
     recruitCount: c.recruit_count,
     recruitDays: days,
-  });
+  }, { userId: guard.user?.id ?? null, campaignId });
   if (!r.ok) return r;
   const checkedAt = new Date().toISOString();
   await supabase.from("campaigns").update({ ai_precheck: r.result, ai_prechecked_at: checkedAt }).eq("id", campaignId);

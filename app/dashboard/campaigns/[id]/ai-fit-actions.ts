@@ -29,7 +29,7 @@ export async function aiFitApplicants(campaignId: string, force = false): Promis
   const ent = await getEntitlements(user.id);
   if (!ent.aiMatching) return { ok: false, error: "AI 적합도 평가는 BUSINESS 플랜부터 이용할 수 있어요." };
 
-  const result = await evaluatePendingApplicants(supabase, camp, force);
+  const result = await evaluatePendingApplicants(supabase, camp, force, { userId: user.id });
   if (!result.ok) return result;
 
   const admin = getAdminSupabase();

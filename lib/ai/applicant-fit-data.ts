@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 import { scoreApplicants, type FitApplicant, type ApplicantFit } from "./applicant-fit";
+import type { AiContext } from "./client";
 
 const MAX_BATCH = 30;
 
@@ -13,7 +14,8 @@ type Client = SupabaseClient<Database>;
 export async function evaluatePendingApplicants(
   supabase: Client,
   camp: { id: string; title: string; business_name: string; industry_brief: string | null; category_id: string | null; region_id: string | null; promotion_type_id: string | null; point_amount: number; recruit_count: number },
-  force = false
+  force = false,
+  ctx?: Omit<AiContext, "feature">
 ): Promise<{ ok: true; results: Map<string, ApplicantFit>; candidates: number } | { ok: false; error: string }> {
   const campaignId = camp.id;
   let q = supabase
@@ -84,7 +86,8 @@ export async function evaluatePendingApplicants(
       pointAmount: camp.point_amount,
       recruitCount: camp.recruit_count,
     },
-    applicants
+    applicants,
+    { ...ctx, campaignId }
   );
   if (!result.ok) return result;
   return { ok: true, results: result.results, candidates: apps.length };

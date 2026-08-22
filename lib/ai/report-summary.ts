@@ -1,4 +1,4 @@
-import { getAnthropic, AI_MODEL_FAST, stopReasonError } from "./client";
+import { trackedCreate, AI_MODEL_FAST, stopReasonError, type AiContext } from "./client";
 
 /**
  * 성과 리포트 AI 요약 — 클라이언트 보고서 상단에 들어갈 임원용 요약.
@@ -50,7 +50,7 @@ const SCHEMA = {
   additionalProperties: false,
 } as const;
 
-export async function summarizeCampaignReport(input: ReportSummaryInput): Promise<{ ok: true; result: ReportSummary } | { ok: false; error: string }> {
+export async function summarizeCampaignReport(input: ReportSummaryInput, ctx?: Omit<AiContext, "feature">): Promise<{ ok: true; result: ReportSummary } | { ok: false; error: string }> {
   const m = input.metrics;
   const pct = (a: number, b: number) => (b > 0 ? Math.round((a / b) * 100) : 0);
   const statusKo = input.status === "open" ? "모집중" : input.status === "closed" ? "모집 마감·진행중" : "완료";
@@ -84,14 +84,13 @@ export async function summarizeCampaignReport(input: ReportSummaryInput): Promis
 승인 콘텐츠 크리에이터: ${topCreators.join("; ") || "-"}`;
 
   try {
-    const client = getAnthropic();
-    const r = await client.messages.create({
+    const r = await trackedCreate({
       model: AI_MODEL_FAST,
       max_tokens: 2500,
       thinking: { type: "adaptive" },
       output_config: { effort: "low", format: { type: "json_schema", schema: SCHEMA as unknown as Record<string, unknown> } },
       messages: [{ role: "user", content: userPrompt }],
-    });
+    }, { feature: "report_summary", ...ctx });
     const stopErr = stopReasonError(r.stop_reason);
     if (stopErr) return { ok: false, error: stopErr };
     const text = r.content.find((b) => b.type === "text")?.text ?? "";

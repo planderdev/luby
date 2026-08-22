@@ -1,4 +1,4 @@
-import { getAnthropic, AI_MODEL_REASONING, stopReasonError } from "./client";
+import { trackedCreate, AI_MODEL_REASONING, stopReasonError, type AiContext } from "./client";
 
 /**
  * 운영자 검수 보조 — 캠페인 내용을 표시·광고 관점에서 사전 점검한다.
@@ -48,7 +48,7 @@ const SCHEMA = {
   additionalProperties: false,
 } as const;
 
-export async function precheckCampaign(input: PrecheckInput): Promise<{ ok: true; result: Precheck } | { ok: false; error: string }> {
+export async function precheckCampaign(input: PrecheckInput, ctx?: Omit<AiContext, "feature">): Promise<{ ok: true; result: Precheck } | { ok: false; error: string }> {
   const userPrompt = `당신은 체험단(인플루언서 마케팅) 플랫폼의 운영자를 돕는 검수 보조입니다. 아래 캠페인 텍스트만 근거로, 승인 전에 확인할 문제를 찾아 JSON으로 답하세요. 법률 자문이 아니라 검수자용 체크포인트입니다.
 
 점검 관점 (한국 표시·광고 관행 기준):
@@ -78,14 +78,13 @@ ${input.missions.map((m) => `- [${m.channel}] ${m.description}`).join("\n") || "
 ${input.offerings.map((o) => `- ${o.title}${o.description ? ` — ${o.description}` : ""}${o.estimatedValue ? ` (약 ${o.estimatedValue.toLocaleString()}원)` : ""}`).join("\n") || "- (없음)"}`;
 
   try {
-    const client = getAnthropic();
-    const r = await client.messages.create({
+    const r = await trackedCreate({
       model: AI_MODEL_REASONING,
       max_tokens: 5000,
       thinking: { type: "adaptive" },
       output_config: { effort: "low", format: { type: "json_schema", schema: SCHEMA as unknown as Record<string, unknown> } },
       messages: [{ role: "user", content: userPrompt }],
-    });
+    }, { feature: "campaign_precheck", ...ctx });
     const stopErr = stopReasonError(r.stop_reason);
     if (stopErr) return { ok: false, error: stopErr };
     const text = r.content.find((b) => b.type === "text")?.text ?? "";

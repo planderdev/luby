@@ -12,6 +12,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_usage: {
+        Row: {
+          cache_read_tokens: number
+          cache_write_tokens: number
+          campaign_id: string | null
+          cost_usd: number
+          created_at: string
+          duration_ms: number
+          error: string | null
+          feature: string
+          id: string
+          input_tokens: number
+          model: string
+          ok: boolean
+          output_tokens: number
+          user_id: string | null
+        }
+        Insert: {
+          cache_read_tokens?: number
+          cache_write_tokens?: number
+          campaign_id?: string | null
+          cost_usd?: number
+          created_at?: string
+          duration_ms?: number
+          error?: string | null
+          feature: string
+          id?: string
+          input_tokens?: number
+          model: string
+          ok?: boolean
+          output_tokens?: number
+          user_id?: string | null
+        }
+        Update: {
+          cache_read_tokens?: number
+          cache_write_tokens?: number
+          campaign_id?: string | null
+          cost_usd?: number
+          created_at?: string
+          duration_ms?: number
+          error?: string | null
+          feature?: string
+          id?: string
+          input_tokens?: number
+          model?: string
+          ok?: boolean
+          output_tokens?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       advertisers: {
         Row: {
           business_address: string | null
@@ -1220,6 +1271,10 @@ export type Database = {
       list_public_creator_ids: {
         Args: { p_limit?: number }
         Returns: { id: string; updated_at: string }[]
+      }
+      ai_usage_stats: {
+        Args: { p_days?: number }
+        Returns: Json
       }
       build_campaign_report: {
         Args: { p_campaign_id: string }

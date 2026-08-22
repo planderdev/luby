@@ -10,6 +10,7 @@ import {
   Coins,
   Banknote,
   MessageSquare,
+  Sparkles,
   UserSearch,
   Mail,
   BarChart3,
@@ -59,6 +60,7 @@ export const dashboardNav: Record<UserRole, NavItem[]> = {
     { href: "/dashboard/operator/withdrawals", label: "정산 관리", short: "정산", icon: Banknote, primary: true },
     { href: "/dashboard/operator/stats", label: "통계", icon: BarChart3, primary: true },
     { href: "/dashboard/operator/audit", label: "운영 기록", short: "기록", icon: ScrollText },
+    { href: "/dashboard/operator/ai-usage", label: "AI 사용량", short: "AI", icon: Sparkles },
   ],
 };
 

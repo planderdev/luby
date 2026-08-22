@@ -1,4 +1,4 @@
-import { getAnthropic, AI_MODEL_REASONING, stopReasonError } from "./client";
+import { trackedCreate, AI_MODEL_REASONING, stopReasonError, type AiContext } from "./client";
 
 /**
  * 응모자 AI 적합도 평가 — 캠페인 조건 대비 응모 크리에이터를 0~100점으로 평가하고 근거를 붙인다.
@@ -59,7 +59,7 @@ const SCHEMA = {
   additionalProperties: false,
 } as const;
 
-export async function scoreApplicants(campaign: FitCampaign, applicants: FitApplicant[]): Promise<{ ok: true; results: Map<string, ApplicantFit> } | { ok: false; error: string }> {
+export async function scoreApplicants(campaign: FitCampaign, applicants: FitApplicant[], ctx?: Omit<AiContext, "feature">): Promise<{ ok: true; results: Map<string, ApplicantFit> } | { ok: false; error: string }> {
   if (applicants.length === 0) return { ok: true, results: new Map() };
 
   const userPrompt = `당신은 인플루언서 체험단 캠페인의 선정을 돕는 어시스턴트입니다. 아래 캠페인 조건과 응모자 정보를 대조해 응모자마다 적합도를 평가하세요. 주어진 텍스트만 근거로 하고, 콘텐츠 품질·성실성처럼 확인할 수 없는 것은 추정하지 마세요.
@@ -100,14 +100,13 @@ ${applicants
   .join("\n\n")}`;
 
   try {
-    const client = getAnthropic();
-    const r = await client.messages.create({
+    const r = await trackedCreate({
       model: AI_MODEL_REASONING,
       max_tokens: 8000,
       thinking: { type: "adaptive" },
       output_config: { effort: "low", format: { type: "json_schema", schema: SCHEMA as unknown as Record<string, unknown> } },
       messages: [{ role: "user", content: userPrompt }],
-    });
+    }, { feature: "applicant_fit", ...ctx });
     const stopErr = stopReasonError(r.stop_reason);
     if (stopErr) return { ok: false, error: stopErr };
     const text = r.content.find((b) => b.type === "text")?.text ?? "";

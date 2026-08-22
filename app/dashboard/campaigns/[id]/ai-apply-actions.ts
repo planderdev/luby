@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { getAnthropic, AI_MODEL_FAST, stopReasonError } from "@/lib/ai/client";
+import { trackedCreate, AI_MODEL_FAST, stopReasonError } from "@/lib/ai/client";
 
 /**
  * 크리에이터 응모 메시지 AI 초안 — 캠페인 미션·키워드 + 내 프로필(소개·채널·분야)만으로
@@ -70,14 +70,13 @@ ${missionLines.join("\n") || "- (미션 미기재)"}
 전문 분야: ${myCats.join(", ") || "-"}`;
 
   try {
-    const client = getAnthropic();
-    const r = await client.messages.create({
+    const r = await trackedCreate({
       model: AI_MODEL_FAST,
       max_tokens: 1500,
       thinking: { type: "adaptive" },
       output_config: { effort: "low" },
       messages: [{ role: "user", content: userPrompt }],
-    });
+    }, { feature: "apply_message", userId: user.id, campaignId });
     const stopErr = stopReasonError(r.stop_reason);
     if (stopErr) return { ok: false, error: stopErr };
     const text = (r.content.find((b) => b.type === "text")?.text ?? "").trim().replace(/^["“]|["”]$/g, "");
