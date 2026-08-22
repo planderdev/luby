@@ -11,13 +11,13 @@ export const DEFAULT_EMAIL_PREFS: EmailPrefs = { transactional: true, reminders:
 
 export const EMAIL_CATEGORY_LABEL: Record<EmailCategory, { label: string; desc: string }> = {
   transactional: { label: "진행 알림", desc: "캠페인 승인·응모·선정·콘텐츠 검수·정산 등 내 활동의 진행 상황" },
-  reminders: { label: "리마인더 · 추천", desc: "첫 캠페인 만들기, 임시저장 이어하기, 마감 임박 캠페인, 프로필 완성 안내" },
+  reminders: { label: "리마인더 · 추천", desc: "첫 캠페인 만들기, 임시저장 이어하기, 내 분야 새 캠페인·마감 임박 캠페인, 프로필 완성 안내" },
   digest: { label: "다이제스트", desc: "매주 월요일 — 광고주: 지난주 캠페인 성과 · 크리에이터: 내 분야 새 캠페인·응모 현황·적립 · 운영자: 아침 처리 대기 업무" },
 };
 
 const REMINDER_TYPES = new Set([
   "nudge_first_campaign", "nudge_draft_campaign", "nudge_select_applicants", "nudge_submit_content",
-  "nudge_review_submission", "nudge_complete_profile", "closing_soon_for_you", "welcome", "subscription_expiring",
+  "nudge_review_submission", "nudge_complete_profile", "closing_soon_for_you", "new_campaign_for_you", "welcome", "subscription_expiring",
 ]);
 const DIGEST_TYPES = new Set(["operator_daily_digest", "advertiser_weekly_digest", "creator_weekly_digest", "operator_weekly_report"]);
 
