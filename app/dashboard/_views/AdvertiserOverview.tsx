@@ -177,7 +177,7 @@ export function AdvertiserOverview({
             )}
           </div>
           {(() => {
-            const pct = (n: number, d: number) => (d > 0 ? `${Math.round((n / d) * 100)}%` : null);
+            const pct = (n: number, d: number) => (d > 0 ? `${Math.min(100, Math.round((n / d) * 100))}%` : null);
             const steps = [
               { l: "공개 페이지 방문", v: funnel.uniques, s: funnel.views > 0 ? `조회 ${funnel.views.toLocaleString()}회` : "아직 없음", r: null as string | null },
               { l: "응모", v: funnel.applied, s: "취소 제외", r: pct(funnel.applied, funnel.uniques) },

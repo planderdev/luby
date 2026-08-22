@@ -91,7 +91,7 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
   const sourceRows = viewSourceRows(m.views_by_source);
   const funnel = [
     ...(uniques > 0 ? [{ label: "공개 페이지 방문", value: uniques, rate: null as number | null }] : []),
-    { label: "응모", value: m.applied, rate: uniques > 0 ? pct(m.applied, uniques) : (null as number | null) },
+    { label: "응모", value: m.applied, rate: uniques > 0 ? Math.min(100, pct(m.applied, uniques)) : (null as number | null) },
     { label: "선정", value: m.selected, rate: pct(m.selected, m.applied) },
     { label: "콘텐츠 제출", value: m.submitted, rate: pct(m.submitted, m.selected) },
     { label: "승인 · 발행 확정", value: m.approved, rate: pct(m.approved, m.submitted) },

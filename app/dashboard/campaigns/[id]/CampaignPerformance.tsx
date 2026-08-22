@@ -80,7 +80,7 @@ export async function CampaignPerformance({
   const pct = (num: number, den: number) => (den > 0 ? Math.round((num / den) * 100) : 0);
   const funnel = [
     ...(uniques > 0 ? [{ label: "공개 페이지 방문", value: uniques, rate: null as number | null }] : []),
-    { label: "응모", value: applied, rate: uniques > 0 ? pct(applied, uniques) : (null as number | null) },
+    { label: "응모", value: applied, rate: uniques > 0 ? Math.min(100, pct(applied, uniques)) : (null as number | null) },
     { label: "선정", value: selected, rate: pct(selected, applied) },
     { label: "콘텐츠 제출", value: submitted, rate: pct(submitted, selected) },
     { label: "승인·지급", value: approved, rate: pct(approved, submitted) },
