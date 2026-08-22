@@ -1,3 +1,4 @@
+import { viewSourceRows } from "@/lib/view-sources";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -45,6 +46,9 @@ type Report = {
     total_reach: number;
     points_paid: number;
     reach_by_channel: { channel: string; followers: number }[];
+    page_views?: number;
+    page_uniques?: number;
+    views_by_source?: Record<string, number>;
   };
   contents: {
     id: string;
@@ -83,8 +87,11 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
 
   const { campaign: c, metrics: m, contents, channels } = report;
   const fillRate = c.recruit_count > 0 ? Math.min(100, Math.round((m.selected / c.recruit_count) * 100)) : 0;
+  const uniques = m.page_uniques ?? 0;
+  const sourceRows = viewSourceRows(m.views_by_source);
   const funnel = [
-    { label: "응모", value: m.applied, rate: null as number | null },
+    ...(uniques > 0 ? [{ label: "공개 페이지 방문", value: uniques, rate: null as number | null }] : []),
+    { label: "응모", value: m.applied, rate: uniques > 0 ? pct(m.applied, uniques) : (null as number | null) },
     { label: "선정", value: m.selected, rate: pct(m.selected, m.applied) },
     { label: "콘텐츠 제출", value: m.submitted, rate: pct(m.submitted, m.selected) },
     { label: "승인 · 발행 확정", value: m.approved, rate: pct(m.approved, m.submitted) },
@@ -192,6 +199,12 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
                 </li>
               ))}
             </ul>
+            {sourceRows.length > 0 && (
+              <div className="mt-4 border-t border-border pt-3 text-xs text-muted-foreground">
+                <span className="font-medium text-foreground">유입 경로</span> · 총 {m.page_views?.toLocaleString()}회 조회 ·{" "}
+                {sourceRows.map((r) => `${r.label} ${r.views.toLocaleString()}`).join(" · ")}
+              </div>
+            )}
           </div>
           <div className="rounded-3xl glass-card p-6 print:border print:border-border print:shadow-none">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">채널별 도달</h2>

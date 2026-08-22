@@ -14,7 +14,7 @@ export function ShareLinkButton({ campaignId, refId = null, buttonLabel = "ê³µìœ
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   async function copy(prefix: string) {
-    const url = `${window.location.origin}${prefix}/c/${campaignId}${refId ? `?ref=${refId}` : ""}`;
+    const url = `${window.location.origin}${prefix}/c/${campaignId}${refId ? `?ref=${refId}` : "?src=link"}`;
     try {
       await navigator.clipboard.writeText(url);
     } catch {

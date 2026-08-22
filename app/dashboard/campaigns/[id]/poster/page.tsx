@@ -37,7 +37,7 @@ export default async function PosterPage({ params, searchParams }: { params: Pro
   const locale = lang === "en" ? "en" : lang === "zh" ? "zh" : "ko";
   const prefix = locale === "ko" ? "" : `/${locale}`;
   const url = `${getSiteUrl()}${prefix}/c/${c.id}`;
-  const qr = await QRCode.toString(url, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: "#151217", light: "#ffffff" } });
+  const qr = await QRCode.toString(`${url}?src=qr`, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: "#151217", light: "#ffffff" } });
   const channelNames = (channels ?? []).map((x) => (x.channel_types as unknown as { name: string } | null)?.name).filter(Boolean) as string[];
 
   return (

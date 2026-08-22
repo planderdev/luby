@@ -1371,6 +1371,14 @@ export type Database = {
         Args: { p_campaign_id: string }
         Returns: Json
       }
+      campaign_view_stats: {
+        Args: { p_campaign: string }
+        Returns: Json
+      }
+      record_campaign_view: {
+        Args: { p_campaign: string; p_source: string; p_lang: string; p_hash: string }
+        Returns: boolean
+      }
       get_campaign_report: {
         Args: { p_token: string }
         Returns: Json

@@ -2,6 +2,7 @@ import { BarChart3, Users, Radio, Coins, Timer } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ReportShareButton } from "./ReportShareButton";
 import type { ReportSummary } from "@/lib/ai/report-summary";
+import { viewSourceRows } from "@/lib/view-sources";
 
 /**
  * 광고주용 캠페인 성과 요약 — 응모→선정→제출→승인 퍼널, 모집 진행률,
@@ -42,7 +43,7 @@ export async function CampaignPerformance({
   const appIds = selectedRows.map((a) => a.id);
   const influencerIds = [...new Set(selectedRows.map((a) => a.influencer_id))];
 
-  const [{ data: subs }, { data: channels }, { data: channelTypes }] = await Promise.all([
+  const [{ data: subs }, { data: channels }, { data: channelTypes }, { data: viewsRaw }] = await Promise.all([
     appIds.length
       ? supabase.from("submissions").select("application_id, status").in("application_id", appIds)
       : Promise.resolve({ data: [] as { application_id: string; status: string }[] }),
@@ -53,7 +54,11 @@ export async function CampaignPerformance({
           .in("influencer_id", influencerIds)
       : Promise.resolve({ data: [] as { influencer_id: string; channel_type_id: string; followers: number }[] }),
     supabase.from("channel_types").select("id, name").eq("active", true).order("sort_order"),
+    supabase.rpc("campaign_view_stats", { p_campaign: campaignId }),
   ]);
+  const views = (viewsRaw as { total: number; uniques: number; last7: number; by_source: Record<string, { views: number; uniques: number }> } | null) ?? null;
+  const uniques = views?.uniques ?? 0;
+  const sourceRows = viewSourceRows(views?.by_source);
   const submitted = (subs ?? []).length; // 제출물 행이 있으면 제출한 것 (재제출 대기 포함)
   const approved = (subs ?? []).filter((s) => s.status === "approved").length;
 
@@ -74,7 +79,8 @@ export async function CampaignPerformance({
 
   const pct = (num: number, den: number) => (den > 0 ? Math.round((num / den) * 100) : 0);
   const funnel = [
-    { label: "응모", value: applied, rate: null as number | null },
+    ...(uniques > 0 ? [{ label: "공개 페이지 방문", value: uniques, rate: null as number | null }] : []),
+    { label: "응모", value: applied, rate: uniques > 0 ? pct(applied, uniques) : (null as number | null) },
     { label: "선정", value: selected, rate: pct(selected, applied) },
     { label: "콘텐츠 제출", value: submitted, rate: pct(submitted, selected) },
     { label: "승인·지급", value: approved, rate: pct(approved, submitted) },
@@ -192,6 +198,20 @@ export async function CampaignPerformance({
               아직 응모자가 없어요. AI 매칭으로 추천 크리에이터를 찾아 초대해보세요.
             </p>
           )}
+          {views && views.total > 0 ? (
+            <div className="mt-3 rounded-xl bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">유입 경로</span> · 조회 {views.total.toLocaleString()}회 (최근 7일 {views.last7.toLocaleString()})
+              <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+                {sourceRows.map((r) => (
+                  <span key={r.key}>{r.label} <b className="text-foreground">{r.views.toLocaleString()}</b></span>
+                ))}
+              </div>
+            </div>
+          ) : ["open", "closed", "completed"].includes(status) ? (
+            <p className="mt-3 text-xs text-muted-foreground">
+              공유 링크·QR 포스터로 들어온 조회가 여기에 유입 경로별로 집계돼요.
+            </p>
+          ) : null}
         </div>
 
         {/* 채널별 도달 */}

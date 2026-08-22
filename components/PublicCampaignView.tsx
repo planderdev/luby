@@ -9,6 +9,7 @@ import { getSiteUrl, SITE } from "@/lib/seo/site";
 import { publicCampaignDict, localePrefix } from "@/lib/i18n/public-campaign";
 import type { Locale } from "@/lib/i18n/config";
 import { PublicShareButton } from "@/components/PublicShareButton";
+import { ViewBeacon } from "@/components/ViewBeacon";
 
 // 공개 캠페인 페이지 — 로그인 없이 볼 수 있는 공유·SEO용. 데이터는 get_public_campaign() (민감정보 제외).
 
@@ -110,6 +111,7 @@ export async function PublicCampaignView({ id, locale, refId = null }: { id: str
   return (
     <main lang={locale === "zh" ? "zh-CN" : locale} className="min-h-dvh bg-canvas">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <ViewBeacon campaignId={c.id} lang={locale} skip={!!profile && (profile.role === "operator" || profile.id === c.advertiser?.id)} />
       {/* Top bar */}
       <div className="border-b border-border">
         <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-5">

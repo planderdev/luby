@@ -1,3 +1,4 @@
+import { viewSourceRows } from "@/lib/view-sources";
 import { trackedCreate, AI_MODEL_FAST, stopReasonError, type AiContext } from "./client";
 
 /**
@@ -27,6 +28,9 @@ export type ReportSummaryInput = {
     total_reach: number;
     points_paid: number;
     reach_by_channel: { channel: string; followers: number }[];
+    page_views?: number;
+    page_uniques?: number;
+    views_by_source?: Record<string, number>;
   };
   contents: { creator_name: string | null; status: string; channels: { channel: string; followers: number | null }[] | null }[];
 };
@@ -81,6 +85,7 @@ export async function summarizeCampaignReport(input: ReportSummaryInput, ctx?: O
 콘텐츠 제출 ${m.submitted}건 · 승인 ${m.approved}건 (승인율 ${pct(m.approved, m.submitted)}%)
 예상 도달 ${m.total_reach.toLocaleString()} (채널별: ${m.reach_by_channel.map((r) => `${r.channel} ${r.followers.toLocaleString()}`).join(", ") || "-"})
 지급 포인트 ${m.points_paid.toLocaleString()}P
+공개 페이지 조회 ${m.page_views ?? 0}회 · 순 방문 ${m.page_uniques ?? 0}명${(m.page_uniques ?? 0) > 0 ? ` (방문→응모 전환 ${pct(m.applied, m.page_uniques ?? 0)}%)` : ""} · 유입: ${viewSourceRows(m.views_by_source).map((r) => `${r.label} ${r.views}`).join(", ") || "기록 없음"}
 승인 콘텐츠 크리에이터: ${topCreators.join("; ") || "-"}`;
 
   try {

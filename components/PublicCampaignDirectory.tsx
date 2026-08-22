@@ -149,7 +149,7 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
               const urgent = !c.always_open && daysLeft <= 3;
               return (
                 <li key={c.id}>
-                  <Link href={`${pfx}/c/${c.id}`} className="group flex h-full flex-col overflow-hidden rounded-3xl glass-card transition-transform hover:-translate-y-0.5">
+                  <Link href={`${pfx}/c/${c.id}?src=dir`} className="group flex h-full flex-col overflow-hidden rounded-3xl glass-card transition-transform hover:-translate-y-0.5">
                     <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
                       <Image
                         src={c.thumbnail_url ?? `/api/og/campaign/${c.id}`}
