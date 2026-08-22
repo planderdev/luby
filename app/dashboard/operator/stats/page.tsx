@@ -55,6 +55,9 @@ export default async function OperatorStatsPage() {
   const paidOut = withdrawals.filter((w) => w.status === "paid").reduce((s, w) => s + (w.amount ?? 0), 0);
   const pendingOut = withdrawals.filter((w) => w.status === "requested").reduce((s, w) => s + (w.amount ?? 0), 0);
   const { count: referredTotal } = await supabase.from("profiles").select("id", { count: "exact", head: true }).not("referred_by", "is", null);
+  const { data: featRaw } = await supabase.rpc("operator_feature_stats");
+  const feat = (featRaw ?? null) as null | Record<string, number | string>;
+  const n = (k: string) => Number(feat?.[k] ?? 0);
 
   const allProfiles = profilesRes.data ?? [];
   const advertisers = allProfiles.filter((p) => p.role === "advertiser");
@@ -214,6 +217,32 @@ export default async function OperatorStatsPage() {
           weeks={weekly.map((w) => w.week_start)}
         />
       </div>
+
+      {/* 신기능 채택 지표 */}
+      {feat && (
+        <section className="mt-8 rounded-3xl glass-card p-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">기능 채택 · AI</h2>
+            <Link href="/dashboard/operator/ai-usage" className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">AI 사용량 상세 →</Link>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+            {[
+              { l: "공개 프로필 옵트인", v: `${n("public_profiles")}명`, s: `승인 크리에이터 ${n("approved_creators")}명 중 (데모 제외) · 디렉터리 판단 근거` },
+              { l: "리포트 공유 켠 캠페인", v: `${n("report_shares")}개`, s: "클라이언트 보고 링크 활성" },
+              { l: "AI 요약 생성", v: `${n("ai_summaries")}개`, s: `완료 캠페인 ${n("completed_campaigns")}개 (완료 시 자동)` },
+              { l: "AI 적합도 평가", v: `${n("fit_scored_applicants")}명`, s: `${n("fit_scored_campaigns")}개 캠페인` },
+              { l: "주간 다이제스트 (7일)", v: `${n("digests_7d")}통`, s: `수신 거부 ${n("digest_optouts")}명` },
+              { l: "AI 호출 (7일)", v: `${n("ai_calls_7d")}회`, s: `추정 $${Number(feat.ai_cost_7d ?? 0).toFixed(2)} · 30일 $${Number(feat.ai_cost_30d ?? 0).toFixed(2)}` },
+            ].map((k) => (
+              <div key={k.l} className="rounded-2xl bg-muted/50 px-4 py-3">
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{k.l}</div>
+                <div className="display mt-1 text-xl font-semibold tabular-nums">{k.v}</div>
+                <div className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{k.s}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Status breakdowns */}
       <div className="mt-8 grid gap-4 lg:grid-cols-2">

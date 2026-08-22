@@ -1272,6 +1272,14 @@ export type Database = {
         Args: { p_limit?: number }
         Returns: { id: string; updated_at: string }[]
       }
+      operator_feature_stats: {
+        Args: Record<string, never>
+        Returns: Json
+      }
+      ai_monthly_usage: {
+        Args: { p_user: string }
+        Returns: number | null
+      }
       ai_usage_stats: {
         Args: { p_days?: number }
         Returns: Json
