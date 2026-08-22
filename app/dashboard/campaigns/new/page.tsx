@@ -113,6 +113,7 @@ export default async function NewCampaignPage({
   return (
     <CampaignBuilder
       initial={initial}
+      fromId={initial && from && /^[0-9a-f-]{36}$/.test(from) ? from : null}
       regions={catalog.regions}
       categories={catalog.categories}
       channels={catalog.channels}

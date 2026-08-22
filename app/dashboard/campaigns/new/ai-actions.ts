@@ -292,6 +292,8 @@ export async function suggestOfferingsAndPoints(input: {
 // ---------- Super action: AI에게 전부 맡기기 ---------------------------------
 
 export type FullDraftSuggestion = {
+  /** 지난 캠페인 성과를 반영해 바꾼 점 (복제 리프레시 시에만 채워짐) */
+  changes: string[];
   title: string;
   promotion_type_id: string;
   category_id: string;
@@ -306,6 +308,8 @@ export type FullDraftSuggestion = {
 export async function suggestEverything(input: {
   industryBrief: string;
   businessName: string;
+  /** 복제 원본 캠페인 id — 지난 성과를 반영해 조정한 초안을 만든다 */
+  fromCampaignId?: string | null;
 }): Promise<AIResult<FullDraftSuggestion>> {
   const auth = await ensureAuth();
   if (!auth.ok) return auth;
@@ -313,11 +317,38 @@ export async function suggestEverything(input: {
     return { ok: false, error: "업종 설명과 상호명이 필요합니다." };
   }
 
-  const r = await callAI<FullDraftSuggestion>({ feature: "campaign_draft", userId: auth.userId,
+  // 복제 리프레시: 원본 캠페인(본인 소유) 집계 + 미션·포인트를 컨텍스트로
+  let history = "";
+  if (input.fromCampaignId && /^[0-9a-f-]{36}$/.test(input.fromCampaignId)) {
+    const supabase = await createClient();
+    const { data: own } = await supabase.from("campaigns").select("id, title, point_amount, recruit_count, status").eq("id", input.fromCampaignId).maybeSingle();
+    if (own && ["open", "closed", "completed"].includes(own.status)) {
+      const { getAdminSupabase } = await import("@/lib/supabase/admin");
+      const { data: rep } = await getAdminSupabase().rpc("build_campaign_report", { p_campaign_id: own.id });
+      const r = rep as null | { metrics: { applied: number; selected: number; submitted: number; approved: number; total_reach: number; reach_by_channel: { channel: string; followers: number }[] }; channels: string[]; ai_summary: { summary?: string; next_steps?: string[] } | null };
+      const { data: missions } = await supabase.from("campaign_missions").select("description").eq("campaign_id", own.id);
+      if (r) {
+        const m = r.metrics;
+        const pct = (a: number, b: number) => (b > 0 ? Math.round((a / b) * 100) : 0);
+        history = `
+
+[지난 캠페인 성과 — 이 결과를 반영해 조정하세요]
+제목: ${own.title} · 모집 ${own.recruit_count}명 · 포인트 ${own.point_amount.toLocaleString()}P · 채널: ${r.channels.join(", ") || "-"}
+응모 ${m.applied}명(경쟁률 ${own.recruit_count > 0 ? (m.applied / own.recruit_count).toFixed(1) : "0"}:1) · 선정 ${m.selected} · 제출 ${m.submitted} · 승인 ${m.approved}(승인율 ${pct(m.approved, m.submitted)}%) · 예상 도달 ${m.total_reach.toLocaleString()} (${m.reach_by_channel.map((x) => `${x.channel} ${x.followers.toLocaleString()}`).join(", ") || "-"})
+지난 미션: ${(missions ?? []).map((x) => x.description).join(" / ").slice(0, 600) || "-"}
+${r.ai_summary?.summary ? `AI 리포트 요약: ${r.ai_summary.summary}` : ""}
+${r.ai_summary?.next_steps?.length ? `제안됐던 다음 단계: ${r.ai_summary.next_steps.join(" / ")}` : ""}
+
+조정 규칙: 경쟁률이 1:1 미만이면 포인트·제공 내역을 올리거나 채널을 넓히고 모집 인원은 줄인다. 경쟁률이 3:1 이상이면 인원을 늘리거나 포인트를 소폭 낮춘다. 승인율이 낮으면 미션을 더 구체적·간결하게 쓴다. 특정 채널 도달이 0이면 그 채널은 빼거나 대체한다. changes 에 바꾼 점과 근거를 2~4개, 각 한 문장(수치 인용)으로 적는다.`;
+      }
+    }
+  }
+
+  const r = await callAI<FullDraftSuggestion>({ feature: history ? "campaign_refresh" : "campaign_draft", userId: auth.userId,
     maxTokens: 16000,
     deep: true,
     userPrompt: `상호명: ${input.businessName}
-업종 설명: ${input.industryBrief}
+업종 설명: ${input.industryBrief}${history}
 
 위 정보만으로 캠페인을 처음부터 끝까지 자동으로 채워주세요.
 
@@ -331,12 +362,14 @@ export async function suggestEverything(input: {
 - keywords: 5~8개 핵심 키워드
 - offerings: 제공 내역 1~3개 (각 title + description + estimated_value KRW)
 - point_amount: 활동 포인트 (KRW)
+- changes: 지난 캠페인 성과가 주어진 경우에만 바꾼 점과 근거(각 한 문장), 없으면 빈 배열
 
 광고주가 손대지 않아도 바로 발행 가능할 정도로 디테일을 채워주세요.`,
     schema: {
       type: "object",
       additionalProperties: false,
       properties: {
+        changes: { type: "array", items: { type: "string" } },
         title: { type: "string" },
         promotion_type_id: { type: "string" },
         category_id: { type: "string" },
@@ -377,6 +410,7 @@ export async function suggestEverything(input: {
         point_amount: { type: "integer" },
       },
       required: [
+        "changes",
         "title",
         "promotion_type_id",
         "category_id",

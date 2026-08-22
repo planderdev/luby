@@ -14,16 +14,21 @@ export function Step1Basic({
   regions,
   update,
   applySuper,
+  fromId = null,
 }: {
   draft: CampaignDraft;
   regions: Region[];
   update: <K extends keyof CampaignDraft>(key: K, value: CampaignDraft[K]) => void;
   /** Called when "AI에게 전부 맡기기" returns; lets parent jump to Step 5 */
   applySuper?: (patch: Partial<CampaignDraft>) => void;
+  /** 복제 원본 캠페인 id — 지난 성과 반영 리프레시 버튼 노출 */
+  fromId?: string | null;
 }) {
   const [titleOptions, setTitleOptions] = useState<string[]>([]);
   const [titlePending, startTitle] = useTransition();
   const [superPending, startSuper] = useTransition();
+  const [refreshMode, setRefreshMode] = useState(false);
+  const [changes, setChanges] = useState<string[]>([]);
   const [aiError, setAiError] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState(0);
 
@@ -66,14 +71,17 @@ export function Step1Basic({
     });
   }
 
-  function runSuper() {
+  function runSuper(withHistory = false) {
     setAiError(null);
+    setChanges([]);
+    setRefreshMode(withHistory);
     startSuper(async () => {
       let r: Awaited<ReturnType<typeof suggestEverything>>;
       try {
         r = await suggestEverything({
           industryBrief: draft.industry_brief,
           businessName: draft.business_name,
+          fromCampaignId: withHistory ? fromId : null,
         });
       } catch (e) {
         setAiError(e instanceof Error ? e.message : "AI 호출 중 오류가 발생했습니다.");
@@ -101,6 +109,7 @@ export function Step1Basic({
         })),
         point_amount: d.point_amount,
       };
+      setChanges(d.changes ?? []);
       applySuper?.(patch);
     });
   }
@@ -129,7 +138,7 @@ export function Step1Basic({
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                onClick={runSuper}
+                onClick={() => runSuper(false)}
                 disabled={!aiReady || superPending}
                 className={`inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium transition-transform hover:scale-[1.02] disabled:cursor-not-allowed ${
                   superPending
@@ -144,6 +153,17 @@ export function Step1Basic({
                 )}
                 {superPending ? `AI 작성 중… ${elapsed}초` : "✨ AI에게 전부 맡기기"}
               </button>
+              {fromId && (
+                <button
+                  type="button"
+                  onClick={() => runSuper(true)}
+                  disabled={!aiReady || superPending}
+                  className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent-soft px-5 py-2 text-sm font-medium text-accent-ink hover:bg-accent-soft/70 disabled:cursor-not-allowed disabled:opacity-50"
+                  title="복제 원본 캠페인의 응모·선정·승인·도달 결과를 반영해 미션·채널·포인트·인원을 조정합니다"
+                >
+                  <Wand2 className="size-4" /> 지난 성과 반영해 다시 제안
+                </button>
+              )}
               {!superPending && (
                 <span className="text-xs text-muted-foreground">
                   {aiReady
@@ -152,6 +172,17 @@ export function Step1Basic({
                 </span>
               )}
             </div>
+
+            {!superPending && changes.length > 0 && (
+              <div className="mt-4 rounded-2xl border border-accent/30 bg-background p-4">
+                <div className="text-xs font-semibold uppercase tracking-wider text-accent-ink">{refreshMode ? "지난 성과를 반영해 바꾼 점" : "AI 메모"}</div>
+                <ul className="mt-2 space-y-1 text-sm">
+                  {changes.map((c, i) => (
+                    <li key={i} className="flex gap-2"><span className="mt-[7px] size-1.5 shrink-0 rounded-full bg-accent" />{c}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {superPending && (
               <div

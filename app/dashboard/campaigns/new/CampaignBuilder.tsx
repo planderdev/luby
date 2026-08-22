@@ -63,6 +63,7 @@ export function CampaignBuilder({
   editId = null,
   onBehalfOf = null,
   reviewNote = null,
+  fromId = null,
 }: {
   regions: Region[];
   categories: Category[];
@@ -76,6 +77,8 @@ export function CampaignBuilder({
   onBehalfOf?: { id: string; label: string } | null;
   /** 반려된 캠페인 수정 시 운영자 수정 요청 사항 (빌더 상단에 고정 표시) */
   reviewNote?: string | null;
+  /** 복제 원본 캠페인 id (성과 반영 리프레시용) */
+  fromId?: string | null;
 }) {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -215,6 +218,7 @@ export function CampaignBuilder({
             regions={regions}
             update={update}
             applySuper={applySuperAndJump}
+            fromId={fromId}
           />
         )}
         {step === 2 && (
