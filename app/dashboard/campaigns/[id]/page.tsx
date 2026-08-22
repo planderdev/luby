@@ -6,6 +6,7 @@ import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { getEntitlements } from "@/lib/plans/entitlements";
 import { ApplyButton } from "./ApplyButton";
+import { FitHint } from "./FitHint";
 import { ApplicantList } from "./ApplicantList";
 import { AIMatches } from "./AIMatches";
 import { CampaignPerformance } from "./CampaignPerformance";
@@ -318,6 +319,9 @@ export default async function CampaignDetailPage({
 
         {/* Right sidebar */}
         <div className="space-y-4">
+          {isInfluencer && profile.approved && ["open", "closed"].includes(campaign.status) && (
+            <FitHint campaignId={id} applicationStatus={myApplicationStatus} />
+          )}
           <Section title="모집 기간">
             <div className="flex items-center gap-2 text-sm">
               <Calendar className="size-4 text-muted-foreground" />
