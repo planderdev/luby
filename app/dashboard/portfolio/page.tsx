@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff, Link2 } from "lucide-react";
+import { Eye, EyeOff, Link2, QrCode } from "lucide-react";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { PublicCreatorView } from "@/components/PublicCreatorView";
@@ -37,7 +37,12 @@ export default async function PortfolioPage() {
             </span>
           )}
         </div>
-        {!profile.approved && <span className="text-xs text-warning">승인 전에는 공개 프로필을 켤 수 없어요</span>}
+        <div className="flex items-center gap-3">
+          {!profile.approved && <span className="text-xs text-warning">승인 전에는 공개 프로필을 켤 수 없어요</span>}
+          <Link href="/dashboard/portfolio/card" className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3.5 py-1.5 text-xs font-medium hover:bg-muted">
+            <QrCode className="size-3.5" /> QR 명함 A4 인쇄
+          </Link>
+        </div>
       </div>
       <div className="-mx-5 overflow-hidden rounded-3xl border border-border md:-mx-8 lg:mx-0 print:m-0 print:rounded-none print:border-0">
         <PublicCreatorView id={profile.id} ownerPreview />
