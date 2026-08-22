@@ -4,22 +4,27 @@ import { useState, useRef, useCallback, type DragEvent } from "react";
 import Image from "next/image";
 import { Upload, X, Loader2, ImageIcon, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { prepareImage, RESIZE_PRESET, fmtBytes } from "@/lib/image-resize";
 
 type Bucket = "campaign-thumbnails" | "profile-avatars";
 
 const BUCKET_CONFIG: Record<
   Bucket,
-  { maxSize: number; mimeTypes: string[]; label: string }
+  { maxSize: number; rawMaxSize: number; mimeTypes: string[]; label: string }
 > = {
+  // maxSize 는 원본 기준 — 정적 이미지는 업로드 전에 브라우저에서 리사이즈·WebP 압축되므로 스마트폰 원본도 허용.
+  // GIF 는 압축하지 않으므로 버킷 한도(5MB)를 그대로 적용.
   "campaign-thumbnails": {
-    maxSize: 5 * 1024 * 1024,
+    maxSize: 15 * 1024 * 1024,
+    rawMaxSize: 5 * 1024 * 1024,
     mimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
-    label: "JPG, PNG, WEBP, GIF · 최대 5MB",
+    label: "JPG, PNG, WEBP, GIF · 최대 15MB (자동 최적화)",
   },
   "profile-avatars": {
-    maxSize: 2 * 1024 * 1024,
+    maxSize: 10 * 1024 * 1024,
+    rawMaxSize: 2 * 1024 * 1024,
     mimeTypes: ["image/jpeg", "image/png", "image/webp"],
-    label: "JPG, PNG, WEBP · 최대 2MB",
+    label: "JPG, PNG, WEBP · 최대 10MB (자동 최적화)",
   },
 };
 
@@ -42,6 +47,7 @@ export function ImageUpload({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const cfg = BUCKET_CONFIG[bucket];
 
@@ -59,6 +65,14 @@ export function ImageUpload({
       }
 
       setUploading(true);
+      setNote(null);
+      // 업로드 전 리사이즈·압축 (GIF/SVG 는 원본 유지)
+      const prepared = await prepareImage(file, RESIZE_PRESET[bucket]);
+      if (!prepared.optimized && prepared.blob.size > cfg.rawMaxSize) {
+        setError(`이 형식은 압축되지 않아 최대 ${(cfg.rawMaxSize / 1024 / 1024).toFixed(0)}MB 까지만 올릴 수 있어요.`);
+        setUploading(false);
+        return;
+      }
       const supabase = createClient();
 
       const {
@@ -70,15 +84,14 @@ export function ImageUpload({
         return;
       }
 
-      const ext = file.name.split(".").pop() ?? "jpg";
-      const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${prepared.ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from(bucket)
-        .upload(path, file, {
-          cacheControl: "3600",
+        .upload(path, prepared.blob, {
+          cacheControl: "31536000",
           upsert: false,
-          contentType: file.type,
+          contentType: prepared.contentType,
         });
 
       if (uploadError) {
@@ -89,6 +102,7 @@ export function ImageUpload({
 
       const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
       onChange(urlData.publicUrl);
+      if (prepared.optimized) setNote(`최적화됨 · ${fmtBytes(file.size)} → ${fmtBytes(prepared.blob.size)}${prepared.width ? ` · ${prepared.width}×${prepared.height}` : ""}`);
       setUploading(false);
     },
     [bucket, cfg, onChange]
@@ -107,6 +121,7 @@ export function ImageUpload({
   function clear() {
     onChange("");
     setError(null);
+    setNote(null);
   }
 
   const isCircle = shape === "circle";
@@ -207,6 +222,9 @@ export function ImageUpload({
         </div>
       )}
 
+      {note && !error && (
+        <p className="mt-2 text-[11px] text-success">{note}</p>
+      )}
       {hint && !error && (
         <p className="mt-2 text-xs text-muted-foreground">{hint}</p>
       )}
