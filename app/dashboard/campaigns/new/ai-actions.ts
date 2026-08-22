@@ -68,6 +68,7 @@ async function callAI<T>(opts: {
     return { ok: true, data: parsed };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+    if (err instanceof Error && err.name === "AiQuotaExceededError") return { ok: false, error: msg };
     return { ok: false, error: `AI 호출 실패: ${msg}` };
   }
 }

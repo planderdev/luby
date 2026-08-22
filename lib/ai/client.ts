@@ -90,6 +90,11 @@ async function logUsage(row: {
  * 예외는 그대로 던지므로 호출부의 try/catch 패턴은 변경 불필요.
  */
 export async function trackedCreate(params: MessageCreateParamsNonStreaming, ctx: AiContext): Promise<Message> {
+  // 계정별 월 한도 (사용자 컨텍스트가 있을 때만; 시스템·스크립트 호출은 무제한)
+  if (ctx.userId) {
+    const { assertAiQuota } = await import("./quota");
+    await assertAiQuota(ctx.userId); // AiQuotaExceededError → 호출부 {ok:false,error} 로 전달
+  }
   const t0 = Date.now();
   try {
     const r = await getAnthropic().messages.create(params);

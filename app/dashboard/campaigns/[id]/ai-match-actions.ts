@@ -27,6 +27,7 @@ export async function matchInfluencers(campaignId: string): Promise<MatchResult>
     return await matchInfluencersInner(campaignId);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+    if (err instanceof Error && err.name === "AiQuotaExceededError") return { ok: false, error: msg };
     return { ok: false, error: `AI 매칭 실패: ${msg}` };
   }
 }

@@ -47,6 +47,8 @@ export default async function BillingPage() {
 
   const supabase = await createClient();
 
+  const { getAiQuota } = await import("@/lib/ai/quota");
+  const aiQuota = await getAiQuota(profile.id);
   const [{ data: subscription }, { data: plans }, { data: paymentRows }] = await Promise.all([
     supabase
       .from("subscriptions")
@@ -92,6 +94,26 @@ export default async function BillingPage() {
                   ` · 만료일: ${new Date(subscription.expires_at).toLocaleDateString("ko-KR")}`}
               </p>
             )}
+            <div className="mt-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">이번 달 AI 사용</span>
+                <span className="tabular-nums font-medium">
+                  {aiQuota.used}{aiQuota.limit !== null ? ` / ${aiQuota.limit}회` : "회 · 무제한"}
+                </span>
+              </div>
+              {aiQuota.limit !== null && (
+                <div className="mt-1.5 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-muted">
+                  <div
+                    className={`h-full rounded-full ${aiQuota.used >= aiQuota.limit ? "bg-warning" : "bg-accent"}`}
+                    style={{ width: `${Math.min(100, Math.round((aiQuota.used / aiQuota.limit) * 100))}%` }}
+                  />
+                </div>
+              )}
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                캠페인 작성·매칭·적합도·검수·요약 등 모든 AI 기능 합산 · 매월 1일 초기화
+                {aiQuota.tier === "free" ? " · BUSINESS 는 월 300회" : ""}
+              </p>
+            </div>
           </div>
           <div className="text-right">
             <div className="display text-2xl font-semibold">
