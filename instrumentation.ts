@@ -13,7 +13,7 @@ export const onRequestError: Instrumentation.onRequestError = async (err, reques
     message: e?.message ?? String(err),
     stack: e?.stack ?? null,
     digest: e?.digest ?? null,
-    path: request.path,
+    path: request.path.split("?")[0], // 쿼리스트링 제거 (토큰·키 노출 방지)
     method: request.method,
     routeType: context.routeType,
     userAgent: request.headers["user-agent"] as string | undefined,

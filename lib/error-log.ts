@@ -21,7 +21,7 @@ export async function logError(row: {
       message: mask(row.message) || "(no message)",
       stack: row.stack ? mask(row.stack) : null,
       digest: row.digest ?? null,
-      path: row.path?.slice(0, 300) ?? null,
+      path: row.path?.split("?")[0].slice(0, 300) ?? null,
       method: row.method ?? null,
       route_type: row.routeType ?? null,
       user_id: row.userId ?? null,
