@@ -11,7 +11,7 @@ export function EmailPrefsForm({ initial, showDigest }: { initial: EmailPrefs; s
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  // 다이제스트: 운영자(아침 업무) · 광고주(주간 성과). 크리에이터는 아직 없음
+  // 다이제스트: 운영자(아침 업무) · 광고주(주간 성과) · 크리에이터(주간 소식)
   const cats: EmailCategory[] = showDigest ? ["transactional", "reminders", "digest"] : ["transactional", "reminders"];
 
   function toggle(c: EmailCategory) {
