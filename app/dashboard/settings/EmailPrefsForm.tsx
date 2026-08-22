@@ -5,13 +5,14 @@ import { Loader2, Mail } from "lucide-react";
 import { updateEmailPrefs } from "./actions";
 import { EMAIL_CATEGORY_LABEL, type EmailCategory, type EmailPrefs } from "@/lib/notification-categories";
 
-export function EmailPrefsForm({ initial, isOperator }: { initial: EmailPrefs; isOperator: boolean }) {
+export function EmailPrefsForm({ initial, showDigest }: { initial: EmailPrefs; showDigest: boolean }) {
   const [prefs, setPrefs] = useState<EmailPrefs>(initial);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const cats: EmailCategory[] = isOperator ? ["transactional", "reminders", "digest"] : ["transactional", "reminders"];
+  // 다이제스트: 운영자(아침 업무) · 광고주(주간 성과). 크리에이터는 아직 없음
+  const cats: EmailCategory[] = showDigest ? ["transactional", "reminders", "digest"] : ["transactional", "reminders"];
 
   function toggle(c: EmailCategory) {
     const next = { ...prefs, [c]: !prefs[c] };

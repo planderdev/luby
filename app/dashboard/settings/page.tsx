@@ -144,7 +144,7 @@ export default async function SettingsPage() {
           />
         )}
 
-        <EmailPrefsForm initial={emailPrefs} isOperator={profile.role === "operator"} />
+        <EmailPrefsForm initial={emailPrefs} showDigest={profile.role === "operator" || profile.role === "advertiser"} />
       </div>
     </div>
   );
