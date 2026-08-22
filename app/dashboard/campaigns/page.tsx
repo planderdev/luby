@@ -138,7 +138,7 @@ export default async function CampaignsPage({
   }
 
   // 광고주·운영자: 카드별 응모 집계 (응모/선정 대기/선정/승인) — 한 번의 조회로 메모리 집계
-  type CardStats = { applied: number; pending: number; selected: number; approved: number };
+  type CardStats = { applied: number; pending: number; selected: number; approved: number; views?: number };
   const statsById = new Map<string, CardStats>();
   if (!isInfluencer && (campaigns ?? []).length > 0) {
     const ids = (campaigns ?? []).map((c) => c.id);
@@ -153,6 +153,12 @@ export default async function CampaignsPage({
       if (a.status === "selected" || a.status === "completed") st.selected += 1;
       if (a.status === "completed") st.approved += 1;
       statsById.set(a.campaign_id, st);
+    }
+    const { data: viewRows } = await supabase.rpc("campaign_view_counts", { p_ids: ids });
+    for (const v of viewRows ?? []) {
+      const st = statsById.get(v.campaign_id) ?? { applied: 0, pending: 0, selected: 0, approved: 0 };
+      st.views = v.views;
+      statsById.set(v.campaign_id, st);
     }
   }
 

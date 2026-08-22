@@ -1,3 +1,4 @@
+import { viewSourceRows } from "@/lib/view-sources";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
@@ -225,7 +226,7 @@ export default async function OperatorStatsPage() {
             <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">기능 채택 · AI</h2>
             <Link href="/dashboard/operator/ai-usage" className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">AI 사용량 상세 →</Link>
           </div>
-          <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+          <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
             {[
               { l: "공개 프로필 옵트인", v: `${n("public_profiles")}명`, s: `승인 크리에이터 ${n("approved_creators")}명 중 (데모 제외) · 디렉터리 판단 근거` },
               { l: "리포트 공유 켠 캠페인", v: `${n("report_shares")}개`, s: "클라이언트 보고 링크 활성" },
@@ -233,6 +234,8 @@ export default async function OperatorStatsPage() {
               { l: "AI 적합도 평가", v: `${n("fit_scored_applicants")}명`, s: `${n("fit_scored_campaigns")}개 캠페인` },
               { l: "주간 다이제스트 (7일)", v: `${n("digests_7d")}통`, s: `수신 거부 ${n("digest_optouts")}명` },
               { l: "AI 호출 (7일)", v: `${n("ai_calls_7d")}회`, s: `추정 $${Number(feat.ai_cost_7d ?? 0).toFixed(2)} · 30일 $${Number(feat.ai_cost_30d ?? 0).toFixed(2)}` },
+              { l: "공개 페이지 조회 (7일)", v: `${n("page_views_7d")}회`, s: `순 방문 ${n("page_uniques_7d")} · 30일 ${n("page_views_30d")}회 · ${viewSourceRows((feat.views_by_source_30d ?? null) as unknown as Record<string, number> | null).map((r) => `${r.label} ${r.views}`).join(" · ") || "유입 기록 없음"}` },
+              { l: "새 캠페인 맞춤 알림 (7일)", v: `${n("new_campaign_alerts_7d")}통`, s: "모집 시작 시 분야·지역·채널 매칭 크리에이터 발송" },
             ].map((k) => (
               <div key={k.l} className="rounded-2xl bg-muted/50 px-4 py-3">
                 <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{k.l}</div>

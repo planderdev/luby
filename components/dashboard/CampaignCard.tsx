@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Calendar, Coins, Users, Inbox, CheckCircle2, Sparkles } from "lucide-react";
+import { Calendar, Coins, Users, Inbox, CheckCircle2, Sparkles, Eye } from "lucide-react";
 
 const STATUS_LABEL: Record<string, { label: string; tone: "success" | "warning" | "danger" | "muted" | "ink" }> = {
   draft: { label: "초안", tone: "muted" },
@@ -53,7 +53,7 @@ export function CampaignCard({
   /** 크리에이터 맞춤 배지: "응모함" | "내 분야" | "내 지역" */
   badges?: string[];
   /** 광고주·운영자 카드: 응모 집계 (크리에이터 뷰에서는 미전달) */
-  stats?: { applied: number; pending: number; selected: number; approved: number };
+  stats?: { applied: number; pending: number; selected: number; approved: number; views?: number };
   regionFlag: string;
   regionName: string;
   categoryEmoji: string;
@@ -119,6 +119,11 @@ export function CampaignCard({
             <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
               <Users className="size-3" /> 선정 {stats.selected}/{recruitCount}
             </span>
+            {(stats.views ?? 0) > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-muted-foreground" title="공개 페이지 조회 (공유 링크·QR·디렉터리)">
+                <Eye className="size-3" /> 조회 {stats.views}
+              </span>
+            )}
             {stats.approved > 0 && (
               <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
                 <CheckCircle2 className="size-3" /> 승인 {stats.approved}
