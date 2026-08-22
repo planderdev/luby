@@ -153,7 +153,7 @@ export async function PublicCampaignView({ id, locale, refId = null }: { id: str
             <div className="mt-6 text-[11px] uppercase tracking-wider text-muted-foreground">
               {c.region?.flag} {c.region?.name} · {c.category?.emoji} {c.category?.name}{c.promotion_type ? ` · ${c.promotion_type}` : ""}
             </div>
-            <h1 className="display mt-2 text-3xl font-semibold lg:text-4xl">{c.title}</h1>
+            <h1 className="display mt-2 text-3xl font-semibold lg:text-4xl break-keep">{c.title}</h1>
             <div className="mt-2 flex flex-wrap items-center gap-3">
               <p className="text-sm text-muted-foreground">{c.business_name}</p>
               <PublicShareButton title={c.title} path={sharePath} label={locale === "ko" ? "공유하기" : locale === "zh" ? "分享" : "Share"} copiedLabel={locale === "ko" ? "링크 복사됨" : locale === "zh" ? "已复制链接" : "Link copied"} />

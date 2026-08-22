@@ -113,7 +113,7 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
             {c.category && <span>· {c.category_emoji} {c.category}</span>}
             {c.promotion && <span>· {c.promotion}</span>}
           </div>
-          <h1 className="display mt-3 text-2xl font-semibold md:text-3xl" style={{ textWrap: "balance" }}>{c.title}</h1>
+          <h1 className="display mt-3 break-keep text-2xl font-semibold md:text-3xl" style={{ textWrap: "balance" }}>{c.title}</h1>
           <div className="mt-3 grid gap-x-8 gap-y-1.5 text-sm text-muted-foreground sm:grid-cols-2">
             <div><span className="text-foreground">브랜드 · 매장</span> {c.business_name}</div>
             <div><span className="text-foreground">{c.advertiser_kind === "agency" ? "운영 대행사" : "광고주"}</span> {c.company_name}</div>
@@ -133,7 +133,7 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
               <div className="text-[11px] font-semibold uppercase tracking-wider text-accent-ink">AI 요약 · 루비AI</div>
               {report.ai_summary_at && <div className="text-[11px] text-muted-foreground">{fmtDate(report.ai_summary_at)} 생성</div>}
             </div>
-            <h2 className="display mt-2 text-xl font-semibold md:text-2xl" style={{ textWrap: "balance" }}>{report.ai_summary.headline}</h2>
+            <h2 className="display mt-2 break-keep text-xl font-semibold md:text-2xl" style={{ textWrap: "balance" }}>{report.ai_summary.headline}</h2>
             <p className="mt-3 max-w-3xl text-sm leading-relaxed md:text-[15px]">{report.ai_summary.summary}</p>
             <div className="mt-5 grid gap-5 md:grid-cols-2 print:grid-cols-2">
               {report.ai_summary.highlights.length > 0 && (

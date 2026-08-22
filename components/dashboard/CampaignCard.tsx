@@ -103,7 +103,7 @@ export function CampaignCard({
           <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
             {regionFlag} {regionName} · {categoryEmoji} {categoryName}
           </div>
-          <h3 className="mt-2 line-clamp-2 text-base font-semibold tracking-tight">{title}</h3>
+          <h3 className="mt-2 line-clamp-2 text-base font-semibold tracking-tight break-keep">{title}</h3>
           <p className="mt-1 text-xs text-muted-foreground">{businessName}</p>
         </div>
         {stats && status !== "draft" && (

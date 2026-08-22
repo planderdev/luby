@@ -114,7 +114,7 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
       <div className="mx-auto w-full max-w-6xl px-5 py-8 lg:py-12">
         <header className="max-w-2xl">
           <div className="text-[11px] font-semibold uppercase tracking-wider text-accent-ink">{t.dirEyebrow} · {t.dirCount(dir.total)}</div>
-          <h1 className="display mt-2 text-3xl font-semibold md:text-4xl" style={{ textWrap: "balance" }}>{t.dirTitle}</h1>
+          <h1 className="display mt-2 break-keep text-3xl font-semibold md:text-4xl" style={{ textWrap: "balance" }}>{t.dirTitle}</h1>
           <p className="mt-3 text-sm text-muted-foreground md:text-base">{t.dirSubtitle}</p>
         </header>
 
@@ -161,7 +161,7 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
                         {c.category && <span>· {c.category.emoji} {c.category.name}</span>}
                         {c.promotion && <span>· {c.promotion}</span>}
                       </div>
-                      <h2 className="mt-1.5 line-clamp-2 text-base font-semibold leading-snug">{c.title}</h2>
+                      <h2 className="mt-1.5 line-clamp-2 break-keep text-base font-semibold leading-snug">{c.title}</h2>
                       <div className="mt-0.5 text-xs text-muted-foreground">{c.business_name}</div>
                       {c.channels.length > 0 && (
                         <div className="mt-2.5 flex flex-wrap gap-1">
