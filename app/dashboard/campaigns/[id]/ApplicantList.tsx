@@ -9,8 +9,11 @@ export async function ApplicantList({
   campaignId,
   maxVisible = null,
   canAiReview = false,
+  recruitCount = 0,
 }: {
   campaignId: string;
+  /** 남은 모집 인원 계산용 */
+  recruitCount?: number;
   /** null = 무제한. FREE 플랜은 10명까지만 서버에서 렌더링. */
   maxVisible?: number | null;
   /** BUSINESS 이상: 제출물 AI 사전 검수 버튼 노출 */
@@ -92,7 +95,12 @@ export async function ApplicantList({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h3 className="display text-2xl font-semibold">응모자 ({totalCount ?? applications.length})</h3>
         {canAiReview && pendingAll.length > 0 && (
-          <AiFitButton campaignId={campaignId} unscored={unscored} scored={scoredCount} />
+          <AiFitButton
+            campaignId={campaignId}
+            unscored={unscored}
+            scored={scoredCount}
+            remainingSlots={Math.max(0, recruitCount - (allApplications ?? []).filter((a) => a.status === "selected" || a.status === "completed").length)}
+          />
         )}
       </div>
       <div className="mt-4 space-y-2">

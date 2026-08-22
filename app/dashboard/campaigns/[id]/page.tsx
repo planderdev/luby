@@ -411,6 +411,7 @@ export default async function CampaignDetailPage({
             <div className="mt-10">
               <ApplicantList
                 campaignId={id}
+                recruitCount={campaign.recruit_count}
                 maxVisible={entitlements.maxApplicantViews}
                 canAiReview={entitlements.aiMatching}
               />

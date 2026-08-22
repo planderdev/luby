@@ -257,3 +257,49 @@ export async function setReportSharing(
   revalidatePath(`/dashboard/campaigns/${campaignId}`);
   return { ok: true, token };
 }
+
+/**
+ * AI 적합도 상위 N명 일괄 선정 — 대기(pending) & 적합도 평가된 응모자를 점수순으로 N명 선정.
+ * RLS(소유 캠페인)와 기존 선정 트리거(크리에이터 알림)가 그대로 적용된다.
+ */
+export async function selectTopApplicants(
+  campaignId: string,
+  n: number
+): Promise<{ ok: true; selected: number } | { ok: false; error: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+  const count = Math.floor(Number(n));
+  if (!Number.isFinite(count) || count < 1 || count > 100) return { ok: false, error: "선정 인원은 1~100명 사이여야 합니다." };
+
+  const { data: camp } = await supabase.from("campaigns").select("id, advertiser_id, status").eq("id", campaignId).maybeSingle();
+  if (!camp || camp.advertiser_id !== user.id) return { ok: false, error: "캠페인을 찾을 수 없습니다." };
+  if (!["open", "closed"].includes(camp.status)) return { ok: false, error: "모집중·마감 상태에서만 선정할 수 있습니다." };
+
+  const { data: pending } = await supabase
+    .from("applications")
+    .select("id, ai_fit")
+    .eq("campaign_id", campaignId)
+    .eq("status", "pending")
+    .not("ai_fit", "is", null);
+  const ranked = (pending ?? [])
+    .map((a) => ({ id: a.id, score: Number((a.ai_fit as { score?: number } | null)?.score ?? -1) }))
+    .filter((a) => a.score >= 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, count);
+  if (ranked.length === 0) return { ok: false, error: "적합도가 평가된 대기 응모자가 없습니다." };
+
+  const now = new Date().toISOString();
+  const { error } = await supabase
+    .from("applications")
+    .update({ status: "selected", selected_at: now, selected_by: user.id })
+    .eq("campaign_id", campaignId)
+    .eq("status", "pending")
+    .in("id", ranked.map((r) => r.id));
+  if (error) return { ok: false, error: "선정 처리에 실패했습니다. 잠시 후 다시 시도해주세요." };
+
+  revalidatePath(`/dashboard/campaigns/${campaignId}`);
+  return { ok: true, selected: ranked.length };
+}
