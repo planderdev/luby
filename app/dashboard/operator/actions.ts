@@ -158,35 +158,8 @@ export async function precheckCampaignAction(
     return { ok: true, result: c.ai_precheck as Precheck, checkedAt: c.ai_prechecked_at };
   }
 
-  const [{ data: ms }, { data: kw }, { data: of }, { data: cat }, { data: pt }] = await Promise.all([
-    supabase.from("campaign_missions").select("description, channel_types(name)").eq("campaign_id", campaignId),
-    supabase.from("campaign_keywords").select("keyword").eq("campaign_id", campaignId),
-    supabase.from("campaign_offerings").select("title, description, estimated_value").eq("campaign_id", campaignId),
-    c.category_id ? supabase.from("categories").select("name").eq("id", c.category_id).maybeSingle() : Promise.resolve({ data: null }),
-    c.promotion_type_id ? supabase.from("promotion_types").select("name").eq("id", c.promotion_type_id).maybeSingle() : Promise.resolve({ data: null }),
-  ]);
-  type Named = { name: string } | { name: string }[] | null;
-  const nameOf = (n: Named) => (Array.isArray(n) ? n[0]?.name : n?.name) ?? "";
-  const days = Math.max(1, Math.round((new Date(c.recruit_end).getTime() - new Date(c.recruit_start).getTime()) / 864e5));
-
-  const { precheckCampaign } = await import("@/lib/ai/campaign-precheck");
-  const r = await precheckCampaign({
-    title: c.title,
-    businessName: c.business_name,
-    industryBrief: c.industry_brief,
-    category: cat?.name ?? null,
-    promotionType: pt?.name ?? null,
-    missions: (ms ?? []).map((m) => ({ channel: nameOf(m.channel_types as Named), description: m.description })),
-    keywords: (kw ?? []).map((k) => k.keyword),
-    offerings: (of ?? []).map((o) => ({ title: o.title, description: o.description, estimatedValue: o.estimated_value })),
-    pointAmount: c.point_amount,
-    recruitCount: c.recruit_count,
-    recruitDays: days,
-  }, { userId: guard.user?.id ?? null, campaignId });
-  if (!r.ok) return r;
-  const checkedAt = new Date().toISOString();
-  await supabase.from("campaigns").update({ ai_precheck: r.result, ai_prechecked_at: checkedAt }).eq("id", campaignId);
-  return { ok: true, result: r.result, checkedAt };
+  const { runCampaignPrecheck } = await import("@/lib/ai/precheck-run");
+  return runCampaignPrecheck(supabase, campaignId, { userId: guard.user?.id ?? null });
 }
 
 /** 운영자: 캠페인 강제 매칭용 크리에이터 검색 */
