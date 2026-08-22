@@ -6,6 +6,8 @@ import { MobileNav } from "@/components/dashboard/MobileNav";
 import { NotificationBell } from "@/components/dashboard/NotificationBell";
 import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { SubscriptionBanner } from "@/components/dashboard/SubscriptionBanner";
+import { PushNudgeBanner } from "@/components/dashboard/PushNudgeBanner";
+import { countPushSubscriptions } from "@/app/dashboard/settings/actions";
 
 // Dashboard is private — exclude from search engines
 export const metadata: Metadata = {
@@ -21,6 +23,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (profile.onboarding_done === false) {
     redirect("/onboarding");
   }
+  const pushCount = await countPushSubscriptions();
 
   return (
     <div className="flex min-h-dvh">
@@ -50,6 +53,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         {/* 콘텐츠 — 모바일은 하단 탭바 높이만큼 여백 */}
         <div className="mx-auto w-full max-w-6xl px-5 pb-24 pt-5 md:px-8 lg:px-12 lg:pb-14 lg:pt-4">
           {profile.role === "advertiser" && <SubscriptionBanner userId={profile.id} />}
+          <PushNudgeBanner hasAnySubscription={pushCount > 0} />
           {children}
         </div>
       </div>
