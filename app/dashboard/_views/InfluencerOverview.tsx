@@ -208,14 +208,8 @@ export function InfluencerOverview({
                 className="group flex flex-col overflow-hidden rounded-2xl glass-card transition-colors hover:bg-muted/40"
               >
                 <div className="relative aspect-[16/9] w-full bg-muted">
-                  {c.thumbnail_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={c.thumbnail_url} alt={c.title} className="size-full object-cover" />
-                  ) : (
-                    <div className="flex size-full items-center justify-center text-3xl opacity-40">
-                      {c.categoryEmoji || "🎯"}
-                    </div>
-                  )}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={c.thumbnail_url ?? `/api/og/campaign/${c.id}`} alt={c.title} loading="lazy" className={`size-full object-cover ${c.thumbnail_url ? "" : "object-left"}`} />
                   {c.badges.length > 0 && (
                     <div className="absolute right-2 top-2 flex gap-1">
                       {c.badges.map((b) => (

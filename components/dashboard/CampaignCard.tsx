@@ -67,9 +67,10 @@ export function CampaignCard({
       className="group flex flex-col overflow-hidden rounded-3xl glass-card transition-colors hover:bg-muted/40"
     >
       <div className="relative aspect-[16/9] w-full bg-muted">
-        {thumbnail ? (
+        {thumbnail || ["open", "closed", "completed"].includes(status) ? (
+          // 썸네일 없으면 공개 상태에 한해 브랜드 OG 카드로 폴백 (공개 페이지·디렉터리와 동일)
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={thumbnail} alt={title} className="size-full object-cover" />
+          <img src={thumbnail ?? `/api/og/campaign/${id}`} alt={title} loading="lazy" className={`size-full object-cover ${thumbnail ? "" : "object-left"}`} />
         ) : (
           <div className="flex size-full items-center justify-center">
             <span className="text-3xl opacity-40">{categoryEmoji || "🎯"}</span>
