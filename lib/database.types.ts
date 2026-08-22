@@ -1379,6 +1379,14 @@ export type Database = {
         Args: { p_id: string; p_limit?: number }
         Returns: Json
       }
+      creator_view_stats: {
+        Args: { p_creator: string }
+        Returns: Json
+      }
+      record_creator_view: {
+        Args: { p_creator: string; p_source: string; p_lang: string; p_hash: string }
+        Returns: boolean
+      }
       campaign_view_counts: {
         Args: { p_ids: string[] }
         Returns: { campaign_id: string; views: number; uniques: number }[]

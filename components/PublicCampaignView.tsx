@@ -122,7 +122,7 @@ export async function PublicCampaignView({ id, locale, refId = null }: { id: str
   return (
     <main lang={locale === "zh" ? "zh-CN" : locale} className="min-h-dvh bg-canvas">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <ViewBeacon campaignId={c.id} lang={locale} skip={!!profile && (profile.role === "operator" || profile.id === c.advertiser?.id)} />
+      <ViewBeacon id={c.id} lang={locale} skip={!!profile && (profile.role === "operator" || profile.id === c.advertiser?.id)} />
       {/* Top bar */}
       <div className="border-b border-border">
         <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-5">

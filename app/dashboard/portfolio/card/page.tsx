@@ -27,7 +27,7 @@ export default async function CreatorCardPage() {
   if (!c) redirect("/dashboard/portfolio");
   const isPublic = !!inf?.public_profile;
   const url = `${getSiteUrl()}/p/${profile.id}`;
-  const qr = await QRCode.toString(url, { type: "svg", margin: 0, errorCorrectionLevel: "M", color: { dark: "#151217", light: "#ffffff" } });
+  const qr = await QRCode.toString(`${url}?src=qr`, { type: "svg", margin: 0, errorCorrectionLevel: "M", color: { dark: "#151217", light: "#ffffff" } });
   const channels = [...c.channels].sort((a, b) => (b.followers ?? 0) - (a.followers ?? 0)).map((ch) => ({ type: ch.type, handle: ch.handle, followers: ch.followers ?? 0 }));
 
   return (

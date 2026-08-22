@@ -4,7 +4,7 @@ import { isBotUa, visitorHash, UUID_RE } from "@/lib/view-beacon";
 
 export const runtime = "nodejs";
 
-/** 공개 캠페인 페이지 조회 비콘 — 로그인 불필요, 항상 204. 방문자는 해시로만 저장, 봇 UA 제외 */
+/** 공개 크리에이터 프로필(/p) 조회 비콘 — 공개 켜진 승인 크리에이터만 기록, 항상 204 */
 export async function POST(req: Request) {
   if (isBotUa(req.headers.get("user-agent"))) return new NextResponse(null, { status: 204 });
   const body = (await req.json().catch(() => null)) as { id?: string; source?: string; lang?: string } | null;
@@ -12,8 +12,8 @@ export async function POST(req: Request) {
   const hash = visitorHash(req);
   if (!id || !UUID_RE.test(id) || !hash) return new NextResponse(null, { status: 204 });
   try {
-    await getAdminSupabase().rpc("record_campaign_view", {
-      p_campaign: id,
+    await getAdminSupabase().rpc("record_creator_view", {
+      p_creator: id,
       p_source: typeof body?.source === "string" ? body.source.slice(0, 10) : "direct",
       p_lang: typeof body?.lang === "string" ? body.lang.slice(0, 2) : "ko",
       p_hash: hash,

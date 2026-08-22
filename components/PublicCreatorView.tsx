@@ -10,6 +10,7 @@ import { getSiteUrl, SITE } from "@/lib/seo/site";
 import { publicCreatorDict } from "@/lib/i18n/public-creator";
 import { localePrefix } from "@/lib/i18n/public-campaign";
 import type { Locale } from "@/lib/i18n/config";
+import { ViewBeacon } from "@/components/ViewBeacon";
 
 /** 크리에이터 공개 프로필 (옵트인). 데이터: get_public_creator() — 본인이 켠 경우에만 값 반환 */
 export type PublicCreator = {
@@ -90,6 +91,7 @@ export async function PublicCreatorView({ id, locale = "ko", ownerPreview = fals
   return (
     <main lang={locale === "zh" ? "zh-CN" : locale} className="min-h-dvh bg-canvas">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      {!ownerPreview && <ViewBeacon kind="creator" id={c.id} lang={locale} skip={!!profile && (profile.role === "operator" || profile.id === c.id)} />}
       <div className="border-b border-border print:hidden">
         <div className="mx-auto flex h-14 w-full max-w-4xl items-center justify-between px-5">
           <Link href={pfx || "/"} aria-label={t.home} className="inline-flex">

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff, Link2, QrCode } from "lucide-react";
+import { Eye, EyeOff, Link2, QrCode, BarChart3 } from "lucide-react";
+import { viewSourceRows, CREATOR_VIEW_SOURCE_LABEL } from "@/lib/view-sources";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { PublicCreatorView } from "@/components/PublicCreatorView";
@@ -17,9 +18,14 @@ export default async function PortfolioPage() {
   if (!profile) redirect("/login?redirect=/dashboard/portfolio");
   if (profile.role !== "influencer") redirect("/dashboard");
   const supabase = await createClient();
-  const { data: inf } = await supabase.from("influencers").select("public_profile").eq("profile_id", profile.id).maybeSingle();
+  const [{ data: inf }, { data: viewsRaw }] = await Promise.all([
+    supabase.from("influencers").select("public_profile").eq("profile_id", profile.id).maybeSingle(),
+    supabase.rpc("creator_view_stats", { p_creator: profile.id }),
+  ]);
   const isPublic = !!inf?.public_profile;
   const shareUrl = `${getSiteUrl()}/p/${profile.id}`;
+  const views = (viewsRaw as { total: number; uniques: number; last7: number; last30: number; by_source: Record<string, number> } | null) ?? null;
+  const sourceRows = viewSourceRows(views?.by_source, CREATOR_VIEW_SOURCE_LABEL);
 
   return (
     <div>
@@ -29,7 +35,7 @@ export default async function PortfolioPage() {
           {isPublic ? (
             <span>
               공개 프로필이 <b>켜져</b> 있어요. 링크를 브랜드에 보내면 로그인 없이 볼 수 있습니다:{" "}
-              <a href={shareUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium underline underline-offset-2"><Link2 className="size-3.5" />{shareUrl.replace(/^https?:\/\//, "")}</a>
+              <a href={`${shareUrl}?src=link`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium underline underline-offset-2"><Link2 className="size-3.5" />{shareUrl.replace(/^https?:\/\//, "")}</a>
             </span>
           ) : (
             <span>
@@ -44,6 +50,21 @@ export default async function PortfolioPage() {
           </Link>
         </div>
       </div>
+      {isPublic && (
+        <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl border border-border bg-background px-5 py-3 text-xs text-muted-foreground print:hidden">
+          <span className="inline-flex items-center gap-1.5 font-medium text-foreground"><BarChart3 className="size-3.5" /> 내 프로필 조회</span>
+          {views && views.total > 0 ? (
+            <>
+              <span>총 <b className="text-foreground">{views.total.toLocaleString()}</b>회 · 순 방문 {views.uniques.toLocaleString()} · 최근 7일 {views.last7.toLocaleString()}</span>
+              {sourceRows.map((r) => (
+                <span key={r.key}>{r.label} <b className="text-foreground">{r.views.toLocaleString()}</b></span>
+              ))}
+            </>
+          ) : (
+            <span>아직 조회가 없어요. 링크를 보내거나 QR 명함을 건네면 여기서 유입 경로별로 집계돼요.</span>
+          )}
+        </div>
+      )}
       <div className="-mx-5 overflow-hidden rounded-3xl border border-border md:-mx-8 lg:mx-0 print:m-0 print:rounded-none print:border-0">
         <PublicCreatorView id={profile.id} ownerPreview />
       </div>
