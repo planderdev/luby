@@ -4,6 +4,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { MapPin, Users, CheckCircle2, ArrowRight, ExternalLink, Sparkles } from "lucide-react";
 import { getStaticSupabase } from "@/lib/supabase/static";
+import { PrintButton } from "@/app/r/[token]/PrintButton";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { getSiteUrl, SITE } from "@/lib/seo/site";
 import { publicCreatorDict } from "@/lib/i18n/public-creator";
@@ -24,9 +25,11 @@ export type PublicCreator = {
   joined_at: string;
 };
 
-export async function fetchPublicCreator(id: string): Promise<PublicCreator | null> {
+export async function fetchPublicCreator(id: string, opts?: { asOwner?: boolean }): Promise<PublicCreator | null> {
   if (!/^[0-9a-f-]{36}$/.test(id)) return null;
-  const { data } = await getStaticSupabase().rpc("get_public_creator", { p_id: id });
+  // 본인 미리보기는 쿠키 세션(auth.uid) 이 필요 — RPC 가 공개 여부와 무관하게 본인에게는 반환
+  const client = opts?.asOwner ? await (await import("@/lib/supabase/server")).createClient() : getStaticSupabase();
+  const { data } = await client.rpc("get_public_creator", { p_id: id });
   return (data as PublicCreator | null) ?? null;
 }
 
@@ -55,8 +58,8 @@ export async function buildPublicCreatorMetadata(id: string, locale: Locale = "k
   };
 }
 
-export async function PublicCreatorView({ id, locale = "ko" }: { id: string; locale?: Locale }) {
-  const c = await fetchPublicCreator(id);
+export async function PublicCreatorView({ id, locale = "ko", ownerPreview = false }: { id: string; locale?: Locale; ownerPreview?: boolean }) {
+  const c = await fetchPublicCreator(id, { asOwner: ownerPreview });
   if (!c) notFound();
   const t = publicCreatorDict[locale];
   const fmtN = fmtNFor(locale);
@@ -87,7 +90,7 @@ export async function PublicCreatorView({ id, locale = "ko" }: { id: string; loc
   return (
     <main lang={locale === "zh" ? "zh-CN" : locale} className="min-h-dvh bg-canvas">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <div className="border-b border-border">
+      <div className="border-b border-border print:hidden">
         <div className="mx-auto flex h-14 w-full max-w-4xl items-center justify-between px-5">
           <Link href={pfx || "/"} aria-label={t.home} className="inline-flex">
             <Image src="/logo.png" alt="루비AI" width={1298} height={410} className="h-6 w-auto invert dark:invert-0" />
@@ -135,8 +138,9 @@ export async function PublicCreatorView({ id, locale = "ko" }: { id: string; loc
               </div>
             )}
           </div>
-          {cta && (
-            <Link href={cta.href} className="inline-flex shrink-0 items-center gap-2 rounded-full bg-foreground px-5 py-3 text-sm font-medium text-background">
+          {ownerPreview && <PrintButton />}
+          {cta && !ownerPreview && (
+            <Link href={cta.href} className="inline-flex shrink-0 items-center gap-2 rounded-full bg-foreground px-5 py-3 text-sm font-medium text-background print:hidden">
               {cta.label} <ArrowRight className="size-4" />
             </Link>
           )}
@@ -183,7 +187,7 @@ export async function PublicCreatorView({ id, locale = "ko" }: { id: string; loc
 
         <p className="mt-12 text-[11px] leading-relaxed text-muted-foreground">{t.disclaimer}</p>
       </div>
-      <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
+      <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground print:hidden">
         © 2026 {t.brand} · <Link href={pfx || "/"} className="hover:text-foreground">{t.footerHome}</Link> · <Link href="/terms" className="hover:text-foreground">{t.terms}</Link> · <Link href="/privacy" className="hover:text-foreground">{t.privacy}</Link>
       </footer>
     </main>

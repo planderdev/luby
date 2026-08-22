@@ -12,6 +12,7 @@ import {
   MessageSquare,
   Sparkles,
   Bug,
+  IdCard,
   UserSearch,
   Mail,
   BarChart3,
@@ -49,6 +50,7 @@ export const dashboardNav: Record<UserRole, NavItem[]> = {
     { href: "/dashboard/invitations", label: "받은 초대", short: "초대", icon: Mail },
     { href: "/dashboard/messages", label: "메시지", icon: MessageSquare, primary: true },
     { href: "/dashboard/points", label: "포인트", icon: Coins },
+    { href: "/dashboard/portfolio", label: "내 포트폴리오", short: "포트폴리오", icon: IdCard },
     { href: "/dashboard/settings", label: "설정·채널", short: "설정", icon: Settings, primary: true },
   ],
   operator: [
