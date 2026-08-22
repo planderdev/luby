@@ -57,6 +57,12 @@ export default async function OperatorStatsPage() {
   const pendingOut = withdrawals.filter((w) => w.status === "requested").reduce((s, w) => s + (w.amount ?? 0), 0);
   const { count: referredTotal } = await supabase.from("profiles").select("id", { count: "exact", head: true }).not("referred_by", "is", null);
   const { data: featRaw } = await supabase.rpc("operator_feature_stats");
+  const { data: benchRaw } = await supabase.rpc("operator_category_benchmarks", { p_days: 180 });
+  const bench = (benchRaw ?? []) as {
+    category_id: string; category_name: string; category_emoji: string | null; campaigns: number; open_now: number;
+    points_median: number | null; points_p25: number | null; points_p75: number | null; recruit_median: number | null;
+    ratio_avg: number | null; fill_rate: number | null; approval_rate: number | null; page_views: number; applied: number;
+  }[];
   const feat = (featRaw ?? null) as null | Record<string, number | string>;
   const n = (k: string) => Number(feat?.[k] ?? 0);
 
@@ -244,6 +250,53 @@ export default async function OperatorStatsPage() {
               </div>
             ))}
           </div>
+        </section>
+      )}
+
+      {bench.length > 0 && (
+        <section className="mt-8 rounded-3xl glass-card p-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">분야별 벤치마크 · 최근 180일</h2>
+            <span className="text-[11px] text-muted-foreground">모집중·마감·완료 캠페인 기준 · 빌더 벤치마크와 AI 제안에 같은 수치가 쓰여요</span>
+          </div>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[760px] text-sm">
+              <thead>
+                <tr className="text-left text-[11px] uppercase tracking-wider text-muted-foreground">
+                  <th className="pb-2 pr-3 font-medium">분야</th>
+                  <th className="pb-2 pr-3 text-right font-medium">캠페인</th>
+                  <th className="pb-2 pr-3 text-right font-medium">포인트 중앙값</th>
+                  <th className="pb-2 pr-3 text-right font-medium">보통 구간</th>
+                  <th className="pb-2 pr-3 text-right font-medium">모집 인원</th>
+                  <th className="pb-2 pr-3 text-right font-medium">경쟁률</th>
+                  <th className="pb-2 pr-3 text-right font-medium">충원율</th>
+                  <th className="pb-2 pr-3 text-right font-medium">승인율</th>
+                  <th className="pb-2 pr-3 text-right font-medium">응모</th>
+                  <th className="pb-2 text-right font-medium">조회</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bench.map((b) => {
+                  const r = (v: number | null) => (v === null ? "–" : Math.round(v).toLocaleString());
+                  return (
+                    <tr key={b.category_id} className="border-t border-border">
+                      <td className="py-2 pr-3 font-medium">{b.category_emoji} {b.category_name}</td>
+                      <td className="py-2 pr-3 text-right tabular-nums">{b.campaigns}{b.open_now > 0 && <span className="ml-1 text-[11px] text-muted-foreground">(모집중 {b.open_now})</span>}</td>
+                      <td className="py-2 pr-3 text-right tabular-nums">{b.points_median === null ? "–" : `${r(b.points_median)}P`}</td>
+                      <td className="py-2 pr-3 text-right tabular-nums text-muted-foreground">{b.points_p25 === null ? "–" : `${r(b.points_p25)}~${r(b.points_p75)}`}</td>
+                      <td className="py-2 pr-3 text-right tabular-nums">{b.recruit_median === null ? "–" : `${r(b.recruit_median)}명`}</td>
+                      <td className={`py-2 pr-3 text-right tabular-nums ${b.ratio_avg !== null && b.ratio_avg < 1 ? "text-warning" : ""}`}>{b.ratio_avg === null ? "–" : `${b.ratio_avg}:1`}</td>
+                      <td className="py-2 pr-3 text-right tabular-nums">{b.fill_rate === null ? "–" : `${r(b.fill_rate)}%`}</td>
+                      <td className="py-2 pr-3 text-right tabular-nums">{b.approval_rate === null ? "–" : `${r(b.approval_rate)}%`}</td>
+                      <td className="py-2 pr-3 text-right tabular-nums">{b.applied}</td>
+                      <td className="py-2 text-right tabular-nums">{b.page_views}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-3 text-[11px] text-muted-foreground">경쟁률 1:1 미만(주황)은 공급이 부족한 분야 — 해당 분야 크리에이터 모집·맞춤 알림 강화를 검토하세요. 충원율·승인율은 마감·완료 캠페인만 집계.</p>
         </section>
       )}
 

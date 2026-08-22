@@ -1379,6 +1379,14 @@ export type Database = {
         Args: { p_id: string; p_limit?: number }
         Returns: Json
       }
+      operator_category_benchmarks: {
+        Args: { p_days?: number }
+        Returns: {
+          category_id: string; category_name: string; category_emoji: string | null; campaigns: number; open_now: number;
+          points_median: number | null; points_p25: number | null; points_p75: number | null; recruit_median: number | null;
+          ratio_avg: number | null; fill_rate: number | null; approval_rate: number | null; page_views: number; applied: number;
+        }[]
+      }
       category_benchmark: {
         Args: { p_category?: string }
         Returns: Json
