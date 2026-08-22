@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { AlertTriangle, RotateCcw, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
@@ -14,6 +15,14 @@ export default function DashboardError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    // 운영자 오류 모니터링으로 보고 (실패 무시)
+    void fetch("/api/errors/client", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ message: error.message, stack: error.stack?.slice(0, 4000), digest: error.digest, path: location.pathname }),
+    }).catch(() => {});
+  }, [error]);
   return (
     <div className="mx-auto max-w-lg py-16 text-center">
       <div className="mx-auto flex size-16 items-center justify-center rounded-3xl bg-accent-soft">

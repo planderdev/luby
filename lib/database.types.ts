@@ -1209,6 +1209,49 @@ export type Database = {
         }
         Relationships: []
       }
+      server_errors: {
+        Row: {
+          created_at: string
+          digest: string | null
+          fingerprint: string | null
+          id: string
+          message: string
+          method: string | null
+          path: string | null
+          route_type: string | null
+          source: string
+          stack: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          digest?: string | null
+          id?: string
+          message: string
+          method?: string | null
+          path?: string | null
+          route_type?: string | null
+          source?: string
+          stack?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          digest?: string | null
+          id?: string
+          message?: string
+          method?: string | null
+          path?: string | null
+          route_type?: string | null
+          source?: string
+          stack?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           advertiser_id: string
@@ -1307,6 +1350,10 @@ export type Database = {
       list_public_creator_ids: {
         Args: { p_limit?: number }
         Returns: { id: string; updated_at: string }[]
+      }
+      server_error_stats: {
+        Args: { p_days?: number }
+        Returns: Json
       }
       operator_feature_stats: {
         Args: Record<string, never>
