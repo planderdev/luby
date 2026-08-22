@@ -69,9 +69,9 @@ export async function buildPublicCampaignMetadata(id: string, locale: Locale): P
       url,
       type: "article",
       siteName: SITE.name,
-      images: c.thumbnail_url ? [{ url: c.thumbnail_url, width: 1200, height: 630, alt: c.title }] : [{ url: "/og.png", width: 1280, height: 720 }],
+      images: [{ url: `${base}/api/og/campaign/${c.id}`, width: 1200, height: 630, alt: c.title }],
     },
-    twitter: { card: "summary_large_image", title: c.title, description: desc, images: c.thumbnail_url ? [c.thumbnail_url] : ["/og.png"] },
+    twitter: { card: "summary_large_image", title: c.title, description: desc, images: [`${base}/api/og/campaign/${c.id}`] },
   };
 }
 
@@ -143,12 +143,8 @@ export async function PublicCampaignView({ id, locale, refId = null }: { id: str
           {/* Left: content */}
           <article>
             <div className="relative aspect-[16/9] w-full overflow-hidden rounded-3xl bg-muted">
-              {c.thumbnail_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={c.thumbnail_url} alt={c.title} className="size-full object-cover" />
-              ) : (
-                <div className="flex size-full items-center justify-center text-6xl opacity-40">{c.category?.emoji ?? "🎯"}</div>
-              )}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={c.thumbnail_url ?? `/api/og/campaign/${c.id}`} alt={c.title} className={`size-full object-cover ${c.thumbnail_url ? "" : "object-left"}`} />
               <span className={`absolute left-4 top-4 rounded-full px-3 py-1 text-xs font-medium ${isOpen ? "bg-success-soft text-success" : "bg-muted text-muted-foreground"}`}>
                 {isOpen ? (c.always_open ? t.statusAlways : daysLeft > 0 ? t.dLeft(daysLeft) : t.statusOpen) : c.status === "closed" ? t.statusClosed : t.statusCompleted}
               </span>

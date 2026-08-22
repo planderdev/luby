@@ -151,12 +151,8 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
                 <li key={c.id}>
                   <Link href={`${pfx}/c/${c.id}`} className="group flex h-full flex-col overflow-hidden rounded-3xl glass-card transition-transform hover:-translate-y-0.5">
                     <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
-                      {c.thumbnail_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={c.thumbnail_url} alt={c.title} loading="lazy" className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
-                      ) : (
-                        <div className="flex size-full items-center justify-center text-5xl opacity-40">{c.category?.emoji ?? "🎯"}</div>
-                      )}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={c.thumbnail_url ?? `/api/og/campaign/${c.id}`} alt={c.title} loading="lazy" className={`size-full object-cover transition-transform duration-500 group-hover:scale-[1.03] ${c.thumbnail_url ? "" : "object-left"}`} />
                       <span className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-[11px] font-semibold backdrop-blur ${urgent ? "bg-warning-soft text-warning" : "bg-background/90 text-foreground"}`}>{badge}</span>
                     </div>
                     <div className="flex flex-1 flex-col p-4">
