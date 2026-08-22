@@ -67,6 +67,9 @@ const ko = {
   dirMetaTitle: "모집중 체험단 캠페인",
   dirMetaDesc: "한국·글로벌 브랜드의 체험단·인플루언서 캠페인 모집 목록. 인스타그램·유튜브·틱톡·블로그·샤오홍슈 크리에이터를 위한 체험단을 루비AI에서 찾아보세요.",
   closesIn: (n: number) => `D-${n}`,
+  relatedTitle: "비슷한 캠페인",
+  relatedSub: "같은 분야·지역에서 지금 모집중",
+  relatedAll: "모집중 캠페인 전체 보기",
 };
 export type PublicCampaignDict = typeof ko;
 
@@ -135,6 +138,9 @@ const en: PublicCampaignDict = {
   dirMetaTitle: "Open creator campaigns",
   dirMetaDesc: "Browse open creator and influencer campaigns from Korean and global brands — Instagram, YouTube, TikTok, Blog and Xiaohongshu — on Luby AI.",
   closesIn: (n: number) => `${n}d left`,
+  relatedTitle: "Similar campaigns",
+  relatedSub: "Open now in the same category or region",
+  relatedAll: "Browse all open campaigns",
 };
 
 const zh: PublicCampaignDict = {
@@ -202,6 +208,9 @@ const zh: PublicCampaignDict = {
   dirMetaTitle: "招募中的体验官活动",
   dirMetaDesc: "浏览韩国与全球品牌的体验官/达人招募活动 — Instagram、YouTube、TikTok、博客、小红书 — 尽在 Luby AI。",
   closesIn: (n: number) => `剩 ${n} 天`,
+  relatedTitle: "相似活动",
+  relatedSub: "同类别·同地区正在招募",
+  relatedAll: "查看全部招募中的活动",
 };
 
 export const publicCampaignDict: Record<Locale, PublicCampaignDict> = { ko, en, zh };

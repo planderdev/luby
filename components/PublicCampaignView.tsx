@@ -76,8 +76,19 @@ export async function buildPublicCampaignMetadata(id: string, locale: Locale): P
   };
 }
 
+type RelatedCampaign = {
+  id: string; title: string; business_name: string; thumbnail_url: string | null; point_amount: number; recruit_count: number;
+  recruit_end: string; always_open: boolean; region: { name: string; flag: string } | null; category: { name: string; emoji: string } | null; channels: string[];
+};
+
+async function fetchRelatedCampaigns(id: string): Promise<RelatedCampaign[]> {
+  const supabase = getStaticSupabase();
+  const { data } = await supabase.rpc("list_related_public_campaigns", { p_id: id, p_limit: 3 });
+  return (data as RelatedCampaign[] | null) ?? [];
+}
+
 export async function PublicCampaignView({ id, locale, refId = null }: { id: string; locale: Locale; refId?: string | null }) {
-  const c = await fetchPublicCampaign(id);
+  const [c, related] = await Promise.all([fetchPublicCampaign(id), fetchRelatedCampaigns(id)]);
   if (!c) notFound();
   const t = publicCampaignDict[locale];
   const fmt = fmtFor(locale);
@@ -272,6 +283,50 @@ export async function PublicCampaignView({ id, locale, refId = null }: { id: str
           </aside>
         </div>
       </div>
+
+      {related.length > 0 && (
+        <section className="border-t border-border">
+          <div className="mx-auto w-full max-w-5xl px-5 py-10">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 className="display text-xl font-semibold tracking-tight">{t.relatedTitle}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">{t.relatedSub}</p>
+              </div>
+              <Link href={`${pfx}/c`} className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">
+                {t.relatedAll} <ArrowRight className="size-3.5" />
+              </Link>
+            </div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              {related.map((r) => {
+                const d = Math.ceil((new Date(r.recruit_end).getTime() - Date.now()) / 864e5);
+                return (
+                  <Link key={r.id} href={`${pfx}/c/${r.id}?src=dir`} className="group flex flex-col overflow-hidden rounded-3xl glass-card transition-transform hover:-translate-y-0.5">
+                    <div className="relative aspect-[16/9] w-full bg-muted">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={r.thumbnail_url ?? `/api/og/campaign/${r.id}`} alt={r.title} loading="lazy" className={`size-full object-cover ${r.thumbnail_url ? "" : "object-left"}`} />
+                      {!r.always_open && d > 0 && d <= 7 && (
+                        <span className="absolute right-2 top-2 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-white">{t.closesIn(d)}</span>
+                      )}
+                    </div>
+                    <div className="flex flex-1 flex-col p-4">
+                      <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                        {r.region?.flag} {r.region?.name} · {r.category?.emoji} {r.category?.name}
+                      </div>
+                      <h3 className="mt-1.5 line-clamp-2 text-sm font-semibold break-keep group-hover:underline underline-offset-2">{r.title}</h3>
+                      <p className="mt-1 text-xs text-muted-foreground">{r.business_name}</p>
+                      <div className="mt-auto flex items-center gap-3 pt-3 text-xs text-muted-foreground">
+                        <span className="inline-flex items-center gap-1"><Users className="size-3.5" />{r.recruit_count}</span>
+                        <span>{r.always_open ? t.metaAlways : t.until(fmt(r.recruit_end))}</span>
+                        {r.point_amount > 0 && <span className="ml-auto inline-flex items-center gap-1 font-semibold text-accent-ink"><Coins className="size-3.5" />{r.point_amount.toLocaleString()}P</span>}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
         © 2026 {locale === "ko" ? "루비AI" : "Luby AI"} · <Link href={pfx || "/"} className="hover:text-foreground">{t.footerHome}</Link> · <Link href="/terms" className="hover:text-foreground">{t.terms}</Link> · <Link href="/privacy" className="hover:text-foreground">{t.privacy}</Link>

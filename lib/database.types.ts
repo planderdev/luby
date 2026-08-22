@@ -1375,6 +1375,10 @@ export type Database = {
         Args: { p_campaign: string }
         Returns: Json
       }
+      list_related_public_campaigns: {
+        Args: { p_id: string; p_limit?: number }
+        Returns: Json
+      }
       campaign_view_counts: {
         Args: { p_ids: string[] }
         Returns: { campaign_id: string; views: number; uniques: number }[]
