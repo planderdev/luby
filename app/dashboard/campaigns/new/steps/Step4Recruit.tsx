@@ -29,6 +29,7 @@ export function Step4Recruit({
         r = await suggestRecruitAndKeywords({
           industryBrief: draft.industry_brief,
           businessName: draft.business_name,
+          categoryId: draft.category_id || null,
         });
       } catch (e) {
         setAIError(e instanceof Error ? e.message : "AI 호출 중 오류가 발생했습니다.");

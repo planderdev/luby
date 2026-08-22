@@ -212,13 +212,15 @@ export type RecruitSuggestion = {
 export async function suggestRecruitAndKeywords(input: {
   industryBrief: string;
   businessName: string;
+  categoryId?: string | null;
 }): Promise<AIResult<RecruitSuggestion>> {
   const auth = await ensureAuth();
   if (!auth.ok) return auth;
   if (!input.industryBrief?.trim()) return { ok: false, error: "업종 설명이 필요합니다." };
+  const bench = await benchmarkBlock(input.categoryId);
 
   return callAI<RecruitSuggestion>({ feature: "campaign_copy_recruit", userId: auth.userId,    userPrompt: `상호명: ${input.businessName}
-업종 설명: ${input.industryBrief}
+업종 설명: ${input.industryBrief}${bench}
 
 위 정보를 보고:
 1. 이 업종/캠페인 규모에 적정한 모집 인원 (recruit_count) 추천 (보통 5~30명, 고가 제품일수록 적게)
@@ -241,6 +243,26 @@ export async function suggestRecruitAndKeywords(input: {
   });
 }
 
+// ---------- 벤치마크 컨텍스트 (category_benchmark) --------------------------
+
+/** 같은 분야(표본<3이면 전체) 최근 180일 집계를 프롬프트 블록으로. 실패/표본 없음이면 빈 문자열 */
+async function benchmarkBlock(categoryId?: string | null): Promise<string> {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.rpc("category_benchmark", { p_category: categoryId && /^[0-9a-f-]{36}$/.test(categoryId) ? categoryId : undefined });
+    const b = data as null | { scope: "category" | "all"; sample: number; points_median: number | null; points_p25: number | null; points_p75: number | null; recruit_median: number | null; ratio_avg: number | null; fill_rate: number | null; approval_rate: number | null; top_channels: string[] };
+    if (!b || !b.sample) return "";
+    const n = (v: number | null) => (v === null ? "-" : Math.round(v).toLocaleString());
+    return `
+
+[플랫폼 벤치마크 — 최근 180일 ${b.scope === "category" ? "같은 분야" : "전체"} ${b.sample}개 캠페인]
+포인트 중앙값 ${n(b.points_median)}P (보통 ${n(b.points_p25)}~${n(b.points_p75)}P) · 모집 인원 중앙값 ${n(b.recruit_median)}명 · 평균 경쟁률 ${b.ratio_avg ?? "-"}:1${b.fill_rate !== null ? ` · 모집 충원율 ${n(b.fill_rate)}%` : ""}${b.approval_rate !== null ? ` · 콘텐츠 승인율 ${n(b.approval_rate)}%` : ""}${b.top_channels.length ? ` · 많이 쓰는 채널 ${b.top_channels.join(", ")}` : ""}
+규칙: point_amount 와 recruit_count 는 이 구간을 기준점으로 삼되, 제공물 가치·브리프의 규모·고가 여부에 따라 조정한다. 평균 경쟁률이 1:1 미만이면 포인트를 구간 상단 쪽으로 잡고 인원은 보수적으로, 충원율이 낮으면 인원을 줄인다. 벤치마크 수치를 그대로 복사하지 말고 근거로만 쓴다.`;
+  } catch {
+    return "";
+  }
+}
+
 // ---------- Step 5: Offerings + points -------------------------------------
 
 export type OfferingSuggestion = {
@@ -251,13 +273,15 @@ export type OfferingSuggestion = {
 export async function suggestOfferingsAndPoints(input: {
   industryBrief: string;
   businessName: string;
+  categoryId?: string | null;
 }): Promise<AIResult<OfferingSuggestion>> {
   const auth = await ensureAuth();
   if (!auth.ok) return auth;
   if (!input.industryBrief?.trim()) return { ok: false, error: "업종 설명이 필요합니다." };
+  const bench = await benchmarkBlock(input.categoryId);
 
   return callAI<OfferingSuggestion>({ feature: "campaign_copy_offerings", userId: auth.userId,    userPrompt: `상호명: ${input.businessName}
-업종 설명: ${input.industryBrief}
+업종 설명: ${input.industryBrief}${bench}
 
 위 정보를 보고:
 1. 인플루언서에게 제공할 항목(offerings) 1~3개 추천 (제품/서비스/식사권 등)
@@ -344,11 +368,12 @@ ${r.ai_summary?.next_steps?.length ? `제안됐던 다음 단계: ${r.ai_summary
     }
   }
 
+  const bench = await benchmarkBlock(null);
   const r = await callAI<FullDraftSuggestion>({ feature: history ? "campaign_refresh" : "campaign_draft", userId: auth.userId,
     maxTokens: 16000,
     deep: true,
     userPrompt: `상호명: ${input.businessName}
-업종 설명: ${input.industryBrief}${history}
+업종 설명: ${input.industryBrief}${bench}${history}
 
 위 정보만으로 캠페인을 처음부터 끝까지 자동으로 채워주세요.
 
