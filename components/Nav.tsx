@@ -26,6 +26,8 @@ export function Nav({ dict, locale }: { dict: Dict["nav"]; locale: Locale }) {
       }`}
     >
       <div className="mx-auto flex h-16 w-full max-w-360 items-center justify-between px-5 md:px-10 lg:px-16">
+        {/* 좌·우 영역을 같은 flex-1 로 두어 가운데 메뉴가 화면 중앙에 오도록 (justify-between 만으로는 우측 버튼 폭만큼 왼쪽으로 쏠림) */}
+        <div className="flex flex-1 items-center justify-start">
         <a href="#" className="flex shrink-0 items-center" aria-label={dict.home}>
           <Image
             src="/logo.png"
@@ -36,8 +38,9 @@ export function Nav({ dict, locale }: { dict: Dict["nav"]; locale: Locale }) {
             className="h-6 w-auto shrink-0 invert dark:invert-0 sm:h-7"
           />
         </a>
+        </div>
 
-        <nav className="hidden items-center gap-1 lg:flex">
+        <nav className="hidden shrink-0 items-center gap-1 lg:flex">
           {dict.menu.map((m) => (
             <a
               key={m.href}
@@ -49,7 +52,7 @@ export function Nav({ dict, locale }: { dict: Dict["nav"]; locale: Locale }) {
           ))}
         </nav>
 
-        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+        <div className="flex flex-1 shrink-0 items-center justify-end gap-1 sm:gap-2">
           <LangSwitcher locale={locale} />
           <ThemeToggle />
           <a
