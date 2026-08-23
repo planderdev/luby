@@ -57,10 +57,12 @@ export function AuthShell({
           <div className="text-xs uppercase tracking-[0.2em] text-background/60">
             Global Campaign Platform
           </div>
-          <p className="display mt-4 max-w-sm text-3xl font-semibold lg:text-4xl">
-            전 세계 체험단을, 한 번의 캠페인으로.
+          <p className="display mt-4 max-w-md break-keep text-3xl font-semibold leading-[1.2] lg:text-4xl" style={{ textWrap: "balance" }}>
+            전 세계 체험단을,
+            <br />
+            한 번의 캠페인으로.
           </p>
-          <p className="mt-4 max-w-sm text-sm text-background/70">
+          <p className="mt-4 max-w-sm break-keep text-sm text-background/70">
             8,500명 이상의 글로벌 인플루언서가 루비AI에서 새 캠페인을 기다리고 있습니다.
           </p>
         </div>
