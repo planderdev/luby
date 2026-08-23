@@ -58,6 +58,8 @@ export default async function OperatorStatsPage() {
   const { count: referredTotal } = await supabase.from("profiles").select("id", { count: "exact", head: true }).not("referred_by", "is", null);
   const { data: featRaw } = await supabase.rpc("operator_feature_stats");
   const { data: benchRaw } = await supabase.rpc("operator_category_benchmarks", { p_days: 180 });
+  const { data: docFbRaw } = await supabase.rpc("operator_doc_feedback_stats", { p_days: 30 });
+  const docFb = (docFbRaw ?? null) as null | { total: number; helpful: number; by_path: { path: string; helpful: number; unhelpful: number }[]; comments: { path: string; helpful: boolean; comment: string; created_at: string }[] };
   const bench = (benchRaw ?? []) as {
     category_id: string; category_name: string; category_emoji: string | null; campaigns: number; open_now: number;
     points_median: number | null; points_p25: number | null; points_p75: number | null; recruit_median: number | null;
@@ -297,6 +299,34 @@ export default async function OperatorStatsPage() {
             </table>
           </div>
           <p className="mt-3 text-[11px] text-muted-foreground">경쟁률 1:1 미만(주황)은 공급이 부족한 분야 — 해당 분야 크리에이터 모집·맞춤 알림 강화를 검토하세요. 충원율·승인율은 마감·완료 캠페인만 집계.</p>
+        </section>
+      )}
+
+      {docFb && docFb.total > 0 && (
+        <section className="mt-8 rounded-3xl glass-card p-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">가이드 피드백 · 최근 30일</h2>
+            <span className="text-[11px] text-muted-foreground">{docFb.total}건 · 도움됨 {docFb.total > 0 ? Math.round((100 * docFb.helpful) / docFb.total) : 0}%</span>
+          </div>
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <ul className="space-y-1.5 text-sm">
+              {docFb.by_path.slice(0, 10).map((r) => (
+                <li key={r.path} className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-2">
+                  <Link href={r.path} target="_blank" className="truncate font-mono text-xs hover:underline">{r.path}</Link>
+                  <span className="shrink-0 text-xs tabular-nums"><span className="text-success">👍 {r.helpful}</span> · <span className={r.unhelpful > 0 ? "text-warning" : "text-muted-foreground"}>👎 {r.unhelpful}</span></span>
+                </li>
+              ))}
+            </ul>
+            <ul className="space-y-2 text-sm">
+              {docFb.comments.length === 0 && <li className="text-xs text-muted-foreground">남겨진 의견이 없어요.</li>}
+              {docFb.comments.slice(0, 8).map((c, i) => (
+                <li key={i} className="rounded-xl border border-border px-3 py-2">
+                  <div className="text-[11px] text-muted-foreground"><Link href={c.path} target="_blank" className="font-mono hover:underline">{c.path}</Link> · {new Date(c.created_at).toLocaleDateString("ko-KR")}</div>
+                  <p className="mt-0.5 text-xs leading-relaxed">{c.comment}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
       )}
 

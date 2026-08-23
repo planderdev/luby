@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { findDoc, loadDocs, DOC_GROUPS } from "@/lib/docs/content";
 import { CopyMarkdownButton } from "@/components/docs/CopyMarkdownButton";
+import { DocFeedback } from "@/components/docs/DocFeedback";
 
 type Params = Promise<{ group: string; slug: string }>;
 
@@ -47,6 +48,7 @@ export default async function DocPage({ params }: { params: Params }) {
         <h1 className="display mt-3 break-keep text-3xl font-semibold tracking-tight md:text-4xl">{page.title}</h1>
         {page.subtitle && <p className="mt-2 text-sm text-muted-foreground" dangerouslySetInnerHTML={{ __html: page.subtitle.replace(/`([^`]+)`/g, "<code>$1</code>") }} />}
         <div className="docs-prose mt-8" dangerouslySetInnerHTML={{ __html: page.html }} />
+        <DocFeedback />
 
         <div className="mt-12 grid gap-3 sm:grid-cols-2">
           {visiblePrev ? (
