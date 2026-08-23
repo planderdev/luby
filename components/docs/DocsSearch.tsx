@@ -7,7 +7,7 @@ import { Search, X } from "lucide-react";
 export type SearchItem = { href: string; group: string; title: string; text: string; headings: string[] };
 
 /** ⌘K 검색 — 제목·소제목·본문 부분 일치, 상위 8개 */
-export function DocsSearch({ items }: { items: SearchItem[] }) {
+export function DocsSearch({ items, labels = { search: "검색…", placeholder: "기능·화면 이름으로 검색 (예: 출금, QR 포스터, 검수)", noResults: "{labels.noResults}", close: "닫기" } }: { items: SearchItem[]; labels?: { search: string; placeholder: string; noResults: string; close: string } }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [sel, setSel] = useState(0);
@@ -49,7 +49,7 @@ export function DocsSearch({ items }: { items: SearchItem[] }) {
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted">
-        <Search className="size-3.5" /> <span className="hidden sm:inline">검색…</span>
+        <Search className="size-3.5" /> <span className="hidden sm:inline">{labels.search}</span>
         <kbd className="hidden rounded border border-border px-1 text-[10px] sm:inline">⌘K</kbd>
       </button>
       {open && (
@@ -66,10 +66,10 @@ export function DocsSearch({ items }: { items: SearchItem[] }) {
                   if (e.key === "ArrowUp") { e.preventDefault(); setSel((s) => Math.max(0, s - 1)); }
                   if (e.key === "Enter" && results[sel]) go(results[sel].href);
                 }}
-                placeholder="기능·화면 이름으로 검색 (예: 출금, QR 포스터, 검수)"
+                placeholder={labels.placeholder}
                 className="h-12 flex-1 bg-transparent text-sm outline-none"
               />
-              <button type="button" onClick={() => setOpen(false)} aria-label="닫기" className="rounded-full p-1 text-muted-foreground hover:bg-muted"><X className="size-4" /></button>
+              <button type="button" onClick={() => setOpen(false)} aria-label={labels.close} className="rounded-full p-1 text-muted-foreground hover:bg-muted"><X className="size-4" /></button>
             </div>
             <ul className="max-h-[60vh] overflow-y-auto p-2">
               {results.length === 0 && <li className="px-3 py-6 text-center text-sm text-muted-foreground">결과가 없어요. 다른 단어로 찾아보세요.</li>}

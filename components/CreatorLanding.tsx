@@ -164,7 +164,10 @@ export async function CreatorLanding({ locale }: { locale: Locale }) {
 
       {/* FAQ */}
       <section className="mx-auto w-full max-w-6xl px-5 pt-16 lg:pt-24">
-        <h2 className="display text-2xl font-semibold tracking-tight md:text-3xl">{t.faqTitle}</h2>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <h2 className="display text-2xl font-semibold tracking-tight md:text-3xl">{t.faqTitle}</h2>
+          <Link href={`${locale === "ko" ? "/docs" : `/docs/${locale}`}/creator/1`} className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">{t.guideLink} <ArrowRight className="size-3.5" /></Link>
+        </div>
         <dl className="mt-6 grid gap-4 md:grid-cols-3">
           {t.faq.map((f) => (
             <div key={f.q} className="rounded-3xl glass-card p-6">

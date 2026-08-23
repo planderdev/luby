@@ -36,6 +36,7 @@ const ko = {
   referralTitle: "친구를 초대하면 500P",
   referralDesc: "내 추천 링크로 가입한 친구가 첫 체험을 완료하면 500P가 쌓여요(월 5명까지).",
   faqTitle: "자주 묻는 질문",
+  guideLink: "크리에이터 가이드 전체 보기",
   faq: [
     { q: "팔로워가 적어도 되나요?", a: "네. 광고주는 팔로워 수뿐 아니라 콘텐츠 스타일과 분야 일치를 봅니다. 소규모 채널을 원하는 캠페인도 많아요." },
     { q: "비용이 드나요?", a: "크리에이터는 무료예요. 체험 제공물과 포인트를 받습니다." },
@@ -83,6 +84,7 @@ const en: CreatorLandingDict = {
   referralTitle: "Invite a friend, earn 500P",
   referralDesc: "When a friend signs up with your link and completes their first campaign, you earn 500P (up to 5 per month).",
   faqTitle: "FAQ",
+  guideLink: "Read the full creator guide",
   faq: [
     { q: "Do I need many followers?", a: "No. Brands look at content style and niche fit, not just reach. Many campaigns prefer smaller channels." },
     { q: "Does it cost anything?", a: "It's free for creators. You receive the product/experience plus points." },
@@ -129,6 +131,7 @@ const zh: CreatorLandingDict = {
   referralTitle: "邀请好友得 500P",
   referralDesc: "通过你的推荐链接注册的好友完成首次体验后，你将获得 500P（每月最多 5 人）。",
   faqTitle: "常见问题",
+  guideLink: "查看完整创作者指南",
   faq: [
     { q: "粉丝少也可以吗？", a: "可以。广告主看重内容风格与领域匹配，而不只是粉丝数。许多活动更偏好小型频道。" },
     { q: "需要付费吗？", a: "创作者完全免费，你会获得体验产品和积分。" },

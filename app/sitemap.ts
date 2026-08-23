@@ -77,6 +77,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     { url: `${base}/docs`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.7 },
     ...loadDocs().flatMap((g) => g.pages.map((p) => ({ url: `${base}/docs/${g.key}/${p.slug}`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.6 }))),
+    ...(["en", "zh"] as const).flatMap((lang) => [
+      { url: `${base}/docs/${lang}`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.6 },
+      ...loadDocs({ lang }).flatMap((g) => g.pages.map((p) => ({ url: `${base}/docs/${lang}/${g.key}/${p.slug}`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.5 }))),
+    ]),
     ...(["", "/en", "/zh"] as const).map((l) => ({
       url: `${base}${l}/creators`,
       lastModified: now,

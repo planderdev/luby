@@ -29,6 +29,8 @@ export type DocPage = {
 };
 
 const MANUAL_DIR = path.join(process.cwd(), "docs", "manuals");
+export type DocsLang = "ko" | "en" | "zh";
+const dirFor = (lang: DocsLang) => (lang === "ko" ? MANUAL_DIR : path.join(MANUAL_DIR, lang));
 
 function slugify(text: string): string {
   return text
@@ -40,20 +42,23 @@ function slugify(text: string): string {
     .slice(0, 60) || "section";
 }
 
-function rewriteLinks(md: string): string {
-  // 매뉴얼 간 상대 링크 → /docs 라우트
+function rewriteLinks(md: string, lang: DocsLang): string {
+  // 매뉴얼 간 상대 링크 → /docs 라우트 (번역본이 없는 그룹은 한국어 문서로)
+  const base = lang === "ko" ? "/docs" : `/docs/${lang}`;
+  const has = (file: string) => lang === "ko" || fs.existsSync(path.join(dirFor(lang), file));
+  const to = (file: string, key: string) => `](${has(file) ? base : "/docs"}/${key}/1)`;
   return md
-    .replace(/\]\(01-광고주-매뉴얼\.md\)/g, "](/docs/advertiser/1)")
-    .replace(/\]\(02-크리에이터-매뉴얼\.md\)/g, "](/docs/creator/1)")
-    .replace(/\]\(03-대행사-매뉴얼\.md\)/g, "](/docs/agency/1)")
-    .replace(/\]\(04-운영자-매뉴얼\.md\)/g, "](/docs/operator/1)");
+    .replace(/\]\(01-광고주-매뉴얼\.md\)/g, to("01-광고주-매뉴얼.md", "advertiser"))
+    .replace(/\]\(02-크리에이터-매뉴얼\.md\)/g, to("02-크리에이터-매뉴얼.md", "creator"))
+    .replace(/\]\(03-대행사-매뉴얼\.md\)/g, to("03-대행사-매뉴얼.md", "agency"))
+    .replace(/\]\(04-운영자-매뉴얼\.md\)/g, to("04-운영자-매뉴얼.md", "operator"));
 }
 
-function parseFile(group: DocGroup): { pages: DocPage[]; updated: string | null } {
-  const full = path.join(MANUAL_DIR, group.file);
+function parseFile(group: DocGroup, lang: DocsLang): { pages: DocPage[]; updated: string | null } {
+  const full = path.join(dirFor(lang), group.file);
   if (!fs.existsSync(full)) return { pages: [], updated: null };
   const raw = fs.readFileSync(full, "utf8");
-  const m = raw.match(/최종 갱신 (\d{4}-\d{2}-\d{2})/);
+  const m = raw.split("\n").slice(0, 6).join("\n").match(/(\d{4}-\d{2}-\d{2})/);
   const updated = m?.[1] ?? new Date(fs.statSync(full).mtime).toISOString().slice(0, 10);
 
   const lines = raw.split("\n");
@@ -61,24 +66,24 @@ function parseFile(group: DocGroup): { pages: DocPage[]; updated: string | null 
   let cur: { head: string; body: string[] } | null = null;
   for (const line of lines) {
     if (/^## /.test(line)) {
-      if (cur) pages.push(buildPage(group.key, cur.head, cur.body, updated, pages.length));
+      if (cur) pages.push(buildPage(group.key, cur.head, cur.body, updated, pages.length, lang));
       cur = { head: line.replace(/^## /, "").trim(), body: [] };
     } else if (cur) {
       cur.body.push(line);
     }
   }
-  if (cur) pages.push(buildPage(group.key, cur.head, cur.body, updated, pages.length));
+  if (cur) pages.push(buildPage(group.key, cur.head, cur.body, updated, pages.length, lang));
   return { pages, updated };
 }
 
-function buildPage(groupKey: string, head: string, body: string[], updated: string | null, index: number): DocPage {
+function buildPage(groupKey: string, head: string, body: string[], updated: string | null, index: number, lang: DocsLang): DocPage {
   const numMatch = head.match(/^(\d+(?:-\d+)?)\.\s*/);
   const slug = numMatch ? numMatch[1] : String(index + 1);
   const rest = numMatch ? head.slice(numMatch[0].length) : head;
   const [titleRaw, ...subParts] = rest.split(" — ");
   const title = titleRaw.trim();
   const subtitle = subParts.length ? subParts.join(" — ").trim() : null;
-  const markdown = rewriteLinks(body.join("\n").trim());
+  const markdown = rewriteLinks(body.join("\n").trim(), lang);
 
   const headings: DocPage["headings"] = [];
   const renderer = new marked.Renderer();
@@ -96,16 +101,17 @@ function buildPage(groupKey: string, head: string, body: string[], updated: stri
   return { group: groupKey, slug, order: index, title, subtitle, markdown, html, headings, updated };
 }
 
-let cache: { groups: (DocGroup & { pages: DocPage[]; updated: string | null })[] } | null = null;
+const cache = new Map<DocsLang, (DocGroup & { pages: DocPage[]; updated: string | null })[]>();
 
-export function loadDocs(opts?: { includeOperator?: boolean }) {
-  if (!cache || process.env.NODE_ENV !== "production") {
-    cache = { groups: DOC_GROUPS.map((g) => ({ ...g, ...parseFile(g) })) };
+export function loadDocs(opts?: { includeOperator?: boolean; lang?: DocsLang }) {
+  const lang = opts?.lang ?? "ko";
+  if (!cache.has(lang) || process.env.NODE_ENV !== "production") {
+    cache.set(lang, DOC_GROUPS.map((g) => ({ ...g, ...parseFile(g, lang) })).filter((g) => g.pages.length > 0));
   }
-  return cache.groups.filter((g) => !g.operatorOnly || opts?.includeOperator);
+  return cache.get(lang)!.filter((g) => !g.operatorOnly || opts?.includeOperator);
 }
 
-export function findDoc(group: string, slug: string, opts?: { includeOperator?: boolean }) {
+export function findDoc(group: string, slug: string, opts?: { includeOperator?: boolean; lang?: DocsLang }) {
   const groups = loadDocs(opts);
   const g = groups.find((x) => x.key === group);
   if (!g) return null;
@@ -117,10 +123,11 @@ export function findDoc(group: string, slug: string, opts?: { includeOperator?: 
 }
 
 /** 검색 인덱스 (클라이언트용, 본문은 요약만) */
-export function searchIndex(opts?: { includeOperator?: boolean }) {
+export function searchIndex(opts?: { includeOperator?: boolean; lang?: DocsLang }) {
+  const base = !opts?.lang || opts.lang === "ko" ? "/docs" : `/docs/${opts.lang}`;
   return loadDocs(opts).flatMap((g) =>
     g.pages.map((p) => ({
-      href: `/docs/${g.key}/${p.slug}`,
+      href: `${base}/${g.key}/${p.slug}`,
       group: g.title,
       title: p.title,
       text: p.markdown.replace(/[#`*_>|-]/g, " ").replace(/\s+/g, " ").slice(0, 600),
