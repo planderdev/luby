@@ -89,6 +89,8 @@ export const viewport = {
 const themeScript = `
 (function(){try{
   var s=localStorage.getItem('theme');
+  var q=new URLSearchParams(location.search).get('theme');
+  if(q==='light'||q==='dark')s=q;
   var d=s?s==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;
   if(d)document.documentElement.classList.add('dark');
 }catch(e){}})();
