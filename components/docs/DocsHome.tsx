@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, ChevronRight, Rocket } from "lucide-react";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { loadDocs } from "@/lib/docs/content";
+import { getStaticSupabase } from "@/lib/supabase/static";
 import { docsDict, docsPrefix, type DocsLocale } from "@/lib/docs/i18n";
 
 /** 가이드 홈 — 제목·설명·Quick Start·역할별 카드·다음 */
@@ -14,6 +15,11 @@ export async function DocsHome({ lang }: { lang: DocsLocale }) {
   const available = new Set(groups.map((g) => g.key));
   const quick = t.quick.filter((q) => available.has(q.href.split("/")[1]));
   const updated = groups.map((g) => g.updated).filter(Boolean).sort().at(-1);
+  // 인기 문서(최근 30일 조회) — 경로를 현재 목차의 제목으로 변환, 없는 경로는 제외
+  const { data: popRaw } = await getStaticSupabase().rpc("popular_docs", { p_lang: lang, p_limit: 6 });
+  const titleOf = new Map<string, string>();
+  for (const g of groups) for (const p of g.pages) titleOf.set(`${base}/${g.key}/${p.slug}`, `${t.groups[g.key] ?? g.title} · ${p.title}`);
+  const popular = ((popRaw ?? []) as { path: string; views: number }[]).filter((r) => titleOf.has(r.path)).slice(0, 5);
   const creatorsHref = lang === "ko" ? "/creators" : `/${lang}/creators`;
 
   return (
@@ -39,6 +45,19 @@ export async function DocsHome({ lang }: { lang: DocsLocale }) {
             ))}
           </ul>
         </div>
+      )}
+
+      {popular.length > 0 && (
+        <>
+          <h2 className="mt-10 text-lg font-semibold">{t.popular}</h2>
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {popular.map((r) => (
+              <li key={r.path}>
+                <Link href={r.path} className="inline-flex items-center rounded-full border border-border bg-background px-3.5 py-1.5 text-xs hover:bg-muted">{titleOf.get(r.path)}</Link>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
 
       <h2 className="mt-10 text-lg font-semibold">{t.byRole}</h2>

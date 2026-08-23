@@ -60,6 +60,8 @@ export default async function OperatorStatsPage() {
   const { data: benchRaw } = await supabase.rpc("operator_category_benchmarks", { p_days: 180 });
   const { data: docFbRaw } = await supabase.rpc("operator_doc_feedback_stats", { p_days: 30 });
   const { data: docSearchRaw } = await supabase.rpc("operator_doc_search_stats", { p_days: 30 });
+  const { data: docViewRaw } = await supabase.rpc("operator_doc_view_stats", { p_days: 30 });
+  const docView = (docViewRaw ?? null) as null | { total: number; uniques: number; by_lang: Record<string, number>; top: { path: string; views: number }[] };
   const docSearch = (docSearchRaw ?? null) as null | { total: number; zero: number; top: { query: string; n: number; zero: number; clicks: number }[]; zero_queries: { query: string; n: number; lang: string }[] };
   const docFb = (docFbRaw ?? null) as null | { total: number; helpful: number; by_path: { path: string; helpful: number; unhelpful: number }[]; comments: { path: string; helpful: boolean; comment: string; created_at: string }[] };
   const bench = (benchRaw ?? []) as {
@@ -329,6 +331,23 @@ export default async function OperatorStatsPage() {
               ))}
             </ul>
           </div>
+        </section>
+      )}
+
+      {docView && docView.total > 0 && (
+        <section className="mt-8 rounded-3xl glass-card p-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">가이드 조회 · 최근 30일</h2>
+            <span className="text-[11px] text-muted-foreground">{docView.total}회 · 순 방문 {docView.uniques} · {Object.entries(docView.by_lang).map(([l, n]) => `${l.toUpperCase()} ${n}`).join(" / ")}</span>
+          </div>
+          <ul className="mt-4 grid gap-1.5 text-sm sm:grid-cols-2">
+            {docView.top.slice(0, 10).map((r) => (
+              <li key={r.path} className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-1.5">
+                <Link href={r.path} target="_blank" className="truncate font-mono text-xs hover:underline">{r.path}</Link>
+                <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{r.views}</span>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 

@@ -1407,6 +1407,18 @@ export type Database = {
         Args: { p_creator: string; p_source: string; p_lang: string; p_hash: string }
         Returns: boolean
       }
+      record_doc_view: {
+        Args: { p_path: string; p_lang: string; p_hash: string }
+        Returns: boolean
+      }
+      popular_docs: {
+        Args: { p_lang?: string; p_limit?: number }
+        Returns: { path: string; views: number }[]
+      }
+      operator_doc_view_stats: {
+        Args: { p_days?: number }
+        Returns: Json
+      }
       record_doc_search: {
         Args: { p_query: string; p_lang: string; p_results: number; p_clicked: string | null; p_hash: string }
         Returns: boolean

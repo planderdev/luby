@@ -10,6 +10,8 @@ import { DocPageView, docPageMetadata } from "@/components/docs/DocPageView";
  * /docs 캐치올: [] 홈(ko) · [en|zh] 홈 · [group, slug] ko 페이지 · [en|zh, group, slug] 번역 페이지.
  * (라우트 그룹으로 나누면 같은 위치의 동적 세그먼트 이름이 충돌하므로 한 곳에서 해석)
  */
+export const revalidate = 600; // 인기 문서·조회 기반 요소가 10분마다 갱신되도록 ISR
+
 type Params = Promise<{ parts?: string[] }>;
 const LANGS = ["en", "zh"] as const;
 

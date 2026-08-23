@@ -7,6 +7,7 @@ import { findDoc, DOC_GROUPS } from "@/lib/docs/content";
 import { docsDict, docsPrefix, type DocsLocale } from "@/lib/docs/i18n";
 import { CopyMarkdownButton } from "@/components/docs/CopyMarkdownButton";
 import { DocFeedback } from "@/components/docs/DocFeedback";
+import { DocViewBeacon } from "@/components/docs/DocViewBeacon";
 
 export function docPageMetadata(lang: DocsLocale, group: string, slug: string): Metadata {
   const t = docsDict[lang];
@@ -36,6 +37,7 @@ export async function DocPageView({ lang, group, slug }: { lang: DocsLocale; gro
 
   return (
     <div className="flex gap-10">
+      <DocViewBeacon lang={lang} />
       <article className="min-w-0 max-w-3xl flex-1">
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
           <nav aria-label="breadcrumb" className="flex items-center gap-1.5">
