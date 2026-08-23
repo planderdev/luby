@@ -4,8 +4,7 @@ import { getCurrentProfile } from "@/lib/supabase/queries";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { MobileNav } from "@/components/dashboard/MobileNav";
 import { NotificationBell } from "@/components/dashboard/NotificationBell";
-import Link from "next/link";
-import { CircleHelp } from "lucide-react";
+import { GuideButton } from "@/components/dashboard/GuideButton";
 import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { SubscriptionBanner } from "@/components/dashboard/SubscriptionBanner";
 import { PushNudgeBanner } from "@/components/dashboard/PushNudgeBanner";
@@ -38,6 +37,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           avatarUrl={profile.avatar_url}
           bell={
             <>
+              <GuideButton role={profile.role} />
               <RefreshButton />
               <NotificationBell userId={profile.id} />
             </>
@@ -47,9 +47,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         {/* 데스크톱: 우상단 알림 벨 */}
         <div className="mx-auto hidden w-full max-w-6xl px-5 pt-5 md:px-8 lg:block lg:px-12">
           <div className="flex items-center justify-end gap-2">
-            <Link href="/docs" target="_blank" rel="noopener" title="사용 가이드" aria-label="사용 가이드" className="inline-flex size-9 items-center justify-center rounded-full border border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground">
-              <CircleHelp className="size-4" />
-            </Link>
+            <GuideButton role={profile.role} />
             <RefreshButton />
             <NotificationBell userId={profile.id} />
           </div>
