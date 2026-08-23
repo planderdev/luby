@@ -33,7 +33,7 @@ export async function DocsShell({ lang, children }: { lang: DocsLocale; children
                 </Link>
               ))}
             </nav>
-            <DocsSearch items={index} labels={{ search: t.search, placeholder: t.searchPlaceholder, noResults: t.noResults, close: t.close }} />
+            <DocsSearch items={index} lang={lang} labels={{ search: t.search, placeholder: t.searchPlaceholder, noResults: t.noResults, close: t.close }} />
             <Link href={profile ? "/dashboard" : "/login?redirect=/dashboard"} className="hidden items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-muted sm:inline-flex">
               {profile ? t.openDashboard : t.login} <ExternalLink className="size-3.5" />
             </Link>

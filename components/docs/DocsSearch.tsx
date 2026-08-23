@@ -7,7 +7,7 @@ import { Search, X } from "lucide-react";
 export type SearchItem = { href: string; group: string; title: string; text: string; headings: string[] };
 
 /** ⌘K 검색 — 제목·소제목·본문 부분 일치, 상위 8개 */
-export function DocsSearch({ items, labels = { search: "검색…", placeholder: "기능·화면 이름으로 검색 (예: 출금, QR 포스터, 검수)", noResults: "{labels.noResults}", close: "닫기" } }: { items: SearchItem[]; labels?: { search: string; placeholder: string; noResults: string; close: string } }) {
+export function DocsSearch({ items, lang = "ko", labels = { search: "검색…", placeholder: "기능·화면 이름으로 검색 (예: 출금, QR 포스터, 검수)", noResults: "{labels.noResults}", close: "닫기" } }: { items: SearchItem[]; lang?: string; labels?: { search: string; placeholder: string; noResults: string; close: string } }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [sel, setSel] = useState(0);
@@ -37,7 +37,23 @@ export function DocsSearch({ items, labels = { search: "검색…", placeholder:
     return scored.slice(0, 8).map((x) => x.it);
   }, [q, items]);
 
-  function go(href: string) { setOpen(false); router.push(href); }
+  // 검색어 로그: 입력 멈춤 800ms 후 1회(세션 내 같은 검색어 중복 제외), 클릭 시 문서 경로 추가
+  const logged = useRef(new Set<string>());
+  const log = (q: string, resultCount: number, clicked?: string) => {
+    const key = q.trim().toLowerCase();
+    if (key.length < 2) return;
+    if (!clicked && logged.current.has(key)) return;
+    logged.current.add(key);
+    fetch("/api/docs/search", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ q: key, lang, results: resultCount, clicked }), keepalive: true }).catch(() => {});
+  };
+  useEffect(() => {
+    if (!open || q.trim().length < 2) return;
+    const t = setTimeout(() => log(q, results.length), 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q, open]);
+
+  function go(href: string) { if (q.trim().length >= 2) log(q, results.length, href); setOpen(false); router.push(href); }
   function snippet(it: SearchItem) {
     const term = q.trim().toLowerCase();
     if (!term) return it.text.slice(0, 90);

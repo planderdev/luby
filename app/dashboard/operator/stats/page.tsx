@@ -59,6 +59,8 @@ export default async function OperatorStatsPage() {
   const { data: featRaw } = await supabase.rpc("operator_feature_stats");
   const { data: benchRaw } = await supabase.rpc("operator_category_benchmarks", { p_days: 180 });
   const { data: docFbRaw } = await supabase.rpc("operator_doc_feedback_stats", { p_days: 30 });
+  const { data: docSearchRaw } = await supabase.rpc("operator_doc_search_stats", { p_days: 30 });
+  const docSearch = (docSearchRaw ?? null) as null | { total: number; zero: number; top: { query: string; n: number; zero: number; clicks: number }[]; zero_queries: { query: string; n: number; lang: string }[] };
   const docFb = (docFbRaw ?? null) as null | { total: number; helpful: number; by_path: { path: string; helpful: number; unhelpful: number }[]; comments: { path: string; helpful: boolean; comment: string; created_at: string }[] };
   const bench = (benchRaw ?? []) as {
     category_id: string; category_name: string; category_emoji: string | null; campaigns: number; open_now: number;
@@ -326,6 +328,38 @@ export default async function OperatorStatsPage() {
                 </li>
               ))}
             </ul>
+          </div>
+        </section>
+      )}
+
+      {docSearch && docSearch.total > 0 && (
+        <section className="mt-8 rounded-3xl glass-card p-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">가이드 검색어 · 최근 30일</h2>
+            <span className="text-[11px] text-muted-foreground">{docSearch.total}건 · 결과 없음 {docSearch.zero}건</span>
+          </div>
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <div>
+              <div className="text-[11px] font-medium text-muted-foreground">많이 찾은 검색어</div>
+              <ul className="mt-2 space-y-1 text-sm">
+                {docSearch.top.slice(0, 12).map((r) => (
+                  <li key={r.query} className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-1.5">
+                    <span className="truncate">{r.query}</span>
+                    <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{r.n}회 · 클릭 {r.clicks}{r.zero > 0 ? <span className="text-warning"> · 결과 없음 {r.zero}</span> : null}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <div className="text-[11px] font-medium text-muted-foreground">결과 없는 검색어 — 문서 보완 후보</div>
+              {docSearch.zero_queries.length === 0 ? <p className="mt-2 text-xs text-muted-foreground">없음</p> : (
+                <ul className="mt-2 flex flex-wrap gap-1.5">
+                  {docSearch.zero_queries.map((z) => (
+                    <li key={z.query} className="rounded-full border border-warning/40 bg-warning-soft/40 px-2.5 py-1 text-xs">{z.query} <span className="text-muted-foreground">×{z.n}{z.lang !== "ko" ? ` · ${z.lang}` : ""}</span></li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         </section>
       )}
