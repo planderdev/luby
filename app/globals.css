@@ -206,4 +206,5 @@ select:focus-visible {
 .docs-prose th, .docs-prose td { border: 1px solid rgb(var(--border)); padding: 0.5em 0.75em; text-align: left; vertical-align: top; }
 .docs-prose th { background: rgb(var(--muted) / 0.6); font-weight: 600; white-space: nowrap; }
 .docs-prose hr { border: 0; border-top: 1px solid rgb(var(--border)); }
-.docs-prose img { max-width: 100%; border-radius: 1rem; }
+.docs-prose img { max-width: 100%; border-radius: 1rem; border: 1px solid rgb(var(--border)); box-shadow: var(--glass-shadow); background: rgb(var(--background)); }
+.docs-prose p:has(> img:only-child) { margin-top: 1.2em; margin-bottom: 1.2em; }

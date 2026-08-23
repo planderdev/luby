@@ -130,7 +130,7 @@ export function searchIndex(opts?: { includeOperator?: boolean; lang?: DocsLang 
       href: `${base}/${g.key}/${p.slug}`,
       group: g.title,
       title: p.title,
-      text: p.markdown.replace(/[#`*_>|-]/g, " ").replace(/\s+/g, " ").slice(0, 600),
+      text: p.markdown.replace(/!\[[^\]]*\]\([^)]*\)/g, " ").replace(/[#`*_>|-]/g, " ").replace(/\s+/g, " ").slice(0, 600),
       headings: p.headings.map((h) => h.text),
     }))
   );
