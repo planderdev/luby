@@ -16,6 +16,7 @@ export async function DocsShell({ lang, children }: { lang: DocsLocale; children
   const base = docsPrefix(lang);
   const nav = groups.map((g) => ({ key: g.key, title: t.groups[g.key] ?? g.title, description: t.groupDesc[g.key] ?? g.description, pages: g.pages.map((p) => ({ slug: p.slug, title: p.title })) }));
   const index = searchIndex({ includeOperator, lang });
+  const partial = lang !== "ko" && groups.length < loadDocs({ includeOperator, lang: "ko" }).length;
 
   return (
     <div className="min-h-dvh bg-canvas" lang={lang === "zh" ? "zh-CN" : lang}>
@@ -43,7 +44,7 @@ export async function DocsShell({ lang, children }: { lang: DocsLocale; children
       <div className="mx-auto flex w-full max-w-7xl gap-8 px-5 py-6 lg:py-10">
         <DocsSidebar groups={nav} base={base} labels={{ home: t.home, toc: t.toc, tocOpen: t.tocOpen, close: t.close }} />
         <div className="min-w-0 flex-1">
-          {lang !== "ko" && <p className="mb-5 rounded-2xl border border-border bg-background px-4 py-2.5 text-xs text-muted-foreground">{t.onlyKo} <Link href="/docs" className="underline underline-offset-2 hover:text-foreground">KR →</Link></p>}
+          {partial && <p className="mb-5 rounded-2xl border border-border bg-background px-4 py-2.5 text-xs text-muted-foreground">{t.onlyKo} <Link href="/docs" className="underline underline-offset-2 hover:text-foreground">KR →</Link></p>}
           {children}
         </div>
       </div>

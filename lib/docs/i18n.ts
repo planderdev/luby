@@ -32,10 +32,10 @@ const en: DocsDict = {
   groups: { start: "Getting started", advertiser: "Advertiser guide", creator: "Creator guide", agency: "Agency guide", operator: "Operator guide" },
   groupDesc: { start: "What Luby AI is, shortcuts by role, pricing", advertiser: "From signup to campaigns, recruiting, selection, review, results and billing", creator: "Channels, applying, experience & content, points payout, public profile", agency: "Per-client operations, sourcing, reporting", operator: "Members, campaign review, payouts, stats, automation" },
   quick: [
+    { title: "Advertisers: create your first campaign (let AI do it all)", href: "/advertiser/2" },
     { title: "Creators: sign up and channel approval", href: "/creator/1" },
-    { title: "Creators: find and apply to campaigns", href: "/creator/3" },
+    { title: "Grow applications — share link, QR poster, AI matching", href: "/advertiser/3" },
     { title: "Points and payout", href: "/creator/6" },
-    { title: "Public profile & referrals", href: "/creator/7" },
   ],
   onlyKo: "Only part of the guide is available in this language. The full documentation is available in Korean.",
 };
@@ -50,10 +50,10 @@ const zh: DocsDict = {
   groups: { start: "快速入门", advertiser: "广告主指南", creator: "创作者指南", agency: "代理机构指南", operator: "运营指南" },
   groupDesc: { start: "Luby AI 介绍、按角色快速入口、价格", advertiser: "从注册到活动创建、招募、选拔、审核、效果与付费", creator: "频道登记、报名、体验与内容、积分提现、公开主页", agency: "按客户运营、资源对接、报告", operator: "会员、活动审核、结算、统计、自动化" },
   quick: [
+    { title: "广告主：创建第一个活动（全部交给 AI）", href: "/advertiser/2" },
     { title: "创作者：注册与频道审核", href: "/creator/1" },
-    { title: "创作者：查找并报名活动", href: "/creator/3" },
+    { title: "扩大招募 — 分享链接、二维码海报、AI 匹配", href: "/advertiser/3" },
     { title: "积分与提现", href: "/creator/6" },
-    { title: "公开主页与好友推荐", href: "/creator/7" },
   ],
   onlyKo: "该语言仅提供部分指南，完整文档请查看韩文版。",
 };
