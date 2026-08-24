@@ -43,6 +43,7 @@ const fmtNFor = (locale: Locale) => (n: number) =>
 
 export async function buildPublicCreatorMetadata(id: string, locale: Locale = "ko"): Promise<Metadata> {
   const c = await fetchPublicCreator(id);
+  const { data: demo } = await getStaticSupabase().rpc("is_demo_account", { p_profile: id });
   const t = publicCreatorDict[locale];
   if (!c) return { title: locale === "ko" ? "프로필을 찾을 수 없어요" : locale === "zh" ? "找不到该资料" : "Profile not found", robots: { index: false } };
   const fmtN = fmtNFor(locale);
@@ -53,6 +54,7 @@ export async function buildPublicCreatorMetadata(id: string, locale: Locale = "k
   return {
     title: t.metaTitle(c.name),
     description: desc,
+    robots: demo === true ? { index: false, follow: true } : undefined,
     alternates: { canonical: url, languages: { "ko-KR": `${base}/p/${c.id}`, en: `${base}/en/p/${c.id}`, "zh-CN": `${base}/zh/p/${c.id}`, "x-default": `${base}/p/${c.id}` } },
     openGraph: { title: t.ogTitle(c.name), description: desc, url, type: "profile", siteName: SITE.name, images: c.avatar_url ? [{ url: c.avatar_url, width: 600, height: 600, alt: c.name }] : [{ url: "/og.png", width: 1280, height: 720 }] },
     twitter: { card: "summary", title: c.name, description: desc, images: c.avatar_url ? [c.avatar_url] : ["/og.png"] },

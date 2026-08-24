@@ -48,6 +48,13 @@ export async function fetchPublicCampaign(id: string): Promise<PublicCampaign | 
 
 const fmtFor = (locale: Locale) => (iso: string) => new Date(iso).toLocaleDateString(locale === "ko" ? "ko-KR" : locale === "zh" ? "zh-CN" : "en-US", { month: "long", day: "numeric" });
 
+/** 데모(@ruby-ai.kr) 광고주 캠페인 — 링크로는 열리되 목록·검색엔진에는 노출하지 않는다 */
+async function isDemoCampaign(advertiserId: string | undefined | null): Promise<boolean> {
+  if (!advertiserId) return false;
+  const { data } = await getStaticSupabase().rpc("is_demo_account", { p_profile: advertiserId });
+  return data === true;
+}
+
 export async function buildPublicCampaignMetadata(id: string, locale: Locale): Promise<Metadata> {
   const c = await fetchPublicCampaign(id);
   const t = publicCampaignDict[locale];
@@ -63,7 +70,7 @@ export async function buildPublicCampaignMetadata(id: string, locale: Locale): P
       canonical: url,
       languages: { "ko-KR": `${base}/c/${c.id}`, en: `${base}/en/c/${c.id}`, "zh-CN": `${base}/zh/c/${c.id}`, "x-default": `${base}/c/${c.id}` },
     },
-    robots: c.status === "open" ? { index: true, follow: true } : { index: false, follow: true },
+    robots: c.status === "open" && !(await isDemoCampaign(c.advertiser?.id)) ? { index: true, follow: true } : { index: false, follow: true },
     openGraph: {
       title: c.title,
       description: desc,

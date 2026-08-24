@@ -1411,6 +1411,10 @@ export type Database = {
         Args: { p_path: string; p_lang: string; p_hash: string }
         Returns: boolean
       }
+      is_demo_account: {
+        Args: { p_profile: string }
+        Returns: boolean
+      }
       popular_docs: {
         Args: { p_lang?: string; p_limit?: number }
         Returns: { path: string; views: number }[]
