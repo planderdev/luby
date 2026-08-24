@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { dbErrorMessage, dbErrorWith } from "@/lib/db-errors";
 import { revalidatePath } from "next/cache";
 import { getAdminSupabase } from "@/lib/supabase/admin";
 import { confirmTossPayment } from "@/lib/payments/toss";
@@ -56,7 +57,7 @@ export async function createBusinessOrder(): Promise<OrderResult> {
     amount: plan.monthly_price,
     status: "ready",
   });
-  if (error) return { ok: false, error: `주문 생성 실패: ${error.message}` };
+  if (error) return { ok: false, error: dbErrorWith("주문 생성 실패", error) };
 
   return {
     ok: true,
@@ -144,7 +145,7 @@ export async function confirmBusinessPayment(params: {
         fail_reason: `${result.error.code}: ${result.error.message}`,
       })
       .eq("id", order.id);
-    return { ok: false, error: result.error.message };
+    return { ok: false, error: dbErrorMessage(result.error, "결제에 실패했어요. 카드 정보를 확인하거나 다른 카드로 다시 시도해 주세요.") };
   }
 
   const payment = result.payment;
@@ -178,7 +179,7 @@ export async function confirmBusinessPayment(params: {
     })
     .eq("id", order.id)
     .eq("status", "ready"); // 동시 요청 대비: ready였던 행만 갱신
-  if (payErr) return { ok: false, error: `결제 기록 저장 실패: ${payErr.message}` };
+  if (payErr) return { ok: false, error: dbErrorWith("결제 기록 저장 실패", payErr) };
 
   const { error: subErr } = await admin
     .from("subscriptions")
@@ -211,7 +212,7 @@ export async function confirmBusinessPayment(params: {
 export async function requestTaxInvoice(paymentId: string): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = await createClient();
   const { error } = await supabase.rpc("request_tax_invoice", { p_payment_id: paymentId });
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbErrorMessage(error) };
   revalidatePath("/dashboard/billing");
   return { ok: true };
 }

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { dbErrorMessage } from "@/lib/db-errors";
 import { createClient } from "@/lib/supabase/server";
 
 export async function requestWithdrawal(input: {
@@ -29,9 +30,8 @@ export async function requestWithdrawal(input: {
   });
 
   if (error) {
-    // 함수의 raise exception 메시지를 그대로 사용자에게 전달 (한국어)
-    const msg = error.message.replace(/^.*?: /, "");
-    return { ok: false, error: msg || "출금 신청에 실패했습니다." };
+    // 함수의 raise exception 메시지(한국어)는 그대로, 그 외 DB 오류는 한국어로 변환
+    return { ok: false, error: dbErrorMessage(error, "출금 신청에 실패했습니다.") };
   }
 
   revalidatePath("/dashboard/points");

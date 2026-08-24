@@ -1,5 +1,6 @@
 "use server";
 import { trackServer } from "@/lib/analytics-server";
+import { dbErrorWith } from "@/lib/db-errors";
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -134,7 +135,7 @@ export async function createCampaign(
         channel_type_id: id,
       }))
     );
-    if (error) return rollback(`채널 저장 실패: ${error.message}`);
+    if (error) return rollback(dbErrorWith("채널 저장 실패", error));
   }
 
   // 3. Missions
@@ -149,7 +150,7 @@ export async function createCampaign(
         description: m.description.trim(),
       }))
     );
-    if (error) return rollback(`미션 저장 실패: ${error.message}`);
+    if (error) return rollback(dbErrorWith("미션 저장 실패", error));
   }
 
   // 4. Keywords
@@ -158,7 +159,7 @@ export async function createCampaign(
     const { error } = await supabase.from("campaign_keywords").insert(
       cleanKeywords.map((k) => ({ campaign_id: campaignId, keyword: k }))
     );
-    if (error) return rollback(`키워드 저장 실패: ${error.message}`);
+    if (error) return rollback(dbErrorWith("키워드 저장 실패", error));
   }
 
   // 5. Offerings
@@ -172,7 +173,7 @@ export async function createCampaign(
         estimated_value: o.estimated_value,
       }))
     );
-    if (error) return rollback(`제공내역 저장 실패: ${error.message}`);
+    if (error) return rollback(dbErrorWith("제공내역 저장 실패", error));
   }
 
   // 6. Schedules
@@ -185,7 +186,7 @@ export async function createCampaign(
         end_time: s.end_time || null,
       }))
     );
-    if (error) return rollback(`일정 저장 실패: ${error.message}`);
+    if (error) return rollback(dbErrorWith("일정 저장 실패", error));
   }
 
   if (operatorMode) {
@@ -262,7 +263,7 @@ export async function updateCampaign(
       status: submit ? "pending_approval" : "draft",
     })
     .eq("id", campaignId);
-  if (upErr) return { ok: false, error: `캠페인 수정 실패: ${upErr.message}` };
+  if (upErr) return { ok: false, error: dbErrorWith("캠페인 수정 실패", upErr) };
 
   // 하위 항목 교체
   await Promise.all([
@@ -274,26 +275,26 @@ export async function updateCampaign(
   ]);
   if (draft.channel_type_ids.length > 0) {
     const { error } = await supabase.from("campaign_channels").insert(draft.channel_type_ids.map((id) => ({ campaign_id: campaignId, channel_type_id: id })));
-    if (error) return { ok: false, error: `채널 저장 실패: ${error.message}` };
+    if (error) return { ok: false, error: dbErrorWith("채널 저장 실패", error) };
   }
   const validMissions = draft.missions.filter((m) => m.description.trim() && draft.channel_type_ids.includes(m.channel_type_id));
   if (validMissions.length > 0) {
     const { error } = await supabase.from("campaign_missions").insert(validMissions.map((m) => ({ campaign_id: campaignId, channel_type_id: m.channel_type_id, description: m.description.trim() })));
-    if (error) return { ok: false, error: `미션 저장 실패: ${error.message}` };
+    if (error) return { ok: false, error: dbErrorWith("미션 저장 실패", error) };
   }
   const cleanKeywords = [...new Set(draft.keywords.map((k) => k.trim()).filter(Boolean))];
   if (cleanKeywords.length > 0) {
     const { error } = await supabase.from("campaign_keywords").insert(cleanKeywords.map((k) => ({ campaign_id: campaignId, keyword: k })));
-    if (error) return { ok: false, error: `키워드 저장 실패: ${error.message}` };
+    if (error) return { ok: false, error: dbErrorWith("키워드 저장 실패", error) };
   }
   const validOfferings = draft.offerings.filter((o) => o.title.trim());
   if (validOfferings.length > 0) {
     const { error } = await supabase.from("campaign_offerings").insert(validOfferings.map((o) => ({ campaign_id: campaignId, title: o.title.trim(), description: o.description.trim() || null, estimated_value: o.estimated_value })));
-    if (error) return { ok: false, error: `제공내역 저장 실패: ${error.message}` };
+    if (error) return { ok: false, error: dbErrorWith("제공내역 저장 실패", error) };
   }
   if (draft.schedules.length > 0) {
     const { error } = await supabase.from("campaign_schedules").insert(draft.schedules.map((s) => ({ campaign_id: campaignId, day_of_week: s.day_of_week, start_time: s.start_time || null, end_time: s.end_time || null })));
-    if (error) return { ok: false, error: `일정 저장 실패: ${error.message}` };
+    if (error) return { ok: false, error: dbErrorWith("일정 저장 실패", error) };
   }
 
   revalidatePath(`/dashboard/campaigns/${campaignId}`);

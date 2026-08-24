@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { dbErrorMessage, dbErrorWith } from "@/lib/db-errors";
 import { createClient } from "@/lib/supabase/server";
 import type { Precheck } from "@/lib/ai/campaign-precheck";
 
@@ -38,14 +39,14 @@ export async function approveUser(
         approved_by: guard.user.id,
       })
       .eq("id", profileId);
-    if (error) return { ok: false, error: error.message };
+    if (error) return { ok: false, error: dbErrorMessage(error) };
   } else {
     // For reject, we just leave them unapproved. In real product we'd flag/email them.
     const { error } = await guard.supabase
       .from("profiles")
       .update({ approved: false })
       .eq("id", profileId);
-    if (error) return { ok: false, error: error.message };
+    if (error) return { ok: false, error: dbErrorMessage(error) };
   }
 
   revalidatePath("/dashboard/operator/users");
@@ -77,7 +78,7 @@ export async function approveUsersBulk(
     .eq("approved", false)
     .neq("role", "operator")
     .select("id");
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbErrorMessage(error) };
 
   revalidatePath("/dashboard/operator/users");
   revalidatePath("/dashboard");
@@ -108,7 +109,7 @@ export async function decideCampaign(
       .update({ status: "rejected", review_note: text.slice(0, 2000), reviewed_at: now, reviewed_by: guard.user.id })
       .eq("id", campaignId));
   }
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbErrorMessage(error) };
 
   revalidatePath("/dashboard/operator/campaigns");
   revalidatePath(`/dashboard/campaigns/${campaignId}`);
@@ -171,7 +172,7 @@ export async function searchCreatorsForCampaign(campaignId: string, query: strin
     p_query: query.trim() || null,
     p_limit: 20,
   });
-  if (error) return { ok: false as const, error: error.message };
+  if (error) return { ok: false as const, error: dbErrorMessage(error) };
   return { ok: true as const, rows: data ?? [] };
 }
 
@@ -185,7 +186,7 @@ export async function forceMatchCreators(campaignId: string, influencerIds: stri
     p_influencer_ids: influencerIds,
     p_note: note?.trim() || null,
   });
-  if (error) return { ok: false as const, error: error.message };
+  if (error) return { ok: false as const, error: dbErrorMessage(error) };
   revalidatePath(`/dashboard/campaigns/${campaignId}`);
   const r = data as { assigned: number; skipped: { id: string; reason: string }[] };
   return { ok: true as const, assigned: r.assigned, skipped: r.skipped ?? [] };
@@ -260,11 +261,11 @@ export async function inviteMember(input: {
     if (pwd.length < 8) return { ok: false, error: "비밀번호는 8자 이상이어야 합니다." };
     if (!/[0-9]/.test(pwd) || !/[A-Za-z]/.test(pwd)) return { ok: false, error: "비밀번호는 영문과 숫자를 포함해야 합니다." };
     const { data, error } = await admin.auth.admin.createUser({ email, password: pwd, email_confirm: true, user_metadata: meta });
-    if (error) return { ok: false, error: `생성 실패: ${error.message}` };
+    if (error) return { ok: false, error: dbErrorWith("생성 실패", error) };
     userId = data.user.id;
   } else if (mode === "invite") {
     const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { data: meta, redirectTo: `${siteUrl}/reset-password` });
-    if (error) return { ok: false, error: `초대 실패: ${error.message}` };
+    if (error) return { ok: false, error: dbErrorWith("초대 실패", error) };
     userId = data.user.id;
     invited = true;
   } else {
@@ -276,7 +277,7 @@ export async function inviteMember(input: {
     for (const x of b) s += alpha[x % alpha.length];
     tempPassword = `${s.slice(0, 5)}-${s.slice(5, 10)}-${s.slice(10)}!`;
     const { data, error } = await admin.auth.admin.createUser({ email, password: tempPassword, email_confirm: true, user_metadata: meta });
-    if (error) return { ok: false, error: `생성 실패: ${error.message}` };
+    if (error) return { ok: false, error: dbErrorWith("생성 실패", error) };
     userId = data.user.id;
   }
 
@@ -301,7 +302,7 @@ export async function addMemberNote(profileId: string, body: string, pinned = fa
   const text = body.trim();
   if (!text) return { ok: false as const, error: "메모 내용을 입력하세요." };
   const { error } = await guard.supabase.from("member_notes").insert({ profile_id: profileId, author_id: guard.user.id, body: text.slice(0, 2000), pinned });
-  if (error) return { ok: false as const, error: error.message };
+  if (error) return { ok: false as const, error: dbErrorMessage(error) };
   revalidatePath(`/dashboard/operator/users/${profileId}`);
   return { ok: true as const };
 }
@@ -310,7 +311,7 @@ export async function deleteMemberNote(noteId: string, profileId: string) {
   const guard = await ensureOperator();
   if (!guard.ok) return { ok: false as const, error: guard.error };
   const { error } = await guard.supabase.from("member_notes").delete().eq("id", noteId);
-  if (error) return { ok: false as const, error: error.message };
+  if (error) return { ok: false as const, error: dbErrorMessage(error) };
   revalidatePath(`/dashboard/operator/users/${profileId}`);
   return { ok: true as const };
 }
@@ -319,7 +320,7 @@ export async function setMemberTags(profileId: string, tags: string[]) {
   const guard = await ensureOperator();
   if (!guard.ok) return { ok: false as const, error: guard.error };
   const { data, error } = await guard.supabase.rpc("set_member_tags", { p_profile_id: profileId, p_tags: tags });
-  if (error) return { ok: false as const, error: error.message };
+  if (error) return { ok: false as const, error: dbErrorMessage(error) };
   revalidatePath(`/dashboard/operator/users/${profileId}`);
   revalidatePath("/dashboard/operator/users");
   return { ok: true as const, tags: (data ?? []) as string[] };
@@ -330,7 +331,7 @@ export async function markTaxInvoiceIssued(paymentId: string, note?: string) {
   const guard = await ensureOperator();
   if (!guard.ok) return { ok: false as const, error: guard.error };
   const { error } = await guard.supabase.rpc("mark_tax_invoice_issued", { p_payment_id: paymentId, p_note: note?.trim() || null });
-  if (error) return { ok: false as const, error: error.message };
+  if (error) return { ok: false as const, error: dbErrorMessage(error) };
   revalidatePath("/dashboard/operator/payments");
   return { ok: true as const };
 }

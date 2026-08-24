@@ -1,5 +1,6 @@
 "use server";
 import { channelHint, urlMatchesChannel } from "@/lib/channel-hints";
+import { dbErrorMessage, dbErrorWith } from "@/lib/db-errors";
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
@@ -39,7 +40,7 @@ export async function updateProfile(
     })
     .eq("id", user.id);
 
-  if (profileError) return { ok: false, error: `프로필 저장 실패: ${profileError.message}` };
+  if (profileError) return { ok: false, error: dbErrorWith("프로필 저장 실패", profileError) };
 
   // If influencer, also update influencers row
   const { data: profile } = await supabase
@@ -56,7 +57,7 @@ export async function updateProfile(
         region_id: payload.region_id || null,
       })
       .eq("profile_id", user.id);
-    if (infError) return { ok: false, error: `인플루언서 정보 저장 실패: ${infError.message}` };
+    if (infError) return { ok: false, error: dbErrorWith("인플루언서 정보 저장 실패", infError) };
   }
 
   if (profile?.role === "advertiser") {
@@ -83,7 +84,7 @@ export async function updateProfile(
         tax_email: payload.tax_email?.trim().toLowerCase().slice(0, 120) || null,
       })
       .eq("profile_id", user.id);
-    if (advError) return { ok: false, error: `회사 정보 저장 실패: ${advError.message}` };
+    if (advError) return { ok: false, error: dbErrorWith("회사 정보 저장 실패", advError) };
   }
 
   revalidatePath("/dashboard/settings");
@@ -127,7 +128,7 @@ export async function addChannel(payload: ChannelPayload): Promise<ActionResult>
     handle: payload.handle?.trim() || null,
     followers: Math.max(0, payload.followers || 0),
   });
-  if (error) return { ok: false, error: `채널 추가 실패: ${error.message}` };
+  if (error) return { ok: false, error: dbErrorWith("채널 추가 실패", error) };
 
   revalidatePath("/dashboard/settings");
   return { ok: true };
@@ -147,7 +148,7 @@ export async function deleteChannel(channelId: string): Promise<ActionResult> {
     .delete()
     .eq("id", channelId)
     .eq("influencer_id", user.id);
-  if (error) return { ok: false, error: `채널 삭제 실패: ${error.message}` };
+  if (error) return { ok: false, error: dbErrorWith("채널 삭제 실패", error) };
 
   revalidatePath("/dashboard/settings");
   return { ok: true };
@@ -168,7 +169,7 @@ export async function updateChannelFollowers(
     .update({ followers: Math.max(0, followers || 0) })
     .eq("id", channelId)
     .eq("influencer_id", user.id);
-  if (error) return { ok: false, error: `팔로워 수 저장 실패: ${error.message}` };
+  if (error) return { ok: false, error: dbErrorWith("팔로워 수 저장 실패", error) };
 
   revalidatePath("/dashboard/settings");
   return { ok: true };
@@ -184,7 +185,7 @@ export async function setMyCategories(categoryIds: string[]): Promise<ActionResu
 
   const ids = [...new Set(categoryIds)].slice(0, 3);
   const { error } = await supabase.rpc("set_my_categories", { p_category_ids: ids });
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbErrorMessage(error) };
   revalidatePath("/dashboard/settings");
   return { ok: true };
 }
@@ -202,7 +203,7 @@ export async function updateEmailPrefs(prefs: {
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
   const clean = { transactional: !!prefs.transactional, reminders: !!prefs.reminders, digest: !!prefs.digest };
   const { error } = await supabase.from("profiles").update({ email_prefs: clean }).eq("id", user.id);
-  if (error) return { ok: false, error: `저장 실패: ${error.message}` };
+  if (error) return { ok: false, error: dbErrorWith("저장 실패", error) };
   revalidatePath("/dashboard/settings");
   return { ok: true };
 }
@@ -215,7 +216,7 @@ export async function setPublicProfile(enabled: boolean): Promise<ActionResult> 
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
   const { error } = await supabase.from("influencers").update({ public_profile: !!enabled }).eq("profile_id", user.id);
-  if (error) return { ok: false, error: `저장 실패: ${error.message}` };
+  if (error) return { ok: false, error: dbErrorWith("저장 실패", error) };
   revalidatePath("/dashboard/settings");
   return { ok: true };
 }

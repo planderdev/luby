@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { dbErrorMessage } from "@/lib/db-errors";
 import { createClient } from "@/lib/supabase/server";
 
 export async function applyToCampaign(
@@ -24,7 +25,7 @@ export async function applyToCampaign(
     if (error.code === "23505") {
       return { ok: false, error: "이미 응모하셨습니다." };
     }
-    return { ok: false, error: error.message };
+    return { ok: false, error: dbErrorMessage(error) };
   }
 
   revalidatePath(`/dashboard/campaigns/${campaignId}`);
@@ -46,7 +47,7 @@ export async function cancelApplication(
     .eq("campaign_id", campaignId)
     .eq("influencer_id", user.id);
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbErrorMessage(error) };
 
   revalidatePath(`/dashboard/campaigns/${campaignId}`);
   return { ok: true };
@@ -73,7 +74,7 @@ export async function selectApplicant(
     .eq("id", applicationId)
     .eq("campaign_id", campaignId);
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbErrorMessage(error) };
 
   revalidatePath(`/dashboard/campaigns/${campaignId}`);
   return { ok: true };
@@ -165,7 +166,7 @@ export async function cancelCampaign(
     .update({ status: "cancelled" })
     .eq("id", campaignId)
     .eq("advertiser_id", user.id);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbErrorMessage(error) };
 
   revalidatePath(`/dashboard/campaigns/${campaignId}`);
   revalidatePath("/dashboard/campaigns");

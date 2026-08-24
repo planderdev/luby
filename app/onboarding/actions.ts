@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { dbErrorMessage } from "@/lib/db-errors";
 import { createClient } from "@/lib/supabase/server";
 
 /** OAuth 가입자 역할 확정 — complete_onboarding() (본인·1회) */
@@ -33,7 +34,7 @@ export async function completeOnboarding(input: {
     p_region_id: input.regionId ?? null,
     p_referred_by: input.refId && /^[0-9a-f-]{36}$/.test(input.refId) ? input.refId : null,
   });
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbErrorMessage(error) };
   revalidatePath("/dashboard");
   return { ok: true };
 }

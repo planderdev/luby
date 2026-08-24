@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { dbErrorMessage } from "@/lib/db-errors";
 import { getEntitlements } from "@/lib/plans/entitlements";
 
 type Result = { ok: true } | { ok: false; error: string };
@@ -51,6 +52,6 @@ export async function respondInvitation(invitationId: string, accept: boolean): 
     p_invitation_id: invitationId,
     p_accept: accept,
   });
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbErrorMessage(error) };
   return { ok: true };
 }
