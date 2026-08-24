@@ -1,4 +1,5 @@
 import { trackedCreate, AI_MODEL_REASONING, stopReasonError, type AiContext } from "./client";
+import { aiErrorMessage } from "@/lib/ai/ai-errors";
 
 /**
  * 운영자 검수 보조 — 캠페인 내용을 표시·광고 관점에서 사전 점검한다.
@@ -92,6 +93,6 @@ ${input.offerings.map((o) => `- ${o.title}${o.description ? ` — ${o.descriptio
     parsed.issues = (parsed.issues ?? []).slice(0, 6);
     return { ok: true, result: parsed };
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "AI 점검 실패" };
+    return { ok: false, error: aiErrorMessage(e, "AI 점검에 실패했어요. 잠시 후 다시 시도해 주세요.") };
   }
 }

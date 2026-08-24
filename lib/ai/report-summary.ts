@@ -1,4 +1,5 @@
 import { viewSourceRows } from "@/lib/view-sources";
+import { aiErrorMessage } from "@/lib/ai/ai-errors";
 import { trackedCreate, AI_MODEL_FAST, stopReasonError, type AiContext } from "./client";
 
 /**
@@ -104,6 +105,6 @@ export async function summarizeCampaignReport(input: ReportSummaryInput, ctx?: O
     parsed.next_steps = (parsed.next_steps ?? []).slice(0, 3);
     return { ok: true, result: parsed };
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "AI 요약 실패" };
+    return { ok: false, error: aiErrorMessage(e, "AI 요약에 실패했어요. 잠시 후 다시 시도해 주세요.") };
   }
 }

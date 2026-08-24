@@ -53,3 +53,14 @@ export async function unsubscribeFromPush(): Promise<string | null> {
   await sub.unsubscribe();
   return endpoint;
 }
+
+/** 브라우저 푸시 오류 → 한국어 (NotAllowedError 등 영문 노출 방지) */
+export function pushErrorMessage(e: unknown, fallback = "푸시를 켜지 못했습니다."): string {
+  const raw = (e instanceof Error ? e.message : String(e ?? "")).trim();
+  if (/[가-힣]/.test(raw)) return raw;
+  if (/NotAllowed|denied|permission/i.test(raw)) return "브라우저에서 알림이 차단돼 있어요. 주소창 자물쇠 → 알림 허용 후 다시 시도해 주세요.";
+  if (/AbortError|push service error|registration failed/i.test(raw)) return "브라우저 푸시 서비스에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.";
+  if (/NotSupported|unsupported/i.test(raw)) return "이 브라우저는 푸시를 지원하지 않아요.";
+  if (/InvalidState|SecurityError/i.test(raw)) return "설정을 적용하지 못했어요. 페이지를 새로고침한 뒤 다시 시도해 주세요.";
+  return fallback;
+}

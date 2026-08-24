@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { BellRing, Loader2, Smartphone } from "lucide-react";
-import { detectPushSupport, getExistingSubscription, subscribeToPush, unsubscribeFromPush, type PushSupport } from "@/lib/push-client";
+import { detectPushSupport, getExistingSubscription, subscribeToPush, unsubscribeFromPush, type PushSupport, pushErrorMessage } from "@/lib/push-client";
 import { savePushSubscription, removePushSubscription } from "./actions";
 
 /** 설정 > 푸시 알림: 이 기기에서 푸시 켜기/끄기. 이메일 카테고리 설정이 푸시에도 동일 적용. */
@@ -29,7 +29,7 @@ export function PushToggle({ subscriptionCount }: { subscriptionCount: number })
         setCount((c) => c + 1);
         setSupport(detectPushSupport());
       } catch (e) {
-        setError(e instanceof Error ? e.message : "푸시를 켜지 못했습니다.");
+        setError(pushErrorMessage(e, "푸시를 켜지 못했습니다."));
         setSupport(detectPushSupport());
       }
     });
@@ -44,7 +44,7 @@ export function PushToggle({ subscriptionCount }: { subscriptionCount: number })
         setOnThisDevice(false);
         setCount((c) => Math.max(0, c - 1));
       } catch (e) {
-        setError(e instanceof Error ? e.message : "푸시를 끄지 못했습니다.");
+        setError(pushErrorMessage(e, "푸시를 끄지 못했습니다."));
       }
     });
   }

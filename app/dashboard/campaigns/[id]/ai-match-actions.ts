@@ -1,6 +1,7 @@
 "use server";
 
 import { trackedCreate, AI_MODEL_REASONING, stopReasonError } from "@/lib/ai/client";
+import { aiErrorMessage } from "@/lib/ai/ai-errors";
 import { buildSystemBlocks, fetchCatalog } from "@/lib/ai/system";
 import { createClient } from "@/lib/supabase/server";
 import { getEntitlements } from "@/lib/plans/entitlements";
@@ -26,9 +27,7 @@ export async function matchInfluencers(campaignId: string): Promise<MatchResult>
   try {
     return await matchInfluencersInner(campaignId);
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    if (err instanceof Error && err.name === "AiQuotaExceededError") return { ok: false, error: msg };
-    return { ok: false, error: `AI 매칭 실패: ${msg}` };
+    return { ok: false, error: aiErrorMessage(err, "AI 매칭에 실패했어요. 잠시 후 다시 시도해 주세요.") };
   }
 }
 
@@ -223,7 +222,6 @@ ${influencerSummaries}
 
     return { ok: true, matches: filtered };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return { ok: false, error: `AI 호출 실패: ${msg}` };
+    return { ok: false, error: aiErrorMessage(err) };
   }
 }

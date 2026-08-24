@@ -1,4 +1,5 @@
 import { trackedCreate, AI_MODEL_FAST, stopReasonError, type AiContext } from "@/lib/ai/client";
+import { aiErrorMessage } from "@/lib/ai/ai-errors";
 
 export type ApplyMessageInput = {
   campaign: { title: string; business_name: string; category: string | null; industry_brief: string | null };
@@ -76,6 +77,6 @@ export async function draftApplyMessage(input: ApplyMessageInput, ctx: Omit<AiCo
     if (!text) return { ok: false, error: "초안을 만들지 못했어요. 다시 시도해 주세요." };
     return { ok: true, message: text.slice(0, 500) };
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "AI 호출에 실패했습니다." };
+    return { ok: false, error: aiErrorMessage(e, "AI 호출에 실패했습니다.") };
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
+import { aiErrorMessage } from "@/lib/ai/ai-errors";
 import Link from "next/link";
 import { Sparkles, Loader2, Star, Lock } from "lucide-react";
 import { matchInfluencers, type InfluencerMatch } from "./ai-match-actions";
@@ -35,7 +36,7 @@ export function AIMatches({
       try {
         r = await matchInfluencers(campaignId);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "AI 매칭 중 오류가 발생했습니다.");
+        setError(aiErrorMessage(e, "AI 매칭 중 오류가 발생했습니다."));
         return;
       }
       if (!r.ok) {

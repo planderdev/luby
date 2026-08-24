@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, type DragEvent } from "react";
+import { dbErrorWith } from "@/lib/db-errors";
 import Image from "next/image";
 import { Upload, X, Loader2, ImageIcon, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -95,7 +96,7 @@ export function ImageUpload({
         });
 
       if (uploadError) {
-        setError(`업로드 실패: ${uploadError.message}`);
+        setError(dbErrorWith("업로드 실패", uploadError, "업로드에 실패했어요. 잠시 후 다시 시도해 주세요."));
         setUploading(false);
         return;
       }

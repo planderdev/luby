@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { BellRing, Loader2, X } from "lucide-react";
-import { detectPushSupport, getExistingSubscription, subscribeToPush } from "@/lib/push-client";
+import { detectPushSupport, getExistingSubscription, subscribeToPush, pushErrorMessage } from "@/lib/push-client";
 import { savePushSubscription } from "@/app/dashboard/settings/actions";
 
 const DISMISS_KEY = "luby:push-nudge-dismissed";
@@ -40,7 +40,7 @@ export function PushNudgeBanner({ hasAnySubscription }: { hasAnySubscription: bo
         localStorage.setItem(DISMISS_KEY, String(Date.now()));
         setTimeout(() => setShow(false), 2500);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "푸시를 켜지 못했습니다.");
+        setError(pushErrorMessage(e, "푸시를 켜지 못했습니다."));
         // 권한 거부 등 — 더 이상 묻지 않음
         localStorage.setItem(DISMISS_KEY, String(Date.now()));
       }

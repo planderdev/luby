@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { aiErrorMessage } from "@/lib/ai/ai-errors";
 import { Plus, Trash2 } from "lucide-react";
 import type { CampaignDraft } from "../actions";
 import { StepHeader, Field, TextInput, NumberInput, TextArea } from "./_shared";
@@ -31,7 +32,7 @@ export function Step5Offering({
           categoryId: draft.category_id || null,
         });
       } catch (e) {
-        setAIError(e instanceof Error ? e.message : "AI 호출 중 오류가 발생했습니다.");
+        setAIError(aiErrorMessage(e, "AI 호출 중 오류가 발생했습니다."));
         return;
       }
       if (!r.ok) {

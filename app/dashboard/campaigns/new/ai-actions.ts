@@ -1,6 +1,7 @@
 "use server";
 
 import { trackedCreate, AI_MODEL_FAST, stopReasonError } from "@/lib/ai/client";
+import { aiErrorMessage } from "@/lib/ai/ai-errors";
 import { buildSystemBlocks, fetchCatalog } from "@/lib/ai/system";
 import { createClient } from "@/lib/supabase/server";
 
@@ -67,9 +68,7 @@ async function callAI<T>(opts: {
     const parsed = JSON.parse(textBlock.text) as T;
     return { ok: true, data: parsed };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    if (err instanceof Error && err.name === "AiQuotaExceededError") return { ok: false, error: msg };
-    return { ok: false, error: `AI 호출 실패: ${msg}` };
+    return { ok: false, error: aiErrorMessage(err) };
   }
 }
 

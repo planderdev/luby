@@ -3,6 +3,8 @@ import { LangSwitcher } from "./LangSwitcher";
 import type { Dict, Locale } from "@/lib/i18n";
 import { businessInfo } from "@/lib/legal/content";
 
+const SOCIALS: { label: string; href: string }[] = [];
+
 export function Footer({ dict, locale }: { dict: Dict["footer"]; locale: Locale }) {
   return (
     <footer className="border-t border-border">
@@ -22,17 +24,23 @@ export function Footer({ dict, locale }: { dict: Dict["footer"]; locale: Locale 
               {dict.tagline2}
             </p>
 
-            <div className="mt-6 flex items-center gap-2">
-              {["X", "IG", "DC", "in"].map((s) => (
-                <a
-                  key={s}
-                  href="#"
-                  className="flex size-9 items-center justify-center rounded-full border border-border text-xs font-medium transition-colors hover:bg-muted"
-                >
-                  {s}
-                </a>
-              ))}
-            </div>
+            {/* 소셜 계정이 생기면 여기에 { label, href } 를 채우면 노출된다 (빈 배열이면 영역 자체를 숨김) */}
+            {SOCIALS.length > 0 && (
+              <div className="mt-6 flex items-center gap-2">
+                {SOCIALS.map((s) => (
+                  <a
+                    key={s.label}
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={s.label}
+                    className="flex size-9 items-center justify-center rounded-full border border-border text-xs font-medium transition-colors hover:bg-muted"
+                  >
+                    {s.label}
+                  </a>
+                ))}
+              </div>
+            )}
 
             <div className="mt-6">
               <LangSwitcher locale={locale} align="left" />

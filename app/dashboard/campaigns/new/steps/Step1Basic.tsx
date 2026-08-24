@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { aiErrorMessage } from "@/lib/ai/ai-errors";
 import { Wand2, Loader2, Check, Sparkles } from "lucide-react";
 import type { CampaignDraft } from "../actions";
 import type { Region } from "../CampaignBuilder";
@@ -66,7 +67,7 @@ export function Step1Basic({
         if (r.ok) setTitleOptions(r.data.titles);
         else setAiError(r.error);
       } catch (e) {
-        setAiError(e instanceof Error ? e.message : "AI 호출 중 오류가 발생했습니다.");
+        setAiError(aiErrorMessage(e, "AI 호출 중 오류가 발생했습니다."));
       }
     });
   }
@@ -84,7 +85,7 @@ export function Step1Basic({
           fromCampaignId: withHistory ? fromId : null,
         });
       } catch (e) {
-        setAiError(e instanceof Error ? e.message : "AI 호출 중 오류가 발생했습니다.");
+        setAiError(aiErrorMessage(e, "AI 호출 중 오류가 발생했습니다."));
         return;
       }
       if (!r.ok) {

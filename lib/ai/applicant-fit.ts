@@ -1,4 +1,5 @@
 import { trackedCreate, AI_MODEL_REASONING, stopReasonError, type AiContext } from "./client";
+import { aiErrorMessage } from "@/lib/ai/ai-errors";
 
 /**
  * 응모자 AI 적합도 평가 — 캠페인 조건 대비 응모 크리에이터를 0~100점으로 평가하고 근거를 붙인다.
@@ -125,6 +126,6 @@ ${applicants
     }
     return { ok: true, results };
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "AI 평가 실패" };
+    return { ok: false, error: aiErrorMessage(e, "AI 평가에 실패했어요. 잠시 후 다시 시도해 주세요.") };
   }
 }
