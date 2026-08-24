@@ -13,6 +13,12 @@ export default function ErrorPage({
 }) {
   useEffect(() => {
     console.error(error);
+    void fetch("/api/errors/client", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ message: error.message, stack: error.stack?.slice(0, 4000), digest: error.digest, path: location.pathname + location.search }),
+      keepalive: true,
+    }).catch(() => {});
   }, [error]);
 
   return (
