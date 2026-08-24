@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
+import { usePendingNav } from "@/components/dashboard/PendingNavArea";
 import { FilterSelect, type FilterOption as Opt } from "@/components/dashboard/FilterSelect";
 
 const FOLLOWER_OPTIONS: Opt[] = [
@@ -33,6 +34,7 @@ export function CreatorFilters({
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
+  const pendingNav = usePendingNav();
 
   function setParam(key: string, value: string) {
     const next = new URLSearchParams(params.toString());
@@ -40,7 +42,9 @@ export function CreatorFilters({
     else next.delete(key);
     next.delete("page"); // 필터 바뀌면 1페이지로
     const qs = next.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    const url = qs ? `${pathname}?${qs}` : pathname;
+    if (pendingNav) pendingNav.navigate(url);
+    else router.replace(url, { scroll: false });
   }
 
   const activeChannel = params.get("channel") ?? "";

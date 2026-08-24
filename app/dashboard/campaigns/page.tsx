@@ -6,6 +6,7 @@ import { fetchUICatalog } from "@/lib/cache/ui-catalog";
 import { Plus } from "lucide-react";
 import { CampaignCard } from "@/components/dashboard/CampaignCard";
 import { CampaignFilters } from "@/components/dashboard/CampaignFilters";
+import { PendingNavArea } from "@/components/dashboard/PendingNavArea";
 import {
   rankCampaigns,
   campaignBadges,
@@ -214,6 +215,7 @@ export default async function CampaignsPage({
       </header>
 
       {/* Filters */}
+      <PendingNavArea>
       <CampaignFilters
         categories={catalog.categories.map((c) => ({
           value: c.id,
@@ -284,6 +286,7 @@ export default async function CampaignsPage({
           </div>
         )}
       </div>
+      </PendingNavArea>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
+import { usePendingNav } from "@/components/dashboard/PendingNavArea";
 import { FilterSelect } from "@/components/dashboard/FilterSelect";
 
 export type { FilterOption } from "@/components/dashboard/FilterSelect";
@@ -25,13 +26,16 @@ export function CampaignFilters({
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
+  const pendingNav = usePendingNav();
 
   function setParam(key: string, value: string) {
     const next = new URLSearchParams(params.toString());
     if (value) next.set(key, value);
     else next.delete(key);
     const qs = next.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    const url = qs ? `${pathname}?${qs}` : pathname;
+    if (pendingNav) pendingNav.navigate(url);
+    else router.replace(url, { scroll: false });
   }
 
   return (

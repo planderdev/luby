@@ -7,6 +7,7 @@ import { getCurrentProfile } from "@/lib/supabase/queries";
 import { getSiteUrl, SITE } from "@/lib/seo/site";
 import type { Locale } from "@/lib/i18n/config";
 import { publicCampaignDict, localePrefix } from "@/lib/i18n/public-campaign";
+import { PendingNavArea } from "@/components/dashboard/PendingNavArea";
 
 const PAGE_SIZE = 24;
 
@@ -124,12 +125,13 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
         </header>
 
         {/* Filters */}
+        <PendingNavArea>
         <div className="mt-7 flex flex-col gap-2.5">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="mr-1 text-[11px] uppercase tracking-wider text-muted-foreground">{t.dirChannel}</span>
-            <Link href={qs({ channel: undefined, page: undefined })} className={chip(!params.channel)}>{t.dirAll}</Link>
+            <Link data-pending-nav href={qs({ channel: undefined, page: undefined })} className={chip(!params.channel)}>{t.dirAll}</Link>
             {dir.channels.map((c) => (
-              <Link key={c.slug} href={qs({ channel: params.channel === c.slug ? undefined : c.slug, page: undefined })} className={chip(params.channel === c.slug)}>{c.name}</Link>
+              <Link key={c.slug} data-pending-nav href={qs({ channel: params.channel === c.slug ? undefined : c.slug, page: undefined })} className={chip(params.channel === c.slug)}>{c.name}</Link>
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
@@ -137,7 +139,7 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
             {SORTS.map((k) => {
               const active = ((SORTS as readonly string[]).includes(params.sort ?? "") ? params.sort : "deadline") === k;
               return (
-                <Link key={k} href={qs({ sort: k === "deadline" ? undefined : k, page: undefined })} className={chip(active)}>
+                <Link key={k} data-pending-nav href={qs({ sort: k === "deadline" ? undefined : k, page: undefined })} className={chip(active)}>
                   {k === "deadline" ? t.dirSortDeadline : k === "new" ? t.dirSortNew : t.dirSortPoints}
                 </Link>
               );
@@ -146,9 +148,9 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
           {dir.regions.length > 1 && (
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="mr-1 text-[11px] uppercase tracking-wider text-muted-foreground">{t.dirRegion}</span>
-              <Link href={qs({ region: undefined, page: undefined })} className={chip(!params.region)}>{t.dirAll}</Link>
+              <Link data-pending-nav href={qs({ region: undefined, page: undefined })} className={chip(!params.region)}>{t.dirAll}</Link>
               {dir.regions.map((r) => (
-                <Link key={r.id} href={qs({ region: params.region === r.id ? undefined : r.id, page: undefined })} className={chip(params.region === r.id)}>{r.flag} {r.name}</Link>
+                <Link key={r.id} data-pending-nav href={qs({ region: params.region === r.id ? undefined : r.id, page: undefined })} className={chip(params.region === r.id)}>{r.flag} {r.name}</Link>
               ))}
             </div>
           )}
@@ -212,9 +214,9 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
         {/* Pagination */}
         {totalPages > 1 && (
           <nav className="mt-8 flex items-center justify-center gap-3 text-sm" aria-label="pagination">
-            {dir.page > 1 ? <Link href={qs({ page: String(dir.page - 1) })} className="rounded-full border border-border px-4 py-2 hover:bg-muted">{t.dirPrev}</Link> : <span className="rounded-full border border-border px-4 py-2 opacity-40">{t.dirPrev}</span>}
+            {dir.page > 1 ? <Link data-pending-nav href={qs({ page: String(dir.page - 1) })} className="rounded-full border border-border px-4 py-2 hover:bg-muted">{t.dirPrev}</Link> : <span className="rounded-full border border-border px-4 py-2 opacity-40">{t.dirPrev}</span>}
             <span className="text-xs text-muted-foreground">{t.dirPage(dir.page, totalPages)}</span>
-            {dir.page < totalPages ? <Link href={qs({ page: String(dir.page + 1) })} className="rounded-full border border-border px-4 py-2 hover:bg-muted">{t.dirNext}</Link> : <span className="rounded-full border border-border px-4 py-2 opacity-40">{t.dirNext}</span>}
+            {dir.page < totalPages ? <Link data-pending-nav href={qs({ page: String(dir.page + 1) })} className="rounded-full border border-border px-4 py-2 hover:bg-muted">{t.dirNext}</Link> : <span className="rounded-full border border-border px-4 py-2 opacity-40">{t.dirNext}</span>}
           </nav>
         )}
 
@@ -230,6 +232,7 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
             </Link>
           </section>
         )}
+        </PendingNavArea>
       </div>
 
       <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">

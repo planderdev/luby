@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { fetchUICatalog } from "@/lib/cache/ui-catalog";
 import { getEntitlements } from "@/lib/plans/entitlements";
 import { CreatorFilters } from "./CreatorFilters";
+import { PendingNavArea } from "@/components/dashboard/PendingNavArea";
 import { InviteButton } from "./InviteButton";
 
 export const metadata = { title: "크리에이터 찾기 — 루비AI" };
@@ -128,6 +129,7 @@ export default async function CreatorsDirectoryPage({
         </div>
       )}
 
+      <PendingNavArea>
       <CreatorFilters
         categories={catalog.categories.map((c) => ({ value: c.id, label: `${c.emoji ?? ""} ${c.name}`.trim() }))}
         regions={catalog.regions.map((r) => ({ value: r.id, label: `${r.flag} ${r.name}`.trim() }))}
@@ -215,6 +217,7 @@ export default async function CreatorsDirectoryPage({
         <div className="mt-8 flex items-center justify-center gap-2">
           <Link
             href={buildHref(Math.max(1, page - 1))}
+            data-pending-nav
             aria-disabled={page <= 1}
             className={`inline-flex size-9 items-center justify-center rounded-full border border-border ${page <= 1 ? "pointer-events-none opacity-40" : "hover:bg-muted"}`}
           >
@@ -225,6 +228,7 @@ export default async function CreatorsDirectoryPage({
           </span>
           <Link
             href={buildHref(Math.min(totalPages, page + 1))}
+            data-pending-nav
             aria-disabled={page >= totalPages}
             className={`inline-flex size-9 items-center justify-center rounded-full border border-border ${page >= totalPages ? "pointer-events-none opacity-40" : "hover:bg-muted"}`}
           >
@@ -232,6 +236,7 @@ export default async function CreatorsDirectoryPage({
           </Link>
         </div>
       )}
+      </PendingNavArea>
     </div>
   );
 }

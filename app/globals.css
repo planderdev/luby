@@ -208,3 +208,9 @@ select:focus-visible {
 .docs-prose hr { border: 0; border-top: 1px solid rgb(var(--border)); }
 .docs-prose img { max-width: 100%; border-radius: 1rem; border: 1px solid rgb(var(--border)); box-shadow: var(--glass-shadow); background: rgb(var(--background)); }
 .docs-prose p:has(> img:only-child) { margin-top: 1.2em; margin-bottom: 1.2em; }
+
+/* 필터 전환 진행 바 (PendingNavArea) */
+@keyframes pending-bar {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(420%); }
+}
