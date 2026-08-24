@@ -1,5 +1,6 @@
 "use client";
 
+import { authErrorMessage } from "@/lib/auth-errors";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -38,7 +39,7 @@ export function OAuthButtons({
       options: { redirectTo: `${window.location.origin}/auth/callback?${q.toString()}` },
     });
     if (error) {
-      setError(error.message);
+      setError(authErrorMessage(error, "소셜 로그인에 실패했어요. 다시 시도해 주세요."));
       setPending(null);
     }
   }

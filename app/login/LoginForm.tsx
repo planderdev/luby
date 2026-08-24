@@ -1,5 +1,6 @@
 "use client";
 
+import { authErrorMessage } from "@/lib/auth-errors";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -25,7 +26,7 @@ export function LoginForm() {
 
     setLoading(false);
     if (error) {
-      setError(error.message);
+      setError(authErrorMessage(error, "로그인에 실패했어요. 잠시 후 다시 시도해 주세요."));
       return;
     }
 

@@ -17,8 +17,11 @@ export const metadata: Metadata = {
   },
 };
 
+import { authErrorFromParam } from "@/lib/auth-errors";
+
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ redirect?: string; error?: string }> }) {
-  const { redirect: redirectTo, error } = await searchParams;
+  const { redirect: redirectTo, error: errorKey } = await searchParams;
+  const error = authErrorFromParam(errorKey);
   const providers = enabledProviders();
   const next = redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//") ? redirectTo : "/dashboard";
   return (

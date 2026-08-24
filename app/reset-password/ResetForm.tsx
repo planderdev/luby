@@ -1,5 +1,6 @@
 "use client";
 
+import { authErrorMessage } from "@/lib/auth-errors";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -86,11 +87,7 @@ export function ResetForm() {
     setLoading(false);
 
     if (error) {
-      setError(
-        error.message.includes("different")
-          ? "이전과 다른 비밀번호를 사용해주세요."
-          : "비밀번호 변경에 실패했습니다. 링크가 만료되었을 수 있어요."
-      );
+      setError(authErrorMessage(error, "비밀번호 변경에 실패했습니다. 링크가 만료되었을 수 있어요."));
       return;
     }
     setPhase("done");

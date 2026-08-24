@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { authErrorMessage } from "@/lib/auth-errors";
+import { logError } from "@/lib/error-log";
 
 /**
  * OAuth(구글·카카오) 콜백 — code 를 세션으로 교환하고, 역할이 확정되지 않은(onboarding_done=false)
@@ -15,12 +17,16 @@ export async function GET(request: Request) {
   const errDesc = searchParams.get("error_description");
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(errDesc ?? "소셜 로그인에 실패했어요. 다시 시도해 주세요.")}`);
+    // 사용자가 동의 화면에서 취소하면 access_denied 로 돌아온다
+    const key = /access_denied|cancel/i.test(errDesc ?? "") ? "oauth_cancelled" : /not enabled|unsupported provider/i.test(errDesc ?? "") ? "oauth_disabled" : "oauth";
+    if (errDesc) await logError({ source: "server", message: `OAuth callback: ${authErrorMessage(errDesc)} (${errDesc})`, path: "/auth/callback", userId: null, userAgent: request.headers.get("user-agent") });
+    return NextResponse.redirect(`${origin}/login?error=${key}`);
   }
   const supabase = await createClient();
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
-    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`);
+    await logError({ source: "server", message: `OAuth exchange: ${authErrorMessage(error)} (${error.message})`, path: "/auth/callback", userId: null, userAgent: request.headers.get("user-agent") });
+    return NextResponse.redirect(`${origin}/login?error=oauth`);
   }
   const {
     data: { user },

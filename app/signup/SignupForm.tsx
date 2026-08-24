@@ -1,4 +1,5 @@
 "use client";
+import { authErrorMessage } from "@/lib/auth-errors";
 import { trackClient } from "@/lib/analytics";
 import { ADVERTISER_KINDS, type AdvertiserKind } from "@/lib/advertiser-kind";
 
@@ -216,7 +217,7 @@ function FormStep({
     setLoading(false);
 
     if (error) {
-      setError(error.message);
+      setError(authErrorMessage(error, "가입에 실패했어요. 입력값을 확인하고 다시 시도해 주세요."));
       return;
     }
 

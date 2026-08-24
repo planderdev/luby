@@ -1,5 +1,6 @@
 "use client";
 
+import { authErrorMessage } from "@/lib/auth-errors";
 import { useState } from "react";
 import { Loader2, MailCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -22,7 +23,7 @@ export function ForgotForm() {
 
     setLoading(false);
     if (error) {
-      setError("메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요.");
+      setError(authErrorMessage(error, "메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요."));
       return;
     }
     // 계정 존재 여부는 노출하지 않음 (보안)
