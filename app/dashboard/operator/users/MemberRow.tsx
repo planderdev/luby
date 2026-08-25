@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { Check, X, Loader2, Building2, Radio } from "lucide-react";
-import { approveUser } from "../actions";
+import { Mail, Check, X, Loader2, Building2, Radio } from "lucide-react";
+import { resendInvite, approveUser } from "../actions";
 
 type Business = {
   companyName: string | null;
@@ -32,6 +32,7 @@ export function MemberRow({
   tags = [],
   business,
   influencer,
+  neverSignedIn = false,
 }: {
   profileId: string;
   name: string;
@@ -43,10 +44,22 @@ export function MemberRow({
   tags?: string[];
   business: Business | null;
   influencer: Influencer | null;
+  /** 가입 후 한 번도 로그인하지 않은 계정 (일괄 등록 등) */
+  neverSignedIn?: boolean;
 }) {
   const [isApproved, setIsApproved] = useState(approved);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [inviteSent, setInviteSent] = useState(false);
+
+  function sendInvite() {
+    setError(null);
+    startTransition(async () => {
+      const r = await resendInvite(profileId);
+      if (r.ok) setInviteSent(true);
+      else setError(r.error);
+    });
+  }
 
   function decide(decision: "approve" | "reject") {
     setError(null);
@@ -78,6 +91,11 @@ export function MemberRow({
           {/* 이름 + 배지 줄 */}
           <div className="flex flex-wrap items-center gap-2">
             <Link href={`/dashboard/operator/users/${profileId}`} className="text-sm font-semibold hover:underline underline-offset-2">{name}</Link>
+            {neverSignedIn && (
+              <span className="rounded-full bg-warning-soft px-2 py-0.5 text-[10px] font-semibold text-warning" title="계정은 있지만 아직 한 번도 로그인하지 않았어요">
+                미로그인
+              </span>
+            )}
             <span className="rounded-full bg-muted px-2 py-0.5 text-[11px]">
               {role === "advertiser" ? (business?.advertiserKind === "agency" ? "대행사" : "광고주") : "인플루언서"}
             </span>
@@ -148,7 +166,19 @@ export function MemberRow({
         </div>
 
         {/* 액션 */}
-        <div className="flex shrink-0 gap-1.5">
+        <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
+          {neverSignedIn && (
+            <button
+              type="button"
+              onClick={sendInvite}
+              disabled={pending || inviteSent}
+              title="비밀번호 설정 링크를 메일로 보냅니다 (일괄 등록 계정은 안내 메일이 나가지 않았습니다)"
+              className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent-soft px-4 py-2 text-xs font-medium text-accent-ink hover:bg-accent-soft/70 disabled:opacity-60"
+            >
+              {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Mail className="size-3.5" />}
+              {inviteSent ? "메일 보냄" : "초대 메일 보내기"}
+            </button>
+          )}
           {isApproved ? (
             <button
               onClick={() => decide("reject")}

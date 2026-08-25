@@ -64,6 +64,9 @@ export default async function OperatorUsersPage({
   }
 
   const all = (profilesRes.data ?? []).filter((p) => p.role !== "operator");
+  // 가입 후 한 번도 로그인하지 않은 계정 (일괄 등록 후 방치 파악)
+  const { data: neverRows } = await supabase.rpc("operator_never_signed_in", { p_ids: all.map((p) => p.id) });
+  const neverSignedIn = new Set(((neverRows ?? []) as { id: string }[]).map((r) => r.id));
   const isAgency = (id: string) => advertiserById.get(id)?.advertiser_kind === "agency";
   const counts: Record<Filter, number> = {
     pending: all.filter((p) => !p.approved).length,
@@ -173,6 +176,7 @@ export default async function OperatorUsersPage({
               role={p.role}
               approved={p.approved}
               createdAt={p.created_at}
+              neverSignedIn={neverSignedIn.has(p.id)}
               tags={p.operator_tags ?? []}
               business={
                 adv

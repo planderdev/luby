@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { authErrorMessage } from "@/lib/auth-errors";
 import { dbErrorMessage, dbErrorWith } from "@/lib/db-errors";
 import { createClient } from "@/lib/supabase/server";
 import type { Precheck } from "@/lib/ai/campaign-precheck";
@@ -197,6 +198,28 @@ export async function forceMatchCreators(campaignId: string, influencerIds: stri
  * 역할별 메타데이터를 넣어 handle_new_user 트리거가 프로필/광고주·크리에이터 행을 생성한다.
  * 크리에이터는 운영자가 만든 것이므로 바로 승인. 초대 메일 발송이 실패해도 계정은 생성됨(비밀번호 재설정으로 안내 가능).
  */
+/**
+ * 아직 로그인한 적 없는 회원에게 비밀번호 설정 메일을 다시 보낸다.
+ * (일괄 등록으로 만든 계정은 확인 메일이 나가지 않아 사용자가 들어올 방법이 없다)
+ */
+export async function resendInvite(profileId: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const guard = await ensureOperator();
+  if (!guard.ok) return { ok: false, error: guard.error };
+  const { data: profile } = await guard.supabase.from("profiles").select("email, name").eq("id", profileId).maybeSingle();
+  if (!profile?.email) return { ok: false, error: "회원을 찾을 수 없어요." };
+
+  const { getAdminSupabase } = await import("@/lib/supabase/admin");
+  const admin = getAdminSupabase();
+  const site = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://luby.im").replace(/\/$/, "");
+  // 이미 계정이 있으므로 초대가 아니라 "비밀번호 설정(복구)" 메일을 보낸다
+  const { error } = await admin.auth.resetPasswordForEmail(profile.email, { redirectTo: `${site}/reset-password` });
+  if (error) return { ok: false, error: authErrorMessage(error, "메일 발송에 실패했어요. 잠시 후 다시 시도해 주세요.") };
+
+  await guard.supabase.from("member_notes").insert({ profile_id: profileId, author_id: guard.user.id, body: "비밀번호 설정 메일 재발송" });
+  revalidatePath("/dashboard/operator/users");
+  return { ok: true };
+}
+
 export async function inviteMember(input: {
   email: string;
   name: string;

@@ -1411,6 +1411,10 @@ export type Database = {
         Args: { p_path: string; p_lang: string; p_hash: string }
         Returns: boolean
       }
+      operator_never_signed_in: {
+        Args: { p_ids?: string[] | null }
+        Returns: { id: string; created_at: string; invited_at: string | null }[]
+      }
       is_demo_account: {
         Args: { p_profile: string }
         Returns: boolean
