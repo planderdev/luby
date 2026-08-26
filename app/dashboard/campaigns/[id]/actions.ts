@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { revalidatePublicCampaign } from "@/lib/cache/public-revalidate";
 import { dbErrorMessage } from "@/lib/db-errors";
 import { createClient } from "@/lib/supabase/server";
 
@@ -170,6 +171,7 @@ export async function cancelCampaign(
 
   revalidatePath(`/dashboard/campaigns/${campaignId}`);
   revalidatePath("/dashboard/campaigns");
+  revalidatePublicCampaign(campaignId); // 취소된 캠페인이 공개 목록에 남지 않게
   return { ok: true };
 }
 
@@ -222,6 +224,7 @@ export async function adjustOpenCampaign(
 
   revalidatePath(`/dashboard/campaigns/${campaignId}`);
   revalidatePath("/dashboard/campaigns");
+  revalidatePublicCampaign(campaignId); // 연장·증원한 마감일·남은 자리를 공개 페이지에 바로
   return { ok: true };
 }
 

@@ -125,7 +125,9 @@ export async function PublicCampaignView({ id, locale }: { id: string; locale: L
   const pfx = localePrefix(locale);
 
   // 로그인 여부에 따라 달라지는 부분은 클라이언트에서 판단한다(서버에서 쿠키를 읽으면 CDN 캐시가 꺼짐)
-  const isOpen = c.status === "open";
+  // 마감 시각이 지난 캠페인은 상태가 아직 open 이어도 마감으로 본다
+  // (자동 마감 크론이 매시 정각에 돌아 최대 1시간 늦고, 디렉터리 RPC 도 같은 기준으로 거른다)
+  const isOpen = c.status === "open" && (c.always_open || new Date(c.recruit_end).getTime() > Date.now());
   const daysLeft = Math.ceil((new Date(c.recruit_end).getTime() - Date.now()) / 864e5);
   const dashboardHref = `/dashboard/campaigns/${c.id}`;
   const loginHref = `/login?redirect=${encodeURIComponent(dashboardHref)}`;

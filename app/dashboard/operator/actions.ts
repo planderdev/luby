@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { revalidatePublicCampaign, revalidatePublicCreator } from "@/lib/cache/public-revalidate";
 import { authErrorMessage } from "@/lib/auth-errors";
 import { dbErrorMessage, dbErrorWith } from "@/lib/db-errors";
 import { createClient } from "@/lib/supabase/server";
@@ -52,6 +53,7 @@ export async function approveUser(
 
   revalidatePath("/dashboard/operator/users");
   revalidatePath("/dashboard");
+  revalidatePublicCreator(profileId); // 승인 여부가 공개 프로필 노출 조건이다
   return { ok: true };
 }
 
@@ -83,6 +85,7 @@ export async function approveUsersBulk(
 
   revalidatePath("/dashboard/operator/users");
   revalidatePath("/dashboard");
+  for (const row of data ?? []) revalidatePublicCreator(row.id);
   return { ok: true, count: data?.length ?? 0 };
 }
 
@@ -114,6 +117,7 @@ export async function decideCampaign(
 
   revalidatePath("/dashboard/operator/campaigns");
   revalidatePath(`/dashboard/campaigns/${campaignId}`);
+  revalidatePublicCampaign(campaignId); // 검수 결과는 공개 페이지·디렉터리에 즉시 반영
   return { ok: true };
 }
 

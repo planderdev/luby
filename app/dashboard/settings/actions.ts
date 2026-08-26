@@ -3,6 +3,7 @@ import { channelHint, urlMatchesChannel } from "@/lib/channel-hints";
 import { dbErrorMessage, dbErrorWith } from "@/lib/db-errors";
 
 import { revalidatePath } from "next/cache";
+import { revalidatePublicCreator } from "@/lib/cache/public-revalidate";
 import { createClient } from "@/lib/supabase/server";
 
 export type SettingsPayload = {
@@ -89,6 +90,7 @@ export async function updateProfile(
 
   revalidatePath("/dashboard/settings");
   revalidatePath("/dashboard");
+  revalidatePublicCreator(user.id); // 이름·소개·지역이 공개 프로필에 바로 반영되게
   return { ok: true };
 }
 
@@ -131,6 +133,7 @@ export async function addChannel(payload: ChannelPayload): Promise<ActionResult>
   if (error) return { ok: false, error: dbErrorWith("채널 추가 실패", error) };
 
   revalidatePath("/dashboard/settings");
+  revalidatePublicCreator(user.id);
   return { ok: true };
 }
 
@@ -151,6 +154,7 @@ export async function deleteChannel(channelId: string): Promise<ActionResult> {
   if (error) return { ok: false, error: dbErrorWith("채널 삭제 실패", error) };
 
   revalidatePath("/dashboard/settings");
+  revalidatePublicCreator(user.id);
   return { ok: true };
 }
 
@@ -172,6 +176,7 @@ export async function updateChannelFollowers(
   if (error) return { ok: false, error: dbErrorWith("팔로워 수 저장 실패", error) };
 
   revalidatePath("/dashboard/settings");
+  revalidatePublicCreator(user.id);
   return { ok: true };
 }
 
@@ -187,6 +192,7 @@ export async function setMyCategories(categoryIds: string[]): Promise<ActionResu
   const { error } = await supabase.rpc("set_my_categories", { p_category_ids: ids });
   if (error) return { ok: false, error: dbErrorMessage(error) };
   revalidatePath("/dashboard/settings");
+  revalidatePublicCreator(user.id);
   return { ok: true };
 }
 
@@ -218,6 +224,7 @@ export async function setPublicProfile(enabled: boolean): Promise<ActionResult> 
   const { error } = await supabase.from("influencers").update({ public_profile: !!enabled }).eq("profile_id", user.id);
   if (error) return { ok: false, error: dbErrorWith("저장 실패", error) };
   revalidatePath("/dashboard/settings");
+  revalidatePublicCreator(user.id); // 껐다면 공개 프로필이 즉시 닫혀야 한다
   return { ok: true };
 }
 
