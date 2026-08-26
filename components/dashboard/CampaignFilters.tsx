@@ -32,6 +32,7 @@ export function CampaignFilters({
     const next = new URLSearchParams(params.toString());
     if (value) next.set(key, value);
     else next.delete(key);
+    next.delete("page"); // 필터가 바뀌면 1페이지로
     const qs = next.toString();
     const url = qs ? `${pathname}?${qs}` : pathname;
     if (pendingNav) pendingNav.navigate(url);

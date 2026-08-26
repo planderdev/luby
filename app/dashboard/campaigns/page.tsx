@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { fetchUICatalog } from "@/lib/cache/ui-catalog";
-import { Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { CampaignCard } from "@/components/dashboard/CampaignCard";
 import { CampaignFilters } from "@/components/dashboard/CampaignFilters";
 import { PendingNavArea } from "@/components/dashboard/PendingNavArea";
@@ -18,6 +18,10 @@ import {
 } from "@/lib/campaign-ranking";
 
 export const metadata = { title: "캠페인 — 루비AI" };
+
+const PAGE_SIZE = 24;
+/** 추천순(크리에이터)은 가져온 뒤 메모리에서 재랭킹하므로, 랭킹 품질을 위해 이만큼 먼저 가져온다 */
+const RANK_WINDOW = 200;
 
 const STATUS_OPTIONS_ADVERTISER = [
   { value: "", label: "상태 전체" },
@@ -53,6 +57,7 @@ export default async function CampaignsPage({
     category?: string;
     region?: string;
     sort?: string;
+    page?: string;
   }>;
 }) {
   const profile = await getCurrentProfile();
@@ -65,13 +70,15 @@ export default async function CampaignsPage({
   const category = asUuid(params.category) ?? "";
   const region = asUuid(params.region) ?? "";
   const sort = params.sort ?? "";
+  const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
 
   const supabase = await createClient();
 
   let query = supabase
     .from("campaigns")
     .select(
-      "id, title, business_name, thumbnail_url, status, recruit_start, recruit_end, recruit_count, point_amount, region_id, category_id, advertiser_id"
+      "id, title, business_name, thumbnail_url, status, recruit_start, recruit_end, recruit_count, point_amount, region_id, category_id, advertiser_id",
+      { count: "exact" }
     );
 
   const isInfluencer = profile.role === "influencer";
@@ -103,8 +110,11 @@ export default async function CampaignsPage({
     if (safe) query = query.or(`title.ilike.%${safe}%,business_name.ilike.%${safe}%`);
   }
 
+  // 한 페이지분만 가져온다 (운영자는 전체 캠페인을 보므로 제한이 없으면 목록이 무한정 커진다)
+  query = personalize ? query.range(0, RANK_WINDOW - 1) : query.range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+
   // Fetch the campaigns query and the cached catalog in parallel
-  const [{ data: rawCampaigns, error: listError }, catalog] = await Promise.all([query, fetchUICatalog()]);
+  const [{ data: rawCampaigns, error: listError, count: totalCount }, catalog] = await Promise.all([query, fetchUICatalog()]);
   if (listError) {
     await logError({ source: "server", message: `캠페인 목록 조회 실패: ${listError.message}`, path: "/dashboard/campaigns", routeType: "render", userId: profile.id });
   }
@@ -129,13 +139,26 @@ export default async function CampaignsPage({
     for (const a of apps ?? []) signals.appliedCampaignIds.add(a.campaign_id);
   }
 
-  const campaigns = personalize ? rankCampaigns(rawCampaigns ?? [], signals) : rawCampaigns;
+  const ranked = personalize ? rankCampaigns(rawCampaigns ?? [], signals) : rawCampaigns ?? [];
+  const campaigns = personalize ? ranked.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) : ranked;
+  const total = personalize ? Math.min(totalCount ?? ranked.length, RANK_WINDOW) : totalCount ?? ranked.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   // 크리에이터: 모집 인원보다 응모가 적은 캠페인에 "자리 남음" 배지
   const appliedById = new Map<string, number>();
-  if (isInfluencer && (rawCampaigns ?? []).length > 0) {
-    const { data: cnt } = await supabase.rpc("campaign_applicant_counts", { p_ids: (rawCampaigns ?? []).map((c) => c.id) });
+  if (isInfluencer && campaigns.length > 0) {
+    const { data: cnt } = await supabase.rpc("campaign_applicant_counts", { p_ids: campaigns.map((c) => c.id) });
     for (const r of cnt ?? []) appliedById.set(r.campaign_id, r.applied);
   }
+  const buildHref = (p: number) => {
+    const qs = new URLSearchParams();
+    if (status) qs.set("status", status);
+    if (q) qs.set("q", q);
+    if (category) qs.set("category", category);
+    if (region) qs.set("region", region);
+    if (sort) qs.set("sort", sort);
+    if (p > 1) qs.set("page", String(p));
+    return `/dashboard/campaigns${qs.toString() ? `?${qs}` : ""}`;
+  };
   const hasPersonalSignal = hasSignal(signals);
 
   // 운영자: 상태별 건수(전체 기준) + 광고주 회사명
@@ -237,7 +260,7 @@ export default async function CampaignsPage({
       />
 
       <p className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-        <span>총 {(campaigns ?? []).length}개 캠페인</span>
+        <span>총 {total}개 캠페인{totalPages > 1 ? ` · ${page}/${totalPages} 페이지` : ""}</span>
         {isInfluencer && personalize && !hasPersonalSignal && (
           <span>
             ·{" "}
@@ -294,6 +317,30 @@ export default async function CampaignsPage({
           </div>
         )}
       </div>
+
+      {totalPages > 1 && (
+        <nav aria-label="페이지" className="mt-8 flex items-center justify-center gap-2">
+          <Link
+            href={buildHref(Math.max(1, page - 1))}
+            data-pending-nav
+            aria-label="이전 페이지"
+            aria-disabled={page <= 1}
+            className={`inline-flex size-9 items-center justify-center rounded-full border border-border ${page <= 1 ? "pointer-events-none opacity-40" : "hover:bg-muted"}`}
+          >
+            <ChevronLeft className="size-4" />
+          </Link>
+          <span className="text-xs text-muted-foreground">{page} / {totalPages}</span>
+          <Link
+            href={buildHref(Math.min(totalPages, page + 1))}
+            data-pending-nav
+            aria-label="다음 페이지"
+            aria-disabled={page >= totalPages}
+            className={`inline-flex size-9 items-center justify-center rounded-full border border-border ${page >= totalPages ? "pointer-events-none opacity-40" : "hover:bg-muted"}`}
+          >
+            <ChevronRight className="size-4" />
+          </Link>
+        </nav>
+      )}
       </PendingNavArea>
     </div>
   );
