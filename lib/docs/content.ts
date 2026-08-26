@@ -147,7 +147,8 @@ export function docDescription(markdown: string): string | null {
     .join("\n")
     .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
-    .replace(/https?:\/\/\S+/g, " ")
+    // 주소는 지우지 말고 읽히는 형태로 — 지우면 "At , select Creator" 처럼 조사·전치사가 붕 뜬다
+    .replace(/https?:\/\/([^\s)]+)/g, (_m, rest: string) => String(rest).replace(/[.,]$/, ""))
     .replace(/`([^`]+)`/g, "$1")
     .replace(/[*_>#]/g, "")
     .replace(/^\s*[-\d]+[.)]?\s*/gm, "")
