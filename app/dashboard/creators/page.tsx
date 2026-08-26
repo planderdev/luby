@@ -8,6 +8,9 @@ import { getEntitlements } from "@/lib/plans/entitlements";
 import { CreatorFilters } from "./CreatorFilters";
 import { PendingNavArea } from "@/components/dashboard/PendingNavArea";
 import { InviteButton } from "./InviteButton";
+import { ListLoadError } from "@/components/dashboard/ListLoadError";
+import { asOneOf, asUuid } from "@/lib/query-params";
+import { logError } from "@/lib/error-log";
 
 export const metadata = { title: "크리에이터 찾기 — 루비AI" };
 
@@ -39,18 +42,20 @@ export default async function CreatorsDirectoryPage({
 
   const sp = await searchParams;
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
-  const sort = ["followers", "completed", "recent"].includes(sp.sort ?? "")
-    ? sp.sort!
-    : "followers";
+  const sort = asOneOf(sp.sort, ["followers", "completed", "recent"] as const, "followers");
   const minFollowers = sp.followers ? parseInt(sp.followers, 10) || null : null;
+  // 잘못된 필터값은 무시한다 — 그대로 넘기면 uuid 형식 오류로 목록이 통째로 비어 보인다
+  const categoryId = asUuid(sp.category);
+  const regionId = asUuid(sp.region);
+  const channelId = asUuid(sp.channel);
 
   const supabase = await createClient();
-  const [{ data: rows }, catalog, ent] = await Promise.all([
+  const [{ data: rows, error: searchError }, catalog, ent] = await Promise.all([
     supabase.rpc("search_creators", {
       p_query: sp.q?.trim() || null,
-      p_category_id: sp.category || null,
-      p_region_id: sp.region || null,
-      p_channel_type_id: sp.channel || null,
+      p_category_id: categoryId,
+      p_region_id: regionId,
+      p_channel_type_id: channelId,
       p_min_followers: minFollowers,
       p_sort: sort,
       p_limit: PAGE_SIZE,
@@ -61,6 +66,9 @@ export default async function CreatorsDirectoryPage({
     profile.role === "advertiser" ? getEntitlements(profile.id) : Promise.resolve(null),
   ]);
 
+  if (searchError) {
+    await logError({ source: "server", message: `search_creators 실패: ${searchError.message}`, path: "/dashboard/creators", routeType: "render", userId: profile.id });
+  }
   const creators = rows ?? [];
   const total = Number(creators[0]?.total_count ?? 0);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -206,10 +214,14 @@ export default async function CreatorsDirectoryPage({
             </div>
           );
         })}
-        {creators.length === 0 && (
-          <div className="col-span-full rounded-3xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
-            조건에 맞는 크리에이터가 없습니다. 필터를 조정해보세요.
-          </div>
+        {searchError ? (
+          <ListLoadError label="크리에이터 목록" />
+        ) : (
+          creators.length === 0 && (
+            <div className="col-span-full rounded-3xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
+              조건에 맞는 크리에이터가 없습니다. 필터를 조정해보세요.
+            </div>
+          )
         )}
       </div>
 

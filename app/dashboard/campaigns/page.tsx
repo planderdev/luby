@@ -7,6 +7,9 @@ import { Plus } from "lucide-react";
 import { CampaignCard } from "@/components/dashboard/CampaignCard";
 import { CampaignFilters } from "@/components/dashboard/CampaignFilters";
 import { PendingNavArea } from "@/components/dashboard/PendingNavArea";
+import { ListLoadError } from "@/components/dashboard/ListLoadError";
+import { asUuid } from "@/lib/query-params";
+import { logError } from "@/lib/error-log";
 import {
   rankCampaigns,
   campaignBadges,
@@ -56,10 +59,11 @@ export default async function CampaignsPage({
   if (!profile) redirect("/login?redirect=/dashboard/campaigns");
 
   const params = await searchParams;
-  const status = params.status ?? "";
+  // 잘못된 필터값(오래된 링크·손으로 고친 주소)은 무시한다 — 그대로 넘기면 DB 가 거절해 목록이 비어 보인다
+  const status = STATUS_LABEL_KO[params.status ?? ""] ? params.status! : "";
   const q = params.q ?? "";
-  const category = params.category ?? "";
-  const region = params.region ?? "";
+  const category = asUuid(params.category) ?? "";
+  const region = asUuid(params.region) ?? "";
   const sort = params.sort ?? "";
 
   const supabase = await createClient();
@@ -100,7 +104,10 @@ export default async function CampaignsPage({
   }
 
   // Fetch the campaigns query and the cached catalog in parallel
-  const [{ data: rawCampaigns }, catalog] = await Promise.all([query, fetchUICatalog()]);
+  const [{ data: rawCampaigns, error: listError }, catalog] = await Promise.all([query, fetchUICatalog()]);
+  if (listError) {
+    await logError({ source: "server", message: `캠페인 목록 조회 실패: ${listError.message}`, path: "/dashboard/campaigns", routeType: "render", userId: profile.id });
+  }
 
   const regionsById = new Map(catalog.regions.map((r) => [r.id, r]));
   const categoriesById = new Map(catalog.categories.map((c) => [c.id, c]));
@@ -268,7 +275,8 @@ export default async function CampaignsPage({
             />
           );
         })}
-        {(!campaigns || campaigns.length === 0) && (
+        {listError && <ListLoadError label="캠페인 목록" />}
+        {!listError && (!campaigns || campaigns.length === 0) && (
           <div className="col-span-full rounded-3xl border border-dashed border-border bg-background p-10 text-center">
             <p className="text-sm text-muted-foreground">
               {profile.role === "advertiser"
