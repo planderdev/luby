@@ -72,6 +72,12 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
+  // Search Console 'HTML 태그' 방식으로 소유권을 확인할 때 쓴다.
+  // GOOGLE_SITE_VERIFICATION 에 content 값만 넣으면 <meta name="google-site-verification"> 이 붙는다.
+  // (DNS TXT 로 도메인 속성을 확인했다면 필요 없다)
+  ...(process.env.GOOGLE_SITE_VERIFICATION
+    ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } }
+    : {}),
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Luby" },
   // Next.js auto-generates <link rel="icon"> from app/icon.png and
