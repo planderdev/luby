@@ -41,13 +41,13 @@ export default async function OperatorAuditPage({ searchParams }: { searchParams
       <p className="mt-2 text-sm text-muted-foreground">운영자가 수행한 승인·검수·배정·정산 작업의 기록입니다 (누가·언제·무엇을). 최근 200건.</p>
 
       <form method="get" className="mt-6 flex flex-wrap items-center gap-2 text-sm">
-        <select name="action" defaultValue={action ?? ""} className="rounded-full border border-border bg-background px-4 py-2">
+        <select name="action" aria-label="작업 종류" defaultValue={action ?? ""} className="rounded-full border border-border bg-background px-4 py-2">
           <option value="">모든 작업</option>
           {ACTIONS.map((a) => (
             <option key={a} value={a}>{ACTION_LABEL[a].label}</option>
           ))}
         </select>
-        <select name="actor" defaultValue={actor ?? ""} className="rounded-full border border-border bg-background px-4 py-2">
+        <select name="actor" aria-label="운영자" defaultValue={actor ?? ""} className="rounded-full border border-border bg-background px-4 py-2">
           <option value="">모든 운영자</option>
           {(operators ?? []).map((o) => (
             <option key={o.id} value={o.id}>{o.name}</option>

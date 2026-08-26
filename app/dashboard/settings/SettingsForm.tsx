@@ -114,10 +114,11 @@ export function SettingsForm({
 
         <div className="mt-6 space-y-5">
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+            <label htmlFor="settings-email" className="mb-1.5 block text-xs font-medium text-muted-foreground">
               이메일
             </label>
             <input
+              id="settings-email"
               type="email"
               value={profile.email}
               disabled
@@ -126,10 +127,11 @@ export function SettingsForm({
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+            <label htmlFor="settings-name" className="mb-1.5 block text-xs font-medium text-muted-foreground">
               이름
             </label>
             <input
+              id="settings-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}

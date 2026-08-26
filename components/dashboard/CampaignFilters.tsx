@@ -52,6 +52,8 @@ export function CampaignFilters({
         <Search className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <input
           name="q"
+          type="search"
+          aria-label="캠페인 검색"
           defaultValue={params.get("q") ?? ""}
           placeholder="제목·업체명으로 검색"
           className="w-full rounded-full border border-border bg-background py-2.5 pl-11 pr-4 text-sm outline-none"

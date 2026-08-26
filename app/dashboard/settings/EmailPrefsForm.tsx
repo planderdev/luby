@@ -57,6 +57,7 @@ export function EmailPrefsForm({ initial, showDigest }: { initial: EmailPrefs; s
               type="button"
               role="switch"
               aria-checked={prefs[c]}
+              aria-label={EMAIL_CATEGORY_LABEL[c].label}
               onClick={() => toggle(c)}
               disabled={pending}
               className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${prefs[c] ? "bg-accent" : "bg-muted"}`}

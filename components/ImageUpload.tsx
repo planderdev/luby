@@ -170,6 +170,7 @@ export function ImageUpload({
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
+            aria-label={`${cfg.label} 업로드`}
             className="flex size-full flex-col items-center justify-center gap-2 px-4 text-center"
           >
             {uploading ? (
@@ -203,6 +204,7 @@ export function ImageUpload({
           ref={inputRef}
           type="file"
           accept={cfg.mimeTypes.join(",")}
+          aria-label={`${cfg.label} 파일 선택`}
           className="hidden"
           onChange={(e) => handleFile(e.target.files?.[0])}
         />

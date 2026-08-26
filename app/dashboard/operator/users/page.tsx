@@ -124,6 +124,8 @@ export default async function OperatorUsersPage({
         {tag && <input type="hidden" name="tag" value={tag} />}
         <input
           name="q"
+          type="search"
+          aria-label="회원 검색"
           defaultValue={params.q ?? ""}
           placeholder="이름·이메일·회사명·사업자번호 검색"
           className="min-w-[260px] flex-1 rounded-full border border-border bg-background px-4 py-2.5 text-sm outline-none"

@@ -230,6 +230,7 @@ export default async function CreatorsDirectoryPage({
           <Link
             href={buildHref(Math.max(1, page - 1))}
             data-pending-nav
+            aria-label="이전 페이지"
             aria-disabled={page <= 1}
             className={`inline-flex size-9 items-center justify-center rounded-full border border-border ${page <= 1 ? "pointer-events-none opacity-40" : "hover:bg-muted"}`}
           >
@@ -241,6 +242,7 @@ export default async function CreatorsDirectoryPage({
           <Link
             href={buildHref(Math.min(totalPages, page + 1))}
             data-pending-nav
+            aria-label="다음 페이지"
             aria-disabled={page >= totalPages}
             className={`inline-flex size-9 items-center justify-center rounded-full border border-border ${page >= totalPages ? "pointer-events-none opacity-40" : "hover:bg-muted"}`}
           >

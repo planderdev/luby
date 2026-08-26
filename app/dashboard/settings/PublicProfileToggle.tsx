@@ -43,6 +43,7 @@ export function PublicProfileToggle({ userId, initial, approved }: { userId: str
           type="button"
           role="switch"
           aria-checked={on}
+          aria-label="공개 프로필"
           onClick={toggle}
           disabled={pending || !approved}
           className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${on ? "bg-accent" : "bg-muted"} disabled:opacity-50`}
