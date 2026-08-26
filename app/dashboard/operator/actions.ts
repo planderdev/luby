@@ -220,6 +220,56 @@ export async function resendInvite(profileId: string): Promise<{ ok: true } | { 
   return { ok: true };
 }
 
+/**
+ * 미로그인 회원 여러 명에게 비밀번호 설정 메일을 순차 발송한다.
+ * 메일 발송 한도(SMTP)에 걸리면 그 지점에서 멈추고 결과를 돌려준다 — 나중에 이어서 다시 보내면 된다.
+ */
+export async function resendInviteBulk(profileIds: string[]): Promise<
+  { ok: true; sent: number; failed: { name: string; error: string }[]; stopped: boolean } | { ok: false; error: string }
+> {
+  const guard = await ensureOperator();
+  if (!guard.ok) return { ok: false, error: guard.error };
+  const ids = [...new Set(profileIds)].filter((id) => /^[0-9a-f-]{36}$/.test(id)).slice(0, 100);
+  if (ids.length === 0) return { ok: false, error: "보낼 대상이 없어요." };
+
+  // 실제로 아직 로그인한 적 없는 회원만 (목록이 오래된 경우 대비)
+  const { data: never } = await guard.supabase.rpc("operator_never_signed_in", { p_ids: ids });
+  const targets = new Set(((never ?? []) as { id: string }[]).map((r) => r.id));
+  const { data: rows } = await guard.supabase.from("profiles").select("id, email, name").in("id", ids);
+
+  const { getAdminSupabase } = await import("@/lib/supabase/admin");
+  const admin = getAdminSupabase();
+  const site = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://luby.im").replace(/\/$/, "");
+  const failed: { name: string; error: string }[] = [];
+  let sent = 0;
+  let stopped = false;
+
+  for (const row of rows ?? []) {
+    if (!targets.has(row.id) || !row.email) continue;
+    const { error } = await admin.auth.resetPasswordForEmail(row.email, { redirectTo: `${site}/reset-password` });
+    if (error) {
+      const msg = authErrorMessage(error, "메일 발송에 실패했어요.");
+      failed.push({ name: row.name ?? row.email, error: msg });
+      // 발송 한도에 걸리면 이후 시도도 모두 실패하므로 중단
+      if (/한도|잦아요|초 후에/.test(msg)) { stopped = true; break; }
+      continue;
+    }
+    sent += 1;
+    await guard.supabase.from("member_notes").insert({ profile_id: row.id, author_id: guard.user.id, body: "비밀번호 설정 메일 재발송(일괄)" });
+    await new Promise((r) => setTimeout(r, 400)); // 발송 한도 완화
+  }
+
+  await guard.supabase.rpc("push_notification_self_safe", {
+    p_user: guard.user.id,
+    p_type: "operator_notice",
+    p_title: `초대 메일 ${sent}건 발송${failed.length ? ` · 실패 ${failed.length}` : ""}`,
+    p_body: stopped ? "발송 한도에 걸려 중단했어요. 잠시 후 남은 인원에게 다시 보내주세요." : "회원 관리 > 미로그인 탭에서 확인하세요.",
+    p_link: "/dashboard/operator/users?filter=never",
+  });
+  revalidatePath("/dashboard/operator/users");
+  return { ok: true, sent, failed, stopped };
+}
+
 export async function inviteMember(input: {
   email: string;
   name: string;

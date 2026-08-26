@@ -6,13 +6,15 @@ import { MemberRow } from "./MemberRow";
 import { BulkApproveList } from "./BulkApproveList";
 import { InviteMemberPanel } from "./InviteMemberPanel";
 import { BulkImportPanel } from "./BulkImportPanel";
+import { BulkInvitePanel } from "./BulkInvitePanel";
 
 export const metadata = { title: "회원 관리 — 루비AI" };
 
-type Filter = "pending" | "all" | "advertiser" | "agency" | "influencer";
+type Filter = "pending" | "never" | "all" | "advertiser" | "agency" | "influencer";
 
 const TABS: { key: Filter; label: string }[] = [
   { key: "pending", label: "승인 대기" },
+  { key: "never", label: "미로그인" },
   { key: "all", label: "전체" },
   { key: "advertiser", label: "광고주" },
   { key: "agency", label: "대행사" },
@@ -70,6 +72,7 @@ export default async function OperatorUsersPage({
   const isAgency = (id: string) => advertiserById.get(id)?.advertiser_kind === "agency";
   const counts: Record<Filter, number> = {
     pending: all.filter((p) => !p.approved).length,
+    never: all.filter((p) => neverSignedIn.has(p.id)).length,
     all: all.length,
     advertiser: all.filter((p) => p.role === "advertiser" && !isAgency(p.id)).length,
     agency: all.filter((p) => p.role === "advertiser" && isAgency(p.id)).length,
@@ -87,6 +90,7 @@ export default async function OperatorUsersPage({
   const members = all.filter((p) => {
     if (!matchesQuery(p) || !matchesTag(p)) return false;
     if (filter === "pending") return !p.approved;
+    if (filter === "never") return neverSignedIn.has(p.id);
     if (filter === "advertiser") return p.role === "advertiser" && !isAgency(p.id);
     if (filter === "agency") return p.role === "advertiser" && isAgency(p.id);
     if (filter === "influencer") return p.role === "influencer";
@@ -159,6 +163,10 @@ export default async function OperatorUsersPage({
           </Link>
         ))}
       </div>
+
+      {filter === "never" && members.length > 0 && (
+        <BulkInvitePanel profileIds={members.map((p) => p.id)} names={members.slice(0, 3).map((p) => p.name)} />
+      )}
 
       {(() => {
         const renderRow = (p: (typeof members)[number]) => {
