@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { findDoc, DOC_GROUPS } from "@/lib/docs/content";
+import { findDoc, DOC_GROUPS, docDescription } from "@/lib/docs/content";
+import { getSiteUrl } from "@/lib/seo/site";
 import { docsDict, docsPrefix, type DocsLocale } from "@/lib/docs/i18n";
 import { CopyMarkdownButton } from "@/components/docs/CopyMarkdownButton";
 import { DocFeedback } from "@/components/docs/DocFeedback";
@@ -14,7 +15,9 @@ export function docPageMetadata(lang: DocsLocale, group: string, slug: string): 
   if (!d) return { title: "404", robots: { index: false } };
   const g = DOC_GROUPS.find((x) => x.key === group);
   const gTitle = t.groups[group] ?? d.group.title;
-  return { title: `${d.page.title} — ${gTitle}`, description: `${gTitle} · ${d.page.title}${d.page.subtitle ? ` (${d.page.subtitle.replace(/`/g, "")})` : ""}`, robots: g?.operatorOnly ? { index: false } : undefined };
+  // 검색 결과 문구는 본문에서 뽑는 편이 클릭을 끈다 — 건질 문장이 없으면 기존 기계 문구로
+  const fallback = `${gTitle} · ${d.page.title}${d.page.subtitle ? ` (${d.page.subtitle.replace(/`/g, "")})` : ""}`;
+  return { title: `${d.page.title} — ${gTitle}`, description: docDescription(d.page.markdown) ?? fallback, robots: g?.operatorOnly ? { index: false } : undefined };
 }
 
 /** 가이드 문서 페이지 — 빵부스러기·본문·피드백·이전/다음·우측 목차 */
@@ -33,8 +36,37 @@ export async function DocPageView({ lang, group, slug, allowOperator = false }: 
   const visiblePrev = isVisible(prev);
   const visibleNext = isVisible(next);
 
+  // 검색 결과에 경로(가이드 > 그룹 > 문서)와 문서 정보를 노출한다. 운영자 전용 문서는 색인 대상이 아니라 제외.
+  const site = getSiteUrl();
+  const jsonLd = g.operatorOnly
+    ? null
+    : {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: t.breadcrumb, item: `${site}${base}` },
+              { "@type": "ListItem", position: 2, name: t.groups[group] ?? d.group.title, item: `${site}${base}/${group}/${d.group.pages[0]?.slug ?? slug}` },
+              { "@type": "ListItem", position: 3, name: page.title },
+            ],
+          },
+          {
+            "@type": "TechArticle",
+            headline: page.title,
+            description: docDescription(page.markdown) ?? `${t.groups[group] ?? d.group.title} · ${page.title}`,
+            inLanguage: lang === "zh" ? "zh-CN" : lang === "en" ? "en" : "ko-KR",
+            dateModified: page.updated ?? undefined,
+            url: `${site}${base}/${group}/${slug}`,
+            isPartOf: { "@type": "WebSite", name: t.siteTitle, url: `${site}/docs` },
+            publisher: { "@type": "Organization", name: "루비AI", url: site },
+          },
+        ],
+      };
+
   return (
     <div className="flex gap-10">
+      {jsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />}
       <DocViewBeacon lang={lang} />
       <article className="min-w-0 max-w-3xl flex-1">
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">

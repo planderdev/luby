@@ -135,3 +135,27 @@ export function searchIndex(opts?: { includeOperator?: boolean; lang?: DocsLang 
     }))
   );
 }
+
+/**
+ * 검색 결과에 쓸 문서 설명 — 본문 첫 문장들에서 뽑는다.
+ * 표·이미지·링크·코드 표기를 걷어내고, 건질 문장이 없으면 null(호출부가 기존 문구로 대체).
+ */
+export function docDescription(markdown: string): string | null {
+  const text = markdown
+    .split("\n")
+    .filter((l) => !/^\s*\|/.test(l)) // 표 행은 설명으로 쓸 수 없다
+    .join("\n")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/https?:\/\/\S+/g, " ")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/[*_>#]/g, "")
+    .replace(/^\s*[-\d]+[.)]?\s*/gm, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (text.length < 40) return null;
+  const cut = text.slice(0, 155);
+  // 문장 중간에서 끊기지 않게 마지막 구두점까지만
+  const end = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("다 "), cut.lastIndexOf("다."), cut.lastIndexOf("요."));
+  return (end > 60 ? cut.slice(0, end + 1) : cut).trim();
+}
