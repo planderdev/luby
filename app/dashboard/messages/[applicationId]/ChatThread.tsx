@@ -137,7 +137,7 @@ export function ChatThread({
                 <div
                   className={`max-w-[75%] whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-sm ${
                     mine
-                      ? "rounded-br-md bg-accent text-white"
+                      ? "rounded-br-md bg-accent-strong text-white"
                       : "rounded-bl-md bg-muted text-foreground"
                   }`}
                 >

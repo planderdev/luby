@@ -57,7 +57,7 @@ export function Global({ dict }: { dict: Dict["global"] }) {
                   <div className="flex items-center justify-between">
                     <span className="text-2xl">{m.flag}</span>
                     {m.main && (
-                      <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-medium text-background">
+                      <span className="rounded-full bg-accent-strong px-2 py-0.5 text-[10px] font-medium text-background">
                         HQ
                       </span>
                     )}

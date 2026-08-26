@@ -94,7 +94,7 @@ export async function CreatorLanding({ locale }: { locale: Locale }) {
         <ol className="mt-6 grid gap-4 md:grid-cols-4">
           {t.how.map((h, i) => (
             <li key={h.t} className="rounded-3xl glass-card p-6">
-              <div className="flex size-8 items-center justify-center rounded-full bg-accent text-xs font-semibold text-white shadow-pink-sm">{i + 1}</div>
+              <div className="flex size-8 items-center justify-center rounded-full bg-accent-strong text-xs font-semibold text-white shadow-pink-sm">{i + 1}</div>
               <h3 className="mt-4 text-base font-semibold">{h.t}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{h.d}</p>
             </li>
@@ -110,7 +110,7 @@ export async function CreatorLanding({ locale }: { locale: Locale }) {
               <h2 className="display text-2xl font-semibold tracking-tight md:text-3xl">{t.showcaseTitle}</h2>
               <p className="mt-1 text-sm text-muted-foreground">{t.showcaseSub}</p>
             </div>
-            <Link href={`${pfx}/c?sort=points`} className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">{t.showcaseAll} <ArrowRight className="size-3.5" /></Link>
+            <Link href={`${pfx}/c?sort=points`} aria-label={`${t.showcaseTitle} — ${t.showcaseAll}`} className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">{t.showcaseAll} <ArrowRight className="size-3.5" /></Link>
           </div>
           <ul className="mt-6 grid gap-4 sm:grid-cols-3">
             {top.map((c) => (
@@ -118,7 +118,7 @@ export async function CreatorLanding({ locale }: { locale: Locale }) {
                 <Link href={`${pfx}/c/${c.id}?src=dir`} className="group flex h-full flex-col overflow-hidden rounded-3xl glass-card transition-transform hover:-translate-y-0.5">
                   <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
                     <Image src={c.thumbnail_url ?? `/api/og/campaign/${c.id}`} alt={c.title} fill sizes="(min-width: 640px) 33vw, 100vw" className={`object-cover ${c.thumbnail_url ? "" : "object-left"}`} />
-                    {c.applied < c.recruit_count && <span className="absolute right-3 top-3 rounded-full bg-accent px-2.5 py-1 text-[11px] font-semibold text-white shadow-pink-sm">{t.spotsLeft(c.recruit_count - c.applied)}</span>}
+                    {c.applied < c.recruit_count && <span className="absolute right-3 top-3 rounded-full bg-accent-strong px-2.5 py-1 text-[11px] font-semibold text-white shadow-pink-sm">{t.spotsLeft(c.recruit_count - c.applied)}</span>}
                   </div>
                   <div className="flex flex-1 flex-col p-4">
                     <div className="text-[11px] text-muted-foreground">{c.region?.flag} {c.region?.name} · {c.category?.emoji} {c.category?.name}</div>

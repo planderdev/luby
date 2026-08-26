@@ -89,7 +89,7 @@ export function CampaignCard({
                 className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                   b === "응모함"
                     ? "bg-foreground/85 text-background"
-                    : "bg-accent text-white shadow-pink-sm"
+                    : "bg-accent-strong text-white shadow-pink-sm"
                 }`}
               >
                 {b}

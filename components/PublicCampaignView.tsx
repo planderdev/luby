@@ -312,7 +312,7 @@ export async function PublicCampaignView({ id, locale, refId = null }: { id: str
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={r.thumbnail_url ?? `/api/og/campaign/${r.id}`} alt={r.title} loading="lazy" className={`size-full object-cover ${r.thumbnail_url ? "" : "object-left"}`} />
                       {!r.always_open && d > 0 && d <= 7 && (
-                        <span className="absolute right-2 top-2 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-white">{t.closesIn(d)}</span>
+                        <span className="absolute right-2 top-2 rounded-full bg-accent-strong px-2 py-0.5 text-[10px] font-semibold text-white">{t.closesIn(d)}</span>
                       )}
                     </div>
                     <div className="flex flex-1 flex-col p-4">

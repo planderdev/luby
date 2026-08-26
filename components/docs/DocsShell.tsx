@@ -43,10 +43,10 @@ export async function DocsShell({ lang, children }: { lang: DocsLocale; children
       </header>
       <div className="mx-auto flex w-full max-w-7xl gap-8 px-5 py-6 lg:py-10">
         <DocsSidebar groups={nav} base={base} labels={{ home: t.home, toc: t.toc, tocOpen: t.tocOpen, close: t.close }} />
-        <div className="min-w-0 flex-1">
+        <main className="min-w-0 flex-1">
           {partial && <p className="mb-5 rounded-2xl border border-border bg-background px-4 py-2.5 text-xs text-muted-foreground">{t.onlyKo} <Link href="/docs" className="underline underline-offset-2 hover:text-foreground">KR →</Link></p>}
           {children}
-        </div>
+        </main>
       </div>
     </div>
   );

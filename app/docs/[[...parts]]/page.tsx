@@ -34,9 +34,12 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const r = resolve((await params).parts);
   if (!r) return { title: "404", robots: { index: false } };
   const t = docsDict[r.lang];
-  if (!r.group || !r.slug) return { title: { absolute: t.siteTitle }, description: t.homeSub };
+  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://luby.im").replace(/\/$/, "");
+  const path = [r.lang === "ko" ? "" : `/${r.lang}`, r.group && r.slug ? `/${r.group}/${r.slug}` : ""].join("");
+  const canonical = `${base}/docs${path}`;
+  if (!r.group || !r.slug) return { title: { absolute: t.siteTitle }, description: t.homeSub, alternates: { canonical } };
   const m = docPageMetadata(r.lang, r.group, r.slug);
-  return { ...m, title: { absolute: typeof m.title === "string" ? `${m.title} — ${t.siteTitle}` : t.siteTitle } };
+  return { ...m, title: { absolute: typeof m.title === "string" ? `${m.title} — ${t.siteTitle}` : t.siteTitle }, alternates: { canonical } };
 }
 
 export default async function DocsCatchAll({ params }: { params: Params }) {

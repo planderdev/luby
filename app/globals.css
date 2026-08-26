@@ -18,7 +18,8 @@
   --border: 235 230 239;              /* #ebe6ef hairline */
 
   /* 네온 핑크 액센트 */
-  --accent: 255 42 167;               /* #ff2aa7 */
+  --accent: 255 42 167;
+  --accent-strong: 227 0 128;         /* #e30080 — 흰 글자 대비 4.59:1(AA). 글자가 얹히는 핑크 면에 사용 */
   --accent-soft: 255 229 244;         /* #ffe5f4 */
   --accent-ink: 188 0 111;            /* #bc006f */
 
@@ -36,6 +37,7 @@
 
   /* 네온 핑크 액센트 */
   --accent: 255 42 167;               /* #ff2aa7 */
+  --accent-strong: 227 0 128;         /* #e30080 — 흰 글자 대비 4.59:1(AA) */
   --accent-soft: 74 0 31;             /* emissive #4a001f */
   --accent-ink: 255 142 213;          /* glow #ff8ed5 */
 

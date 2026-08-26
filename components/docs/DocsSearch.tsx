@@ -64,7 +64,7 @@ export function DocsSearch({ items, lang = "ko", labels = { search: "검색…",
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted">
+      <button type="button" onClick={() => setOpen(true)} aria-label={labels.search} className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted">
         <Search className="size-3.5" /> <span className="hidden sm:inline">{labels.search}</span>
         <kbd className="hidden rounded border border-border px-1 text-[10px] sm:inline">⌘K</kbd>
       </button>

@@ -28,7 +28,7 @@ export function AIButton({
       aria-busy={pending}
       className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed ${
         pending
-          ? "bg-accent text-white opacity-100 shadow-pink-sm"
+          ? "bg-accent-strong text-white opacity-100 shadow-pink-sm"
           : `disabled:opacity-50 ${styles}`
       }`}
     >

@@ -92,7 +92,7 @@ export function NotificationBellClient({ userId, initialUnread }: { userId: stri
       >
         <Bell className="size-4.5" />
         {unread > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-background">
+          <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-strong px-1 text-[10px] font-bold text-background">
             {unread > 99 ? "99+" : unread}
           </span>
         )}

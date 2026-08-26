@@ -222,7 +222,7 @@ export function InfluencerOverview({
                   {c.badges.length > 0 && (
                     <div className="absolute right-2 top-2 flex gap-1">
                       {c.badges.map((b) => (
-                        <span key={b} className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-white shadow-pink-sm">
+                        <span key={b} className="rounded-full bg-accent-strong px-2 py-0.5 text-[10px] font-semibold text-white shadow-pink-sm">
                           {b}
                         </span>
                       ))}

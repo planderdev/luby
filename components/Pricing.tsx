@@ -80,7 +80,7 @@ function PlanCard({
       }`}
     >
       {badge && (
-        <span className="absolute -top-3 left-8 rounded-full bg-accent px-3 py-1 text-[11px] font-medium text-background">
+        <span className="absolute -top-3 left-8 rounded-full bg-accent-strong px-3 py-1 text-[11px] font-medium text-background">
           {badge}
         </span>
       )}

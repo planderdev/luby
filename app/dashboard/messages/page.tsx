@@ -144,7 +144,7 @@ export default async function MessagesPage() {
                 </p>
               </div>
               {unread > 0 && (
-                <span className="flex h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-bold text-background">
+                <span className="flex h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-accent-strong px-1.5 text-[11px] font-bold text-background">
                   {unread > 99 ? "99+" : unread}
                 </span>
               )}
