@@ -88,6 +88,8 @@ export async function buildPublicCreatorMetadata(id: string, locale: Locale = "k
 export async function PublicCreatorView({ id, locale = "ko", ownerPreview = false }: { id: string; locale?: Locale; ownerPreview?: boolean }) {
   const c = await fetchPublicCreator(id, { asOwner: ownerPreview });
   if (!c) notFound();
+  // 데모 계정의 채널 주소는 실제로 존재하지 않으므로(핸들에 한글) 링크로 만들지 않는다
+  const isDemo = await isDemoAccount(id);
   const t = publicCreatorDict[locale];
   const fmtN = fmtNFor(locale);
   const pfx = localePrefix(locale);
@@ -177,7 +179,11 @@ export async function PublicCreatorView({ id, locale = "ko", ownerPreview = fals
                   </div>
                   <div className="flex shrink-0 items-center gap-3 text-xs text-muted-foreground">
                     {ch.followers > 0 && <span>{fmtN(ch.followers)}</span>}
-                    <a href={ch.url} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex items-center gap-1 hover:text-foreground"><ExternalLink className="size-3.5" /></a>
+                    {isDemo ? (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[11px]">demo</span>
+                    ) : (
+                      <a href={ch.url} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex items-center gap-1 hover:text-foreground"><ExternalLink className="size-3.5" /></a>
+                    )}
                   </div>
                 </li>
               ))}

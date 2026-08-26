@@ -60,6 +60,10 @@ export default async function CreatorProfilePage({
   // 공개 프로필을 켠 크리에이터면 공유 가능한 /p/[id] 링크 표시 (RLS: 승인 크리에이터의 influencers 행은 조회 가능)
   const { data: pubRow } = await supabase.from("influencers").select("public_profile").eq("profile_id", id).maybeSingle();
   const hasPublic = !!pubRow?.public_profile;
+  // 데모 계정(@ruby-ai.kr)의 채널은 실제로 존재하지 않는 주소다(핸들에 한글이 섞여 있어 플랫폼이 오류를 낸다).
+  // 링크로 만들지 않고 텍스트로만 보여준다.
+  const { data: demo } = await supabase.rpc("is_demo_account", { p_profile: id });
+  const isDemo = demo === true;
   const portfolio = data as Portfolio | null;
 
   if (!portfolio) {
@@ -171,14 +175,8 @@ export default async function CreatorProfilePage({
       {/* 채널 */}
       <h2 className="mt-10 text-lg font-semibold tracking-tight">운영 채널</h2>
       <div className="mt-3 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-        {portfolio.channels.map((c, i) => (
-          <a
-            key={i}
-            href={c.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex items-center justify-between gap-3 rounded-2xl glass-card px-5 py-4 transition-colors hover:bg-muted/40"
-          >
+        {portfolio.channels.map((c, i) => {
+          const body = (
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">
                 {c.type_name}
@@ -189,9 +187,28 @@ export default async function CreatorProfilePage({
                 팔로워 {fmtFollowers(c.followers ?? 0)}
               </div>
             </div>
-            <ExternalLink className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
-          </a>
-        ))}
+          );
+          if (isDemo) {
+            return (
+              <div key={i} className="flex items-center justify-between gap-3 rounded-2xl glass-card px-5 py-4">
+                {body}
+                <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">데모</span>
+              </div>
+            );
+          }
+          return (
+            <a
+              key={i}
+              href={c.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center justify-between gap-3 rounded-2xl glass-card px-5 py-4 transition-colors hover:bg-muted/40"
+            >
+              {body}
+              <ExternalLink className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
+            </a>
+          );
+        })}
         {portfolio.channels.length === 0 && (
           <p className="col-span-full rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
             등록된 채널이 없습니다.
