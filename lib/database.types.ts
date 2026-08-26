@@ -1415,6 +1415,11 @@ export type Database = {
         Args: { p_ids?: string[] | null }
         Returns: { id: string; created_at: string; invited_at: string | null }[]
       }
+      /** 초대만 되고 한 번도 로그인하지 않은 실계정 수 (데모 제외, 운영자 외에는 0) */
+      operator_dormant_count: {
+        Args: Record<string, never>
+        Returns: number
+      }
       is_demo_account: {
         Args: { p_profile: string }
         Returns: boolean

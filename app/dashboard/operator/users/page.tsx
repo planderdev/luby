@@ -68,7 +68,12 @@ export default async function OperatorUsersPage({
   const all = (profilesRes.data ?? []).filter((p) => p.role !== "operator");
   // 가입 후 한 번도 로그인하지 않은 계정 (일괄 등록 후 방치 파악)
   const { data: neverRows } = await supabase.rpc("operator_never_signed_in", { p_ids: all.map((p) => p.id) });
-  const neverSignedIn = new Set(((neverRows ?? []) as { id: string }[]).map((r) => r.id));
+  // 데모 계정(@ruby-ai.kr)은 재초대 대상이 아니다 — 포함하면 400명이 넘어 숫자가 무의미해지고,
+  // 일괄 재발송이 실존하지 않는 주소로 나가 발신 평판을 깎을 수 있다
+  const demoIds = new Set(all.filter((p) => (p.email ?? "").endsWith("@ruby-ai.kr")).map((p) => p.id));
+  const neverSignedIn = new Set(
+    ((neverRows ?? []) as { id: string }[]).map((r) => r.id).filter((id) => !demoIds.has(id))
+  );
   const isAgency = (id: string) => advertiserById.get(id)?.advertiser_kind === "agency";
   const counts: Record<Filter, number> = {
     pending: all.filter((p) => !p.approved).length,

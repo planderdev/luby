@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Users, ShieldCheck, Banknote, Megaphone } from "lucide-react";
+import { ArrowRight, Users, ShieldCheck, Banknote, Megaphone, MailWarning } from "lucide-react";
 import { TodoList, type TodoItem } from "@/components/dashboard/TodoList";
 
 export function OperatorOverview({
@@ -8,14 +8,17 @@ export function OperatorOverview({
   pendingCampaignsCount,
   pendingWithdrawals,
   openCampaigns,
+  dormantCount = 0,
 }: {
   name: string;
   pendingUsersCount: number;
   pendingCampaignsCount: number;
   pendingWithdrawals: number;
   openCampaigns: number;
+  /** 초대만 되고 한 번도 로그인하지 않은 실계정 수 (데모 제외) */
+  dormantCount?: number;
 }) {
-  const totalPending = pendingUsersCount + pendingCampaignsCount + pendingWithdrawals;
+  const totalPending = pendingUsersCount + pendingCampaignsCount + pendingWithdrawals + dormantCount;
 
   const todoItems: TodoItem[] = [
     {
@@ -47,6 +50,16 @@ export function OperatorOverview({
       cta: "정산하기",
       tone: "danger",
       icon: <Banknote className="size-5" />,
+    },
+    {
+      key: "dormant",
+      count: dormantCount,
+      label: `${dormantCount}명이 초대 후 한 번도 들어오지 않았어요`,
+      hint: "초대 메일을 다시 보내면 비밀번호를 정하고 바로 시작할 수 있어요",
+      href: "/dashboard/operator/users?filter=never",
+      cta: "다시 초대하기",
+      tone: "accent",
+      icon: <MailWarning className="size-5" />,
     },
   ];
 

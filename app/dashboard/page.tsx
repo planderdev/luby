@@ -268,6 +268,7 @@ export default async function DashboardPage() {
     { count: pendingCampaignsCount },
     { count: pendingWithdrawals },
     { count: openCampaigns },
+    { data: dormantCount },
   ] = await Promise.all([
     supabase.from("profiles").select("*", { count: "exact", head: true }).eq("approved", false),
     supabase
@@ -279,6 +280,8 @@ export default async function DashboardPage() {
       .select("id", { count: "exact", head: true })
       .eq("status", "requested"),
     supabase.from("campaigns").select("id", { count: "exact", head: true }).eq("status", "open"),
+    // 초대만 되고 한 번도 안 들어온 실계정 (데모 제외) — 재초대해야 살아나는 계정들
+    supabase.rpc("operator_dormant_count"),
   ]);
 
   return (
@@ -288,6 +291,7 @@ export default async function DashboardPage() {
       pendingCampaignsCount={pendingCampaignsCount ?? 0}
       pendingWithdrawals={pendingWithdrawals ?? 0}
       openCampaigns={openCampaigns ?? 0}
+      dormantCount={dormantCount ?? 0}
     />
   );
 }
