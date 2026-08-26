@@ -1,16 +1,15 @@
 import Link from "next/link";
-import { ArrowRight, ChevronRight, Rocket } from "lucide-react";
-import { getCurrentProfile } from "@/lib/supabase/queries";
+import { ChevronRight, Rocket } from "lucide-react";
 import { loadDocs } from "@/lib/docs/content";
 import { getStaticSupabase } from "@/lib/supabase/static";
 import { docsDict, docsPrefix, type DocsLocale } from "@/lib/docs/i18n";
+import { DocsHomeCta } from "@/components/docs/DocsHomeCta";
 
 /** 가이드 홈 — 제목·설명·Quick Start·역할별 카드·다음 */
 export async function DocsHome({ lang }: { lang: DocsLocale }) {
   const t = docsDict[lang];
   const base = docsPrefix(lang);
-  const profile = await getCurrentProfile();
-  const groups = loadDocs({ includeOperator: profile?.role === "operator", lang });
+  const groups = loadDocs({ lang }); // 운영자 그룹은 좌측 목차에서 클라이언트가 덧붙인다(서버 쿠키 읽기 금지 — CDN 캐시)
   const start = groups.find((g) => g.key === "start");
   const available = new Set(groups.map((g) => g.key));
   const quick = t.quick.filter((q) => available.has(q.href.split("/")[1]));
@@ -27,7 +26,7 @@ export async function DocsHome({ lang }: { lang: DocsLocale }) {
       <h1 className="display text-3xl font-semibold tracking-tight md:text-4xl">{t.homeTitle}</h1>
       <p className="mt-3 text-base text-muted-foreground">{t.homeSub}</p>
       <div className="mt-6 flex flex-wrap gap-2">
-        <Link href={profile ? "/dashboard" : "/signup"} className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background">{profile ? t.ctaDash : t.ctaStart} <ArrowRight className="size-4" /></Link>
+        <DocsHomeCta startLabel={t.ctaStart} dashLabel={t.ctaDash} />
         <Link href={creatorsHref} className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-medium hover:bg-muted">{t.ctaCreators}</Link>
       </div>
 

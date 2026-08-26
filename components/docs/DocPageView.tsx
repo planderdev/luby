@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { getCurrentProfile } from "@/lib/supabase/queries";
 import { findDoc, DOC_GROUPS } from "@/lib/docs/content";
 import { docsDict, docsPrefix, type DocsLocale } from "@/lib/docs/i18n";
 import { CopyMarkdownButton } from "@/components/docs/CopyMarkdownButton";
@@ -19,15 +18,14 @@ export function docPageMetadata(lang: DocsLocale, group: string, slug: string): 
 }
 
 /** 가이드 문서 페이지 — 빵부스러기·본문·피드백·이전/다음·우측 목차 */
-export async function DocPageView({ lang, group, slug }: { lang: DocsLocale; group: string; slug: string }) {
+export async function DocPageView({ lang, group, slug, allowOperator = false }: { lang: DocsLocale; group: string; slug: string; allowOperator?: boolean }) {
   const t = docsDict[lang];
   const base = docsPrefix(lang);
   const g = DOC_GROUPS.find((x) => x.key === group);
   if (!g) notFound();
-  if (g.operatorOnly) {
-    const profile = await getCurrentProfile();
-    if (profile?.role !== "operator") notFound();
-  }
+  // 운영자 전용 문서는 세션 확인이 필요한 전용 라우트(app/docs/operator/[slug])에서만 연다.
+  // 캐치올(/docs/…)은 캐시되는 정적 라우트라 여기서 쿠키를 읽을 수 없다.
+  if (g.operatorOnly && !allowOperator) notFound();
   const d = findDoc(group, slug, { includeOperator: true, lang });
   if (!d) notFound();
   const { page, prev, next } = d;

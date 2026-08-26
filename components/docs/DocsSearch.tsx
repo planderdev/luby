@@ -3,11 +3,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X } from "lucide-react";
+import { useOperatorDocs } from "@/components/docs/operator-docs";
 
 export type SearchItem = { href: string; group: string; title: string; text: string; headings: string[] };
 
 /** ⌘K 검색 — 제목·소제목·본문 부분 일치, 상위 8개 */
-export function DocsSearch({ items, lang = "ko", labels = { search: "검색…", placeholder: "기능·화면 이름으로 검색 (예: 출금, QR 포스터, 검수)", noResults: "{labels.noResults}", close: "닫기" } }: { items: SearchItem[]; lang?: string; labels?: { search: string; placeholder: string; noResults: string; close: string } }) {
+export function DocsSearch({ items: publicItems, lang = "ko", labels = { search: "검색…", placeholder: "기능·화면 이름으로 검색 (예: 출금, QR 포스터, 검수)", noResults: "{labels.noResults}", close: "닫기" } }: { items: SearchItem[]; lang?: string; labels?: { search: string; placeholder: string; noResults: string; close: string } }) {
+  const { index: operatorItems } = useOperatorDocs(lang);
+  const items = operatorItems.length ? [...publicItems, ...operatorItems] : publicItems;
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [sel, setSel] = useState(0);

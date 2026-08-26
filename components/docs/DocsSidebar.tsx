@@ -4,12 +4,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { BookOpen, ChevronDown, Menu, X } from "lucide-react";
+import { useOperatorDocs } from "@/components/docs/operator-docs";
 
 export type NavGroup = { key: string; title: string; description: string; pages: { slug: string; title: string }[] };
 
 /** 가이드 좌측 목차 — 데스크톱 고정, 모바일은 토글 */
-export function DocsSidebar({ groups, base = "/docs", labels = { home: "가이드 홈", toc: "목차", tocOpen: "목차 열기", close: "닫기" } }: { groups: NavGroup[]; base?: string; labels?: { home: string; toc: string; tocOpen: string; close: string } }) {
+export function DocsSidebar({ groups: publicGroups, base = "/docs", lang = "ko", labels = { home: "가이드 홈", toc: "목차", tocOpen: "목차 열기", close: "닫기" } }: { groups: NavGroup[]; base?: string; lang?: string; labels?: { home: string; toc: string; tocOpen: string; close: string } }) {
   const pathname = usePathname();
+  // 운영자 목차는 서버 HTML 에 넣지 않고(캐시 유지) 로그인한 운영자에게만 덧붙인다
+  const { groups: operatorGroups } = useOperatorDocs(lang);
+  const groups = operatorGroups.length ? [...publicGroups, ...operatorGroups] : publicGroups;
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const activeGroup = groups.find((g) => pathname.startsWith(`${base}/${g.key}`))?.key;

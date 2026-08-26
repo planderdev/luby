@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAdminSupabase } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { isBotUa, visitorHash, UUID_RE } from "@/lib/view-beacon";
 
 export const runtime = "nodejs";
@@ -11,6 +12,20 @@ export async function POST(req: Request) {
   const id = body?.id;
   const hash = visitorHash(req);
   if (!id || !UUID_RE.test(id) || !hash) return new NextResponse(null, { status: 204 });
+
+  // 본인·운영자 조회는 제외
+  try {
+    const supabase = await createClient();
+    const { data: auth } = await supabase.auth.getUser();
+    if (auth.user) {
+      if (auth.user.id === id) return new NextResponse(null, { status: 204 });
+      const { data: profile } = await supabase.from("profiles").select("role").eq("id", auth.user.id).maybeSingle();
+      if (profile?.role === "operator") return new NextResponse(null, { status: 204 });
+    }
+  } catch {
+    /* 비로그인 */
+  }
+
   try {
     await getAdminSupabase().rpc("record_creator_view", {
       p_creator: id,

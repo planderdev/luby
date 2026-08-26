@@ -1,16 +1,18 @@
 import type { Metadata } from "next";
+import { unstable_cache } from "next/cache";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { MapPin, Users, CheckCircle2, ArrowRight, ExternalLink, Sparkles } from "lucide-react";
+import { MapPin, Users, CheckCircle2, ExternalLink, Sparkles } from "lucide-react";
 import { getStaticSupabase } from "@/lib/supabase/static";
 import { PrintButton } from "@/app/r/[token]/PrintButton";
-import { getCurrentProfile } from "@/lib/supabase/queries";
 import { getSiteUrl, SITE } from "@/lib/seo/site";
 import { publicCreatorDict } from "@/lib/i18n/public-creator";
 import { localePrefix } from "@/lib/i18n/public-campaign";
 import type { Locale } from "@/lib/i18n/config";
 import { ViewBeacon } from "@/components/ViewBeacon";
+import { CreatorCta } from "@/components/public/CreatorCta";
+import { TopBarAuthLink } from "@/components/public/TopBarAuthLink";
 
 /** 크리에이터 공개 프로필 (옵트인). 데이터: get_public_creator() — 본인이 켠 경우에만 값 반환 */
 export type PublicCreator = {
@@ -26,13 +28,35 @@ export type PublicCreator = {
   joined_at: string;
 };
 
+/** 공개 프로필 — 캐시해야 페이지가 CDN 에 올라간다(캐시 없는 조회는 매 요청 동적 렌더로 판정됨) */
+const getPublicCreator = unstable_cache(
+  async (id: string): Promise<PublicCreator | null> => {
+    const { data } = await getStaticSupabase().rpc("get_public_creator", { p_id: id });
+    return (data as PublicCreator | null) ?? null;
+  },
+  ["public-creator"],
+  { revalidate: 300, tags: ["public-creators"] }
+);
+
 export async function fetchPublicCreator(id: string, opts?: { asOwner?: boolean }): Promise<PublicCreator | null> {
   if (!/^[0-9a-f-]{36}$/.test(id)) return null;
-  // 본인 미리보기는 쿠키 세션(auth.uid) 이 필요 — RPC 가 공개 여부와 무관하게 본인에게는 반환
-  const client = opts?.asOwner ? await (await import("@/lib/supabase/server")).createClient() : getStaticSupabase();
-  const { data } = await client.rpc("get_public_creator", { p_id: id });
-  return (data as PublicCreator | null) ?? null;
+  // 본인 미리보기는 쿠키 세션(auth.uid) 이 필요 — RPC 가 공개 여부와 무관하게 본인에게는 반환(캐시 금지)
+  if (opts?.asOwner) {
+    const client = await (await import("@/lib/supabase/server")).createClient();
+    const { data } = await client.rpc("get_public_creator", { p_id: id });
+    return (data as PublicCreator | null) ?? null;
+  }
+  return getPublicCreator(id);
 }
+
+const isDemoAccount = unstable_cache(
+  async (profileId: string): Promise<boolean> => {
+    const { data } = await getStaticSupabase().rpc("is_demo_account", { p_profile: profileId });
+    return data === true;
+  },
+  ["is-demo-account-creator"],
+  { revalidate: 3600 }
+);
 
 const fmtNFor = (locale: Locale) => (n: number) =>
   locale === "ko"
@@ -43,7 +67,7 @@ const fmtNFor = (locale: Locale) => (n: number) =>
 
 export async function buildPublicCreatorMetadata(id: string, locale: Locale = "ko"): Promise<Metadata> {
   const c = await fetchPublicCreator(id);
-  const { data: demo } = await getStaticSupabase().rpc("is_demo_account", { p_profile: id });
+  const demo = await isDemoAccount(id);
   const t = publicCreatorDict[locale];
   if (!c) return { title: locale === "ko" ? "프로필을 찾을 수 없어요" : locale === "zh" ? "找不到该资料" : "Profile not found", robots: { index: false } };
   const fmtN = fmtNFor(locale);
@@ -54,7 +78,7 @@ export async function buildPublicCreatorMetadata(id: string, locale: Locale = "k
   return {
     title: t.metaTitle(c.name),
     description: desc,
-    robots: demo === true ? { index: false, follow: true } : undefined,
+    robots: demo ? { index: false, follow: true } : undefined,
     alternates: { canonical: url, languages: { "ko-KR": `${base}/p/${c.id}`, en: `${base}/en/p/${c.id}`, "zh-CN": `${base}/zh/p/${c.id}`, "x-default": `${base}/p/${c.id}` } },
     openGraph: { title: t.ogTitle(c.name), description: desc, url, type: "profile", siteName: SITE.name, images: c.avatar_url ? [{ url: c.avatar_url, width: 600, height: 600, alt: c.name }] : [{ url: "/og.png", width: 1280, height: 720 }] },
     twitter: { card: "summary", title: c.name, description: desc, images: c.avatar_url ? [c.avatar_url] : ["/og.png"] },
@@ -67,16 +91,7 @@ export async function PublicCreatorView({ id, locale = "ko", ownerPreview = fals
   const t = publicCreatorDict[locale];
   const fmtN = fmtNFor(locale);
   const pfx = localePrefix(locale);
-  const profile = await getCurrentProfile();
   const total = c.channels.reduce((s, ch) => s + (ch.followers ?? 0), 0);
-  const dash = `/dashboard/creators/${c.id}`;
-  const cta = profile
-    ? profile.role === "advertiser" || profile.role === "operator"
-      ? { href: dash, label: t.ctaInvite }
-      : profile.id === c.id
-        ? { href: "/dashboard/settings#public", label: t.ctaMine }
-        : null
-    : { href: `/signup?role=advertiser&redirect=${encodeURIComponent(dash)}`, label: t.ctaSignup };
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -93,7 +108,7 @@ export async function PublicCreatorView({ id, locale = "ko", ownerPreview = fals
   return (
     <main lang={locale === "zh" ? "zh-CN" : locale} className="min-h-dvh bg-canvas">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      {!ownerPreview && <ViewBeacon kind="creator" id={c.id} lang={locale} skip={!!profile && (profile.role === "operator" || profile.id === c.id)} />}
+      {!ownerPreview && <ViewBeacon kind="creator" id={c.id} lang={locale} />}
       <div className="border-b border-border print:hidden">
         <div className="mx-auto flex h-14 w-full max-w-4xl items-center justify-between px-5">
           <Link href={pfx || "/"} aria-label={t.home} className="inline-flex">
@@ -107,11 +122,7 @@ export async function PublicCreatorView({ id, locale = "ko", ownerPreview = fals
                 </Link>
               ))}
             </nav>
-            {profile ? (
-              <Link href="/dashboard" className="text-xs font-medium text-muted-foreground hover:text-foreground">{t.dashboard}</Link>
-            ) : (
-              <Link href="/login" className="text-xs font-medium text-muted-foreground hover:text-foreground">{t.login}</Link>
-            )}
+            <TopBarAuthLink loginHref="/login" loginLabel={t.login} dashboardLabel={t.dashboard} />
           </div>
         </div>
       </div>
@@ -143,10 +154,10 @@ export async function PublicCreatorView({ id, locale = "ko", ownerPreview = fals
             )}
           </div>
           {ownerPreview && <PrintButton />}
-          {cta && !ownerPreview && (
-            <Link href={cta.href} className="inline-flex shrink-0 items-center gap-2 rounded-full bg-foreground px-5 py-3 text-sm font-medium text-background print:hidden">
-              {cta.label} <ArrowRight className="size-4" />
-            </Link>
+          {!ownerPreview && (
+            <div className="shrink-0 print:hidden">
+              <CreatorCta creatorId={c.id} labels={{ invite: t.ctaInvite, mine: t.ctaMine, signup: t.ctaSignup }} />
+            </div>
           )}
         </header>
 

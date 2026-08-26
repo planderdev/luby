@@ -3,12 +3,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Coins, Users, Sparkles, Globe, BellRing, IdCard, Gift, CheckCircle2 } from "lucide-react";
 import { getStaticSupabase } from "@/lib/supabase/static";
-import { getCurrentProfile } from "@/lib/supabase/queries";
 import { getSiteUrl, SITE } from "@/lib/seo/site";
 import type { Locale } from "@/lib/i18n/config";
 import { localePrefix, publicCampaignDict } from "@/lib/i18n/public-campaign";
 import { creatorLandingDict } from "@/lib/i18n/creator-landing";
 import { RefAwareLink } from "@/components/RefAwareLink";
+import { TopBarAuthLink } from "@/components/public/TopBarAuthLink";
 
 /** 크리에이터 모집 랜딩 — 실시간 공개 집계(모집 수·남은 자리·포인트)와 상위 포인트 캠페인으로 가입 유도. ISR 10분 */
 
@@ -32,15 +32,14 @@ export async function CreatorLanding({ locale }: { locale: Locale }) {
   const tc = publicCampaignDict[locale];
   const pfx = localePrefix(locale);
   const sb = getStaticSupabase();
-  const [{ data: statsRaw }, { data: topRaw }, profile] = await Promise.all([
+  const [{ data: statsRaw }, { data: topRaw }] = await Promise.all([
     sb.rpc("public_creator_landing_stats"),
     sb.rpc("list_public_campaigns", { p_limit: 3, p_offset: 0, p_channel: null, p_region: null, p_sort: "points" }),
-    getCurrentProfile(),
   ]);
   const s = (statsRaw as Stats | null) ?? null;
   const top = ((topRaw as { items?: Card[] } | null)?.items ?? []).slice(0, 3);
   const fmtP = (n: number | null) => (n === null ? "-" : Math.round(n).toLocaleString());
-  const signupHref = profile ? "/dashboard" : `/signup?role=influencer&redirect=${encodeURIComponent("/dashboard/campaigns")}`;
+  const signupHref = `/signup?role=influencer&redirect=${encodeURIComponent("/dashboard/campaigns")}`;
   const icons = [Globe, Sparkles, BellRing, IdCard];
   const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(tc.dateFmt, { month: "short", day: "numeric" });
 
@@ -59,7 +58,7 @@ export async function CreatorLanding({ locale }: { locale: Locale }) {
                 </Link>
               ))}
             </nav>
-            <Link href={profile ? "/dashboard" : "/login?redirect=/dashboard/campaigns"} className="text-xs font-medium text-muted-foreground hover:text-foreground">{profile ? tc.dashboard : t.login}</Link>
+            <TopBarAuthLink loginHref="/login?redirect=/dashboard/campaigns" loginLabel={t.login} dashboardLabel={tc.dashboard} />
           </div>
         </div>
       </div>

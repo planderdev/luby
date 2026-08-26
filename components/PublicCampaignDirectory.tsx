@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
+import { unstable_cache } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Coins, Users } from "lucide-react";
 import { getStaticSupabase } from "@/lib/supabase/static";
-import { getCurrentProfile } from "@/lib/supabase/queries";
 import { getSiteUrl, SITE } from "@/lib/seo/site";
 import type { Locale } from "@/lib/i18n/config";
 import { publicCampaignDict, localePrefix } from "@/lib/i18n/public-campaign";
 import { PendingNavArea } from "@/components/dashboard/PendingNavArea";
+import { TopBarAuthLink } from "@/components/public/TopBarAuthLink";
+import { GuestOnly } from "@/components/public/GuestOnly";
 
 const PAGE_SIZE = 24;
 
@@ -38,19 +40,28 @@ export type DirectoryParams = { channel?: string; region?: string; page?: string
 const SORTS = ["deadline", "new", "points"] as const;
 type Sort = (typeof SORTS)[number];
 
+/** 로그인 여부와 무관한 공개 목록이라 조합별로 60초 캐시한다(필터를 눌러도 DB 왕복이 반복되지 않게) */
+const listPublicCampaigns = unstable_cache(
+  async (page: number, channel: string | null, region: string | null, sort: Sort): Promise<Directory> => {
+    const { data } = await getStaticSupabase().rpc("list_public_campaigns", {
+      p_limit: PAGE_SIZE,
+      p_offset: (page - 1) * PAGE_SIZE,
+      p_channel: channel,
+      p_region: region,
+      p_sort: sort,
+    });
+    return (data as Directory | null) ?? { total: 0, items: [], channels: [], regions: [] };
+  },
+  ["public-campaign-directory"],
+  { revalidate: 60, tags: ["public-campaigns"] }
+);
+
 async function fetchDirectory(params: DirectoryParams): Promise<Directory & { page: number }> {
   const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
   const channel = params.channel && /^[a-z0-9_-]{1,32}$/.test(params.channel) ? params.channel : null;
   const region = params.region && /^[0-9a-f-]{36}$/.test(params.region) ? params.region : null;
   const sort: Sort = (SORTS as readonly string[]).includes(params.sort ?? "") ? (params.sort as Sort) : "deadline";
-  const { data } = await getStaticSupabase().rpc("list_public_campaigns", {
-    p_limit: PAGE_SIZE,
-    p_offset: (page - 1) * PAGE_SIZE,
-    p_channel: channel,
-    p_region: region,
-    p_sort: sort,
-  });
-  const d = (data as Directory | null) ?? { total: 0, items: [], channels: [], regions: [] };
+  const d = await listPublicCampaigns(page, channel, region, sort);
   return { ...d, page };
 }
 
@@ -73,7 +84,8 @@ export function buildDirectoryMetadata(locale: Locale): Metadata {
 export async function PublicCampaignDirectory({ locale, params }: { locale: Locale; params: DirectoryParams }) {
   const t = publicCampaignDict[locale];
   const pfx = localePrefix(locale);
-  const [dir, profile] = await Promise.all([fetchDirectory(params), getCurrentProfile()]);
+  // 서버에서 쿠키를 읽지 않는다 — 로그인 여부에 따른 조각은 클라이언트에서 판단(CDN 캐시 유지)
+  const dir = await fetchDirectory(params);
   const totalPages = Math.max(1, Math.ceil(dir.total / PAGE_SIZE));
   const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(t.dateFmt, { month: "short", day: "numeric" });
 
@@ -108,11 +120,7 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
                 </Link>
               ))}
             </nav>
-            {profile ? (
-              <Link href="/dashboard" className="text-xs font-medium text-muted-foreground hover:text-foreground">{t.dashboard}</Link>
-            ) : (
-              <Link href="/login?redirect=/dashboard/campaigns" className="text-xs font-medium text-muted-foreground hover:text-foreground">{t.login}</Link>
-            )}
+            <TopBarAuthLink loginHref="/login?redirect=/dashboard/campaigns" loginLabel={t.login} dashboardLabel={t.dashboard} />
           </div>
         </div>
       </div>
@@ -221,7 +229,7 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
         )}
 
         {/* Creator CTA */}
-        {!profile && (
+        <GuestOnly>
           <section className="mt-12 rounded-3xl border border-accent/30 bg-accent-soft/40 p-6 md:flex md:items-center md:justify-between md:p-8">
             <div>
               <div className="text-lg font-semibold">{t.dirCta}</div>
@@ -231,7 +239,7 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
               {t.ctaSignup} <ArrowRight className="size-4" />
             </Link>
           </section>
-        )}
+        </GuestOnly>
         </PendingNavArea>
       </div>
 

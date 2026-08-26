@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
+import { unstable_cache } from "next/cache";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Calendar, Users, Coins, MapPin, Tag, ArrowRight, Building2, Globe, CheckCircle2 } from "lucide-react";
 import { getStaticSupabase } from "@/lib/supabase/static";
-import { getCurrentProfile } from "@/lib/supabase/queries";
 import { getSiteUrl, SITE } from "@/lib/seo/site";
 import { publicCampaignDict, localePrefix } from "@/lib/i18n/public-campaign";
 import type { Locale } from "@/lib/i18n/config";
-import { PublicShareButton } from "@/components/PublicShareButton";
+import { CampaignCta, CampaignShareButton } from "@/components/public/CampaignCta";
+import { TopBarAuthLink } from "@/components/public/TopBarAuthLink";
 import { ViewBeacon } from "@/components/ViewBeacon";
 
 // 공개 캠페인 페이지 — 로그인 없이 볼 수 있는 공유·SEO용. 데이터는 get_public_campaign() (민감정보 제외).
@@ -39,20 +40,39 @@ type PublicCampaign = {
   advertiser: { id: string; company_name: string; avatar_url: string | null; advertiser_kind: string | null; website: string | null } | null;
 };
 
+/**
+ * 공개 캠페인 조회 — 캐시해 둔다.
+ * (캐시하지 않으면 렌더가 매 요청 동적으로 판정돼 페이지가 CDN 에 올라가지 않는다)
+ */
+const getPublicCampaign = unstable_cache(
+  async (id: string): Promise<PublicCampaign | null> => {
+    const { data } = await getStaticSupabase().rpc("get_public_campaign", { p_id: id });
+    return (data as PublicCampaign | null) ?? null;
+  },
+  ["public-campaign"],
+  { revalidate: 300, tags: ["public-campaigns"] }
+);
+
 export async function fetchPublicCampaign(id: string): Promise<PublicCampaign | null> {
   if (!/^[0-9a-f-]{36}$/.test(id)) return null;
-  const supabase = getStaticSupabase();
-  const { data } = await supabase.rpc("get_public_campaign", { p_id: id });
-  return (data as PublicCampaign | null) ?? null;
+  return getPublicCampaign(id);
 }
 
 const fmtFor = (locale: Locale) => (iso: string) => new Date(iso).toLocaleDateString(locale === "ko" ? "ko-KR" : locale === "zh" ? "zh-CN" : "en-US", { month: "long", day: "numeric" });
 
 /** 데모(@ruby-ai.kr) 광고주 캠페인 — 링크로는 열리되 목록·검색엔진에는 노출하지 않는다 */
+const isDemoAccount = unstable_cache(
+  async (profileId: string): Promise<boolean> => {
+    const { data } = await getStaticSupabase().rpc("is_demo_account", { p_profile: profileId });
+    return data === true;
+  },
+  ["is-demo-account"],
+  { revalidate: 3600 }
+);
+
 async function isDemoCampaign(advertiserId: string | undefined | null): Promise<boolean> {
   if (!advertiserId) return false;
-  const { data } = await getStaticSupabase().rpc("is_demo_account", { p_profile: advertiserId });
-  return data === true;
+  return isDemoAccount(advertiserId);
 }
 
 export async function buildPublicCampaignMetadata(id: string, locale: Locale): Promise<Metadata> {
@@ -88,27 +108,26 @@ type RelatedCampaign = {
   recruit_end: string; always_open: boolean; region: { name: string; flag: string } | null; category: { name: string; emoji: string } | null; channels: string[];
 };
 
-async function fetchRelatedCampaigns(id: string): Promise<RelatedCampaign[]> {
-  const supabase = getStaticSupabase();
-  const { data } = await supabase.rpc("list_related_public_campaigns", { p_id: id, p_limit: 3 });
-  return (data as RelatedCampaign[] | null) ?? [];
-}
+const fetchRelatedCampaigns = unstable_cache(
+  async (id: string): Promise<RelatedCampaign[]> => {
+    const { data } = await getStaticSupabase().rpc("list_related_public_campaigns", { p_id: id, p_limit: 3 });
+    return (data as RelatedCampaign[] | null) ?? [];
+  },
+  ["public-campaign-related"],
+  { revalidate: 300, tags: ["public-campaigns"] }
+);
 
-export async function PublicCampaignView({ id, locale, refId = null }: { id: string; locale: Locale; refId?: string | null }) {
+export async function PublicCampaignView({ id, locale }: { id: string; locale: Locale }) {
   const [c, related] = await Promise.all([fetchPublicCampaign(id), fetchRelatedCampaigns(id)]);
   if (!c) notFound();
   const t = publicCampaignDict[locale];
   const fmt = fmtFor(locale);
   const pfx = localePrefix(locale);
 
-  const profile = await getCurrentProfile();
+  // 로그인 여부에 따라 달라지는 부분은 클라이언트에서 판단한다(서버에서 쿠키를 읽으면 CDN 캐시가 꺼짐)
   const isOpen = c.status === "open";
   const daysLeft = Math.ceil((new Date(c.recruit_end).getTime() - Date.now()) / 864e5);
   const dashboardHref = `/dashboard/campaigns/${c.id}`;
-  const refQ = refId ? `&ref=${refId}` : "";
-  const ctaHref = profile ? dashboardHref : `/signup?role=influencer&redirect=${encodeURIComponent(dashboardHref)}${refQ}`;
-  const sharePath = `${pfx}/c/${c.id}${profile?.role === "influencer" ? `?ref=${profile.id}` : refId ? `?ref=${refId}` : ""}`;
-  const ctaLabel = profile ? (profile.role === "influencer" ? t.ctaApply : t.ctaDashboard) : t.ctaSignup;
   const loginHref = `/login?redirect=${encodeURIComponent(dashboardHref)}`;
 
   const jsonLd = {
@@ -129,7 +148,7 @@ export async function PublicCampaignView({ id, locale, refId = null }: { id: str
   return (
     <main lang={locale === "zh" ? "zh-CN" : locale} className="min-h-dvh bg-canvas">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <ViewBeacon id={c.id} lang={locale} skip={!!profile && (profile.role === "operator" || profile.id === c.advertiser?.id)} />
+      <ViewBeacon id={c.id} lang={locale} />
       {/* Top bar */}
       <div className="border-b border-border">
         <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-5">
@@ -149,11 +168,7 @@ export async function PublicCampaignView({ id, locale, refId = null }: { id: str
                 </Link>
               ))}
             </nav>
-          {profile ? (
-            <Link href="/dashboard" className="text-xs font-medium text-muted-foreground hover:text-foreground">{t.dashboard}</Link>
-          ) : (
-            <Link href={loginHref} className="text-xs font-medium text-muted-foreground hover:text-foreground">{t.login}</Link>
-          )}
+          <TopBarAuthLink loginHref={loginHref} loginLabel={t.login} dashboardLabel={t.dashboard} />
           </div>
         </div>
       </div>
@@ -176,7 +191,7 @@ export async function PublicCampaignView({ id, locale, refId = null }: { id: str
             <h1 className="display mt-2 text-3xl font-semibold lg:text-4xl break-keep">{c.title}</h1>
             <div className="mt-2 flex flex-wrap items-center gap-3">
               <p className="text-sm text-muted-foreground">{c.business_name}</p>
-              <PublicShareButton title={c.title} path={sharePath} label={locale === "ko" ? "공유하기" : locale === "zh" ? "分享" : "Share"} copiedLabel={locale === "ko" ? "링크 복사됨" : locale === "zh" ? "已复制链接" : "Link copied"} />
+              <CampaignShareButton basePath={`${pfx}/c/${c.id}`} title={c.title} label={locale === "ko" ? "공유하기" : locale === "zh" ? "分享" : "Share"} copiedLabel={locale === "ko" ? "링크 복사됨" : locale === "zh" ? "已复制链接" : "Link copied"} />
             </div>
             {c.industry_brief && <p className="mt-5 text-sm leading-relaxed lg:text-base">{c.industry_brief}</p>}
 
@@ -240,18 +255,16 @@ export async function PublicCampaignView({ id, locale, refId = null }: { id: str
                 {isOpen ? (c.always_open ? t.statusAlways : daysLeft > 0 ? t.daysToClose(daysLeft) : t.closesToday) : t.ended}
               </p>
               {isOpen ? (
-                <Link href={ctaHref} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 py-3 text-sm font-medium text-background">
-                  {ctaLabel} <ArrowRight className="size-4" />
-                </Link>
+                <CampaignCta
+                  dashboardHref={dashboardHref}
+                  loginHref={loginHref}
+                  showHint
+                  labels={{ signup: t.ctaSignup, apply: t.ctaApply, dashboard: t.ctaDashboard, haveAccount: t.haveAccount, login: t.login }}
+                />
               ) : (
                 <Link href="/signup?role=influencer" className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-3 text-sm font-medium hover:bg-muted">
                   {t.ctaOthers} <ArrowRight className="size-4" />
                 </Link>
-              )}
-              {!profile && isOpen && (
-                <p className="mt-3 text-center text-[11px] text-muted-foreground">
-                  {t.haveAccount} <Link href={loginHref} className="underline underline-offset-2">{t.login}</Link>
-                </p>
               )}
               <ul className="mt-5 space-y-1.5 text-xs text-muted-foreground">
                 {t.bullets.map((b) => (
