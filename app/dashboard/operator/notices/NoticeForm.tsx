@@ -111,7 +111,9 @@ export function NoticeForm({ notice, onDone }: { notice?: NoticeRow; onDone?: ()
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label htmlFor={`notice-start-${uid}`} className={label}>노출 시작</label>
+              <label htmlFor={`notice-start-${uid}`} className={label}>
+                노출 시작 <span className="text-muted-foreground">(비우면 지금부터)</span>
+              </label>
               <input id={`notice-start-${uid}`} type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} className={field} />
             </div>
             <div>
