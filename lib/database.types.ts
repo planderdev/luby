@@ -1209,6 +1209,48 @@ export type Database = {
         }
         Relationships: []
       }
+      notice_popups: {
+        Row: {
+          id: string
+          title: string
+          image_url: string
+          link_url: string | null
+          starts_at: string
+          ends_at: string | null
+          active: boolean
+          sort_order: number
+          created_at: string
+          created_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          image_url: string
+          link_url?: string | null
+          starts_at?: string
+          ends_at?: string | null
+          active?: boolean
+          sort_order?: number
+          created_at?: string
+          created_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          image_url?: string
+          link_url?: string | null
+          starts_at?: string
+          ends_at?: string | null
+          active?: boolean
+          sort_order?: number
+          created_at?: string
+          created_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       server_errors: {
         Row: {
           created_at: string

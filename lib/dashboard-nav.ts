@@ -1,5 +1,6 @@
 import {
   LayoutDashboard,
+  BellRing,
   Megaphone,
   Inbox,
   CreditCard,
@@ -62,6 +63,7 @@ export const dashboardNav: Record<UserRole, NavItem[]> = {
     { href: "/dashboard/operator/payments", label: "결제 내역", short: "결제", icon: CreditCard },
     { href: "/dashboard/operator/withdrawals", label: "정산 관리", short: "정산", icon: Banknote, primary: true },
     { href: "/dashboard/operator/stats", label: "통계", icon: BarChart3, primary: true },
+    { href: "/dashboard/operator/notices", label: "공지 팝업", short: "공지", icon: BellRing },
     { href: "/dashboard/operator/audit", label: "운영 기록", short: "기록", icon: ScrollText },
     { href: "/dashboard/operator/ai-usage", label: "AI 사용량", short: "AI", icon: Sparkles },
     { href: "/dashboard/operator/errors", label: "오류 로그", short: "오류", icon: Bug },

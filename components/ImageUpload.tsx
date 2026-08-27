@@ -7,7 +7,7 @@ import { Upload, X, Loader2, ImageIcon, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { prepareImage, RESIZE_PRESET, fmtBytes } from "@/lib/image-resize";
 
-type Bucket = "campaign-thumbnails" | "profile-avatars";
+type Bucket = "campaign-thumbnails" | "profile-avatars" | "notice-images";
 
 const BUCKET_CONFIG: Record<
   Bucket,
@@ -26,6 +26,12 @@ const BUCKET_CONFIG: Record<
     rawMaxSize: 2 * 1024 * 1024,
     mimeTypes: ["image/jpeg", "image/png", "image/webp"],
     label: "JPG, PNG, WEBP · 최대 10MB (자동 최적화)",
+  },
+  "notice-images": {
+    maxSize: 15 * 1024 * 1024,
+    rawMaxSize: 5 * 1024 * 1024,
+    mimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
+    label: "JPG, PNG, WEBP, GIF · 최대 15MB (자동 최적화)",
   },
 };
 

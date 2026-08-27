@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Landing } from "@/components/Landing";
+import { NoticePopups } from "@/components/NoticePopups";
 import { RecoveryRedirect } from "@/components/RecoveryRedirect";
 import { buildMetadata } from "@/lib/i18n/metadata";
 
@@ -10,6 +11,7 @@ export default function Home() {
     <>
       <RecoveryRedirect />
       <Landing locale="ko" />
+      <NoticePopups locale="ko" />
     </>
   );
 }
