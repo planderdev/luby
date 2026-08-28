@@ -14,6 +14,8 @@ export function ClientErrorReporter() {
     let count = 0;
     const report = (message: string, stack?: string | null) => {
       if (!message || IGNORE.test(message) || count >= 5) return;
+      // 방문자의 브라우저 확장 프로그램에서 난 오류는 우리 코드가 아니다 (예: chrome-extension://…/executors/200.js)
+      if (stack && /(chrome|safari|moz)-extension:\/\//.test(stack)) return;
       const key = message.slice(0, 120);
       if (sent.has(key)) return;
       sent.add(key);
