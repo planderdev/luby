@@ -7,11 +7,11 @@ import type { Locale } from "./config";
 const ko = {
   meta: {
     brand: "루비AI",
-    title: "루비AI — 글로벌 체험단 마케팅 플랫폼",
+    title: "루비AI — 체험단 모집·글로벌 인플루언서 마케팅 플랫폼",
     description:
-      "루비AI는 글로벌 인플루언서·체험단을 AI로 매칭하는 마케팅 플랫폼입니다. 캠페인 등록부터 선정·콘텐츠 발행까지 한 곳에서.",
+      "체험단 모집부터 인플루언서 마케팅까지 AI가 한 번에. 국내는 물론 샤오홍슈·외국인 관광객 타깃 글로벌 체험단을 캠페인 등록 → 크리에이터 매칭 → 콘텐츠 발행까지 루비AI 한 곳에서.",
     ogLocale: "ko_KR",
-    ogImageAlt: "루비AI — 글로벌 체험단 마케팅 플랫폼",
+    ogImageAlt: "루비AI — 체험단 모집·글로벌 인플루언서 마케팅 플랫폼",
   },
   audience: ["광고주", "인플루언서", "마케팅 담당자"],
   nav: {
@@ -297,11 +297,11 @@ export type Dict = typeof ko;
 const en: Dict = {
   meta: {
     brand: "Luby AI",
-    title: "Luby AI — Global creator marketing platform",
+    title: "Luby AI — Influencer marketing platform for Korean & global brands",
     description:
-      "Luby AI is a marketing platform that AI-matches global influencers and reviewers. From campaign setup to selection and content delivery, all in one place.",
+      "Run K-beauty, F&B and lifestyle campaigns with AI-matched creators across Instagram, TikTok, YouTube and Xiaohongshu. From campaign setup to selection and content delivery — all on Luby AI.",
     ogLocale: "en_US",
-    ogImageAlt: "Luby AI — Global creator marketing platform",
+    ogImageAlt: "Luby AI — Influencer marketing platform for Korean & global brands",
   },
   audience: ["Advertisers", "Creators", "Marketers"],
   nav: {
@@ -585,11 +585,11 @@ const en: Dict = {
 const zh: Dict = {
   meta: {
     brand: "Luby AI",
-    title: "Luby AI — 全球达人营销平台",
+    title: "Luby AI — 韩国品牌合作·体验官招募平台",
     description:
-      "Luby AI 是用 AI 匹配全球网红与体验官的营销平台。从活动创建到甄选、内容发布，一站式完成。",
+      "想和韩国品牌合作？Luby AI 用 AI 匹配小红书、抖音、Instagram 达人与韩国 K-beauty、美食、生活方式品牌。报名体验 → 入选 → 发布内容 → 积分结算，一站式完成。",
     ogLocale: "zh_CN",
-    ogImageAlt: "Luby AI — 全球达人营销平台",
+    ogImageAlt: "Luby AI — 韩国品牌合作·体验官招募平台",
   },
   audience: ["广告主", "达人", "营销人员"],
   nav: {
