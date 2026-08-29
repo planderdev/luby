@@ -1,6 +1,6 @@
 "use client";
 import { authErrorMessage } from "@/lib/auth-errors";
-import { suggestEmail } from "@/lib/email-typo";
+import { completeEmail, suggestEmail } from "@/lib/email-typo";
 import { trackClient } from "@/lib/analytics";
 import { ADVERTISER_KINDS, type AdvertiserKind } from "@/lib/advertiser-kind";
 
@@ -249,7 +249,25 @@ function FormStep({
 
       <Field label="이메일" type="email" value={email} onChange={setEmail} required />
       {(() => {
-        // 오타 주소로 가입하면 인증 메일이 영영 닿지 않는다 — 제출은 막지 않고 제안만
+        // 오타 주소로 가입하면 인증 메일이 영영 닿지 않는다 — 제출은 막지 않고 제안만.
+        // 도메인을 치는 중에는 자동완성 칩("@g" → gmail.com), 다 쳤는데 오타면 교정 힌트.
+        const completions = completeEmail(email);
+        if (completions.length > 0) {
+          return (
+            <div className="-mt-3 flex flex-wrap gap-1.5">
+              {completions.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setEmail(c)}
+                  className="rounded-full border border-border bg-background px-3 py-1 text-xs text-muted-foreground hover:border-foreground hover:text-foreground"
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          );
+        }
         const fixed = suggestEmail(email);
         return fixed ? (
           <button

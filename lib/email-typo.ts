@@ -70,3 +70,17 @@ export function suggestEmail(email: string): string | null {
   }
   return null;
 }
+
+/**
+ * 도메인 자동완성 — "@g" 처럼 치기 시작하면 gmail.com 등 완성 후보를 돌려준다.
+ * "@" 만 친 상태에서는 상위 도메인 5개를 제안한다. 이미 완성된 주소에는 아무것도 돌려주지 않는다.
+ */
+export function completeEmail(email: string, limit = 5): string[] {
+  const at = email.lastIndexOf("@");
+  if (at < 1) return [];
+  const local = email.slice(0, at);
+  const domain = email.slice(at + 1).toLowerCase().trim();
+  return KNOWN_DOMAINS.filter((d) => d.startsWith(domain) && d !== domain)
+    .slice(0, limit)
+    .map((d) => `${local}@${d}`);
+}
