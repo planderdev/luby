@@ -1,5 +1,6 @@
 "use client";
 import { authErrorMessage } from "@/lib/auth-errors";
+import { suggestEmail } from "@/lib/email-typo";
 import { trackClient } from "@/lib/analytics";
 import { ADVERTISER_KINDS, type AdvertiserKind } from "@/lib/advertiser-kind";
 
@@ -247,6 +248,19 @@ function FormStep({
       </div>
 
       <Field label="이메일" type="email" value={email} onChange={setEmail} required />
+      {(() => {
+        // 오타 주소로 가입하면 인증 메일이 영영 닿지 않는다 — 제출은 막지 않고 제안만
+        const fixed = suggestEmail(email);
+        return fixed ? (
+          <button
+            type="button"
+            onClick={() => setEmail(fixed)}
+            className="-mt-3 block text-left text-xs text-accent-ink underline underline-offset-2"
+          >
+            혹시 <b>{fixed}</b> 아닌가요? 눌러서 바꾸기
+          </button>
+        ) : null;
+      })()}
       <Field
         label="비밀번호 (8자 이상)"
         type="password"
