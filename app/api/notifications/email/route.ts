@@ -56,6 +56,14 @@ export async function POST(request: Request) {
   // 1) 웹 푸시 — 구독한 기기가 있으면 발송 (도메인 제외 규칙과 무관)
   const push = await sendPushToUser(payload.user_id, { title: payload.title, body: payload.body, link: payload.link, tag: payload.type ?? undefined });
 
+  // 운영 내부 알림은 이메일을 보내지 않는다(인앱·푸시로 충분).
+  // 가입 1명당 운영자 3명에게 메일이 나가 Resend 하루 한도(100통)의 6할을 태웠다 — 2026-08-29 유입 급증 때
+  // 이 메일들이 한도를 소진해 정작 신규 가입자의 인증 메일이 막혔다.
+  const IN_APP_ONLY = new Set(["user_approval_requested", "operator_notice"]);
+  if (payload.type && IN_APP_ONLY.has(payload.type)) {
+    return NextResponse.json({ push, email: { skipped: true, reason: `in-app only: ${payload.type}` } });
+  }
+
   // 2) 이메일
   const resendKey = process.env.RESEND_API_KEY;
   if (!resendKey) {
