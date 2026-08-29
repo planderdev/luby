@@ -12,14 +12,15 @@ import { approveUsersBulk } from "../actions";
 export function BulkApproveList({
   items,
 }: {
-  items: { id: string; name: string; node: ReactNode }[];
+  /** reviewable=false(채널 미등록 크리에이터)는 "전체 선택"에서 제외된다 — 검수할 대상이 없는 승인 방지 */
+  items: { id: string; name: string; node: ReactNode; reviewable?: boolean }[];
 }) {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
 
-  const allIds = items.map((i) => i.id);
+  const allIds = items.filter((i) => i.reviewable !== false).map((i) => i.id);
   const allSelected = allIds.length > 0 && allIds.every((id) => selected.has(id));
 
   function toggle(id: string) {
@@ -62,7 +63,7 @@ export function BulkApproveList({
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
         >
           {allSelected ? <CheckSquare className="size-4 text-accent-ink" /> : <Square className="size-4" />}
-          전체 선택 ({items.length})
+          전체 선택 ({allIds.length})
         </button>
         <span className="text-xs text-muted-foreground">
           {selected.size > 0 ? `${selected.size}명 선택됨` : "체크박스로 여러 명을 골라 한 번에 승인하세요"}

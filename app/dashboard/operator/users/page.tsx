@@ -218,13 +218,28 @@ export default async function OperatorUsersPage({
             />
           );
                 };
-        return filter === "pending" ? (
-          <div className="mt-6">
-            <BulkApproveList
-              items={members.map((p) => ({ id: p.id, name: p.name, node: renderRow(p) }))}
-            />
-          </div>
-        ) : (
+        if (filter === "pending") {
+          // 채널이 없는 크리에이터는 검수할 대상이 없어 승인할 수 없다 — 검수 가능한 사람부터 보여준다
+          const reviewable = (p: (typeof members)[number]) =>
+            p.role !== "influencer" || (channelAgg.get(p.id)?.count ?? 0) > 0;
+          const sorted = [...members].sort((a, b) => Number(reviewable(b)) - Number(reviewable(a)));
+          const okCount = sorted.filter(reviewable).length;
+          const noChannel = sorted.length - okCount;
+          return (
+            <div className="mt-6">
+              {noChannel > 0 && (
+                <p className="mb-3 text-xs text-muted-foreground">
+                  검수 가능 <b className="text-foreground">{okCount}명</b> · 채널 미등록 {noChannel}명
+                  (채널이 등록되면 검수할 수 있어요 — 매일 아침 등록 안내가 자동 발송됩니다)
+                </p>
+              )}
+              <BulkApproveList
+                items={sorted.map((p) => ({ id: p.id, name: p.name, node: renderRow(p), reviewable: reviewable(p) }))}
+              />
+            </div>
+          );
+        }
+        return (
           <div className="mt-6 space-y-2">{members.map((p) => renderRow(p))}</div>
         );
       })()}
