@@ -212,7 +212,8 @@ function FormStep({
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: metadata },
+      // 인증 링크를 누르면 로그인 페이지로 (verified=1 이면 완료 배너 표시)
+      options: { data: metadata, emailRedirectTo: `${window.location.origin}/login?verified=1` },
     });
 
     setLoading(false);

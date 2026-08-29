@@ -141,18 +141,39 @@ export function InfluencerOverview({
         </Link>
       </header>
 
-      {!approved && (
-        <div className="mt-8 flex items-start gap-4 rounded-3xl border border-accent/30 bg-accent-soft px-6 py-5 text-accent-ink">
-          <Clock className="mt-0.5 size-5 shrink-0" />
-          <div className="text-sm">
-            <div className="font-semibold">계정 승인 대기 중입니다</div>
-            <div className="mt-1 text-accent-ink/80">
-              운영자가 인플루언서 정보를 검수하고 있어요. 평균 24시간 이내 결과를 알려드립니다. 그
-              사이에 캠페인 둘러보기는 자유롭게 가능합니다.
+      {!approved && (() => {
+        // 승인은 채널 검수로 진행된다 — 채널이 없으면 검수 자체가 시작되지 않으므로 그것부터 안내
+        const hasChannel = completeness?.items.find((i) => i.key === "channel")?.done ?? true;
+        return hasChannel ? (
+          <div className="mt-8 flex items-start gap-4 rounded-3xl border border-accent/30 bg-accent-soft px-6 py-5 text-accent-ink">
+            <Clock className="mt-0.5 size-5 shrink-0" />
+            <div className="text-sm">
+              <div className="font-semibold">계정 승인 대기 중입니다</div>
+              <div className="mt-1 text-accent-ink/80">
+                운영자가 등록하신 채널·프로필을 검수하고 있어요. 평균 24시간 이내 결과를 알려드립니다.
+                그 사이에 캠페인 둘러보기는 자유롭게 가능합니다.
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="mt-8 flex flex-wrap items-start gap-4 rounded-3xl border border-accent/30 bg-accent-soft px-6 py-5 text-accent-ink">
+            <Clock className="mt-0.5 size-5 shrink-0" />
+            <div className="min-w-0 flex-1 text-sm">
+              <div className="font-semibold">승인을 받으려면 SNS 채널 등록이 필요해요</div>
+              <div className="mt-1 text-accent-ink/80">
+                운영자 승인은 채널(인스타그램·유튜브·블로그 등)을 검수해 진행돼요. 채널을 등록하시면
+                검수가 시작되고, 보통 24시간 이내에 승인됩니다.
+              </div>
+            </div>
+            <Link
+              href="/dashboard/settings#channels"
+              className="shrink-0 rounded-full bg-foreground px-4 py-2 text-xs font-medium text-background"
+            >
+              채널 등록하기
+            </Link>
+          </div>
+        );
+      })()}
 
       <div className="mt-10 grid gap-4 md:grid-cols-4">
         <StatCard

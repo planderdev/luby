@@ -19,13 +19,18 @@ export const metadata: Metadata = {
 
 import { authErrorFromParam } from "@/lib/auth-errors";
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ redirect?: string; error?: string }> }) {
-  const { redirect: redirectTo, error: errorKey } = await searchParams;
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ redirect?: string; error?: string; verified?: string }> }) {
+  const { redirect: redirectTo, error: errorKey, verified } = await searchParams;
   const error = authErrorFromParam(errorKey);
   const providers = enabledProviders();
   const next = redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//") ? redirectTo : "/dashboard";
   return (
     <AuthShell title="다시 만나서 반가워요" subtitle={providers.length ? "이메일 또는 소셜 계정으로 로그인하세요." : "이메일과 비밀번호로 로그인하세요."}>
+      {verified === "1" && !error && (
+        <div className="mb-4 rounded-2xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent-ink">
+          이메일 인증이 완료됐어요. 가입하신 이메일과 비밀번호로 로그인해주세요.
+        </div>
+      )}
       {error && (
         <div className="mb-4 rounded-2xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent-ink">{error}</div>
       )}
