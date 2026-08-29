@@ -210,13 +210,19 @@ export default async function DashboardPage() {
       badges: string[]; categoryEmoji: string; categoryName: string;
     }[] = [];
     if (profile.approved) {
+      // 실계정에게는 데모 광고주 캠페인을 추천하지 않는다 (목록 페이지와 같은 규칙)
+      const demoIds = profile.email.endsWith("@ruby-ai.kr")
+        ? []
+        : ((await supabase.rpc("demo_advertiser_ids")).data ?? []);
+      let openQuery = supabase
+        .from("campaigns")
+        .select("id, title, business_name, thumbnail_url, point_amount, recruit_end, recruit_count, category_id, region_id")
+        .eq("status", "open")
+        .order("created_at", { ascending: false })
+        .limit(60);
+      if (demoIds.length > 0) openQuery = openQuery.not("advertiser_id", "in", `(${demoIds.join(",")})`);
       const [{ data: openCampaigns }, { data: myCats }, catalog] = await Promise.all([
-        supabase
-          .from("campaigns")
-          .select("id, title, business_name, thumbnail_url, point_amount, recruit_end, recruit_count, category_id, region_id")
-          .eq("status", "open")
-          .order("created_at", { ascending: false })
-          .limit(60),
+        openQuery,
         supabase.from("influencer_categories").select("category_id").eq("influencer_id", profile.id),
         fetchUICatalog(),
       ]);

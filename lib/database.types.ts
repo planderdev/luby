@@ -1457,6 +1457,11 @@ export type Database = {
         Args: { p_ids?: string[] | null }
         Returns: { id: string; created_at: string; invited_at: string | null }[]
       }
+      /** 데모 광고주(@ruby-ai.kr) id 목록 — 실계정 목록에서 데모 캠페인 필터용 */
+      demo_advertiser_ids: {
+        Args: Record<string, never>
+        Returns: string[]
+      }
       /** 초대만 되고 한 번도 로그인하지 않은 실계정 수 (데모 제외, 운영자 외에는 0) */
       operator_dormant_count: {
         Args: Record<string, never>

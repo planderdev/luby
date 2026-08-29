@@ -97,6 +97,12 @@ export default async function CampaignsPage({
     if (status) query = query.eq("status", status as "draft");
   } else if (profile.role === "influencer") {
     query = query.eq("status", "open");
+    // 실계정에게는 데모(@ruby-ai.kr) 광고주 캠페인을 숨긴다 — 응모해도 선정이 진행되지 않는다.
+    // 데모 크리에이터(시연 계정)에게는 그대로 보여준다. (2026-08-29 사장님 결정)
+    if (!profile.email.endsWith("@ruby-ai.kr")) {
+      const { data: demoIds } = await supabase.rpc("demo_advertiser_ids");
+      if (demoIds && demoIds.length > 0) query = query.not("advertiser_id", "in", `(${demoIds.join(",")})`);
+    }
   } else {
     // operator: see all
     if (status) query = query.eq("status", status as "draft");
