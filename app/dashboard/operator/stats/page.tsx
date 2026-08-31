@@ -1,4 +1,5 @@
 import { viewSourceRows } from "@/lib/view-sources";
+import { classifySignupChannel, type SignupSource } from "@/lib/signup-channels";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
@@ -56,6 +57,27 @@ export default async function OperatorStatsPage() {
   const paidOut = withdrawals.filter((w) => w.status === "paid").reduce((s, w) => s + (w.amount ?? 0), 0);
   const pendingOut = withdrawals.filter((w) => w.status === "requested").reduce((s, w) => s + (w.amount ?? 0), 0);
   const { count: referredTotal } = await supabase.from("profiles").select("id", { count: "exact", head: true }).not("referred_by", "is", null);
+  // 가입 경로별 집계 — 최근 30일, 데모 계정 제외 (경로 데이터는 2026-08-31 배포 이후 가입부터 쌓인다)
+  const { data: signupRows } = await supabase
+    .from("profiles")
+    .select("role, signup_source, created_at")
+    .neq("role", "operator")
+    .not("email", "like", "%@ruby-ai.kr")
+    .gte("created_at", new Date(Date.now() - 30 * 24 * 3600_000).toISOString());
+  const channelAggMap = new Map<string, { total: number; creators: number; advertisers: number }>();
+  for (const r of signupRows ?? []) {
+    const label = classifySignupChannel(r.signup_source as SignupSource);
+    const cur = channelAggMap.get(label) ?? { total: 0, creators: 0, advertisers: 0 };
+    cur.total += 1;
+    if (r.role === "influencer") cur.creators += 1;
+    if (r.role === "advertiser") cur.advertisers += 1;
+    channelAggMap.set(label, cur);
+  }
+  const signupChannels = [...channelAggMap.entries()]
+    .map(([label, v]) => ({ label, ...v }))
+    .sort((a, b) => b.total - a.total);
+  const signupTotal = signupChannels.reduce((s2, c) => s2 + c.total, 0);
+
   const { data: featRaw } = await supabase.rpc("operator_feature_stats");
   const { data: benchRaw } = await supabase.rpc("operator_category_benchmarks", { p_days: 180 });
   const { data: docFbRaw } = await supabase.rpc("operator_doc_feedback_stats", { p_days: 30 });
@@ -184,6 +206,36 @@ export default async function OperatorStatsPage() {
           hint={pendingOut > 0 ? "처리가 필요해요" : "대기 없음"}
           warn={pendingOut > 0}
         />
+      </div>
+
+      {/* 가입 경로 */}
+      <h2 className="mt-12 text-lg font-semibold tracking-tight">가입 경로 · 최근 30일</h2>
+      <p className="mt-1 text-xs text-muted-foreground">
+        첫 방문 기준(UTM·유입원) · 경로 수집은 2026-08-31부터라 그 이전 가입은 &quot;직접·미상&quot;으로 잡힙니다 ·
+        홍보 링크에 <code className="rounded bg-muted px-1">?utm_source=instagram</code> 처럼 붙이면 여기서 구분됩니다
+      </p>
+      <div className="mt-4 overflow-hidden rounded-3xl glass-card">
+        {signupChannels.length === 0 ? (
+          <p className="p-6 text-sm text-muted-foreground">최근 30일 가입이 없습니다.</p>
+        ) : (
+          <ul>
+            {signupChannels.map((c) => (
+              <li key={c.label} className="flex items-center gap-4 border-b border-border px-6 py-3 text-sm last:border-0">
+                <span className="w-40 shrink-0 truncate font-medium">{c.label}</span>
+                <span className="relative h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                  <span
+                    className="absolute inset-y-0 left-0 rounded-full bg-accent"
+                    style={{ width: `${Math.max(2, Math.round((c.total / Math.max(1, signupTotal)) * 100))}%` }}
+                  />
+                </span>
+                <span className="w-16 shrink-0 text-right tabular-nums">{c.total}명</span>
+                <span className="w-36 shrink-0 text-right text-xs text-muted-foreground">
+                  크리에이터 {c.creators} · 광고주 {c.advertisers}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* 주간 추이 */}

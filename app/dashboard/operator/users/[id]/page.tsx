@@ -1,4 +1,5 @@
 import { redirect, notFound } from "next/navigation";
+import { classifySignupChannel, type SignupSource } from "@/lib/signup-channels";
 import Link from "next/link";
 import { ArrowLeft, Building2, Sparkles, Mail, Phone, CalendarDays, Coins, ExternalLink, Globe, ScrollText } from "lucide-react";
 import { getCurrentProfile } from "@/lib/supabase/queries";
@@ -73,15 +74,17 @@ export default async function OperatorMemberDetailPage({ params }: { params: Pro
             {(p.phone || adv?.contact_phone) && <span className="inline-flex items-center gap-1"><Phone className="size-3.5" /> {p.phone ?? adv?.contact_phone}</span>}
             <span className="inline-flex items-center gap-1"><CalendarDays className="size-3.5" /> 가입 {d(p.created_at)}{p.approved_at ? ` · 승인 ${d(p.approved_at)}` : ""}</span>
             {(() => {
-              // 가입 경로 (첫 터치) — UTM 이 있으면 그것을, 없으면 유입원 도메인을
-              const src = p.signup_source as { utm_source?: string; utm_medium?: string; utm_campaign?: string; referrer?: string } | null;
+              // 가입 경로 (첫 터치) — 통계 페이지와 같은 분류기, 캠페인명이 있으면 덧붙임
+              const src = p.signup_source as SignupSource & { utm_campaign?: string };
               if (!src) return null;
-              const label = src.utm_source
-                ? [src.utm_source, src.utm_medium, src.utm_campaign].filter(Boolean).join(" / ")
-                : src.referrer
-                  ? (() => { try { return new URL(src.referrer!).hostname; } catch { return src.referrer; } })()
-                  : null;
-              return label ? <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px]">유입 {label}</span> : null;
+              const label = classifySignupChannel(src);
+              if (label === "직접·미상") return null;
+              return (
+                <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px]">
+                  유입 {label}
+                  {src.utm_campaign ? ` · ${src.utm_campaign.slice(0, 30)}` : ""}
+                </span>
+              );
             })()}
             {refBy && <span>추천인: <Link href={`/dashboard/operator/users/${refBy.id}`} className="underline underline-offset-2">{refBy.name}</Link></span>}
           </div>
