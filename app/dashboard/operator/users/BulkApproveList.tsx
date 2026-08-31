@@ -20,8 +20,10 @@ export function BulkApproveList({
   const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
 
-  const allIds = items.filter((i) => i.reviewable !== false).map((i) => i.id);
-  const allSelected = allIds.length > 0 && allIds.every((id) => selected.has(id));
+  const reviewableIds = items.filter((i) => i.reviewable !== false).map((i) => i.id);
+  const everyId = items.map((i) => i.id);
+  const excludedCount = everyId.length - reviewableIds.length;
+  const allSelected = reviewableIds.length > 0 && reviewableIds.every((id) => selected.has(id));
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -32,7 +34,7 @@ export function BulkApproveList({
     });
   }
   function toggleAll() {
-    setSelected(allSelected ? new Set() : new Set(allIds));
+    setSelected(allSelected ? new Set() : new Set(reviewableIds));
   }
 
   function approveSelected() {
@@ -63,8 +65,17 @@ export function BulkApproveList({
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
         >
           {allSelected ? <CheckSquare className="size-4 text-accent-ink" /> : <Square className="size-4" />}
-          전체 선택 ({allIds.length})
+          {excludedCount > 0 ? `검수 가능 전체 선택 (${reviewableIds.length})` : `전체 선택 (${reviewableIds.length})`}
         </button>
+        {excludedCount > 0 && (
+          <button
+            type="button"
+            onClick={() => setSelected(new Set(everyId))}
+            className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
+          >
+            채널 미등록 포함 {everyId.length}명 모두 선택
+          </button>
+        )}
         <span className="text-xs text-muted-foreground">
           {selected.size > 0 ? `${selected.size}명 선택됨` : "체크박스로 여러 명을 골라 한 번에 승인하세요"}
         </span>
