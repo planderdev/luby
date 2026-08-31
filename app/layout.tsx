@@ -1,4 +1,5 @@
 import { ClientErrorReporter } from "@/components/ClientErrorReporter";
+import { AttributionCapture } from "@/components/AttributionCapture";
 import type { Metadata } from "next";
 // Pretendard Variable — 유니코드 범위별 동적 서브셋 92개를 셀프호스팅 (jsDelivr 경로 404 사고 이후, 2026-08-23)
 import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
@@ -121,6 +122,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <ClientErrorReporter />
+        <AttributionCapture />
         {children}
         <GoogleAds />
         <Analytics />

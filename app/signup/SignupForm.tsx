@@ -1,6 +1,7 @@
 "use client";
 import { authErrorMessage } from "@/lib/auth-errors";
 import { completeEmail, suggestEmail } from "@/lib/email-typo";
+import { readAttribution } from "@/lib/attribution";
 import { trackClient } from "@/lib/analytics";
 import { ADVERTISER_KINDS, type AdvertiserKind } from "@/lib/advertiser-kind";
 
@@ -190,12 +191,14 @@ function FormStep({
     const supabase = createClient();
 
     // All metadata goes into raw_user_meta_data — DB trigger handles row creation
-    const metadata: Record<string, string> = {
+    const metadata: Record<string, string | object> = {
       role,
       name,
       phone,
     };
     if (refId) metadata.referred_by = refId;
+    const source = readAttribution();
+    if (source) metadata.signup_source = source; // 첫 터치 가입 경로 → profiles.signup_source
     if (role === "advertiser") {
       metadata.advertiser_kind = advertiserKind;
       metadata.company_name = companyName;

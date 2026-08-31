@@ -1002,6 +1002,7 @@ export type Database = {
           onboarding_done: boolean
           operator_tags: string[]
           referred_by: string | null
+          signup_source: Json | null
           created_at: string
           email: string
           id: string
@@ -1019,6 +1020,7 @@ export type Database = {
           onboarding_done?: boolean
           operator_tags?: string[]
           referred_by?: string | null
+          signup_source?: Json | null
           created_at?: string
           email: string
           id: string
@@ -1036,6 +1038,7 @@ export type Database = {
           onboarding_done?: boolean
           operator_tags?: string[]
           referred_by?: string | null
+          signup_source?: Json | null
           created_at?: string
           email?: string
           id?: string

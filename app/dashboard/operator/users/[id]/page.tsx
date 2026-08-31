@@ -18,7 +18,7 @@ export default async function OperatorMemberDetailPage({ params }: { params: Pro
   if (me.role !== "operator") redirect("/dashboard");
   const supabase = await createClient();
 
-  const { data: p } = await supabase.from("profiles").select("id, email, name, phone, avatar_url, role, approved, approved_at, created_at, referred_by, onboarding_done, email_prefs, operator_tags").eq("id", id).maybeSingle();
+  const { data: p } = await supabase.from("profiles").select("id, email, name, phone, avatar_url, role, approved, approved_at, created_at, referred_by, onboarding_done, email_prefs, operator_tags, signup_source").eq("id", id).maybeSingle();
   if (!p) notFound();
   const isAdv = p.role === "advertiser";
   const isInf = p.role === "influencer";
@@ -72,6 +72,17 @@ export default async function OperatorMemberDetailPage({ params }: { params: Pro
             <span className="inline-flex items-center gap-1"><Mail className="size-3.5" /> {p.email}</span>
             {(p.phone || adv?.contact_phone) && <span className="inline-flex items-center gap-1"><Phone className="size-3.5" /> {p.phone ?? adv?.contact_phone}</span>}
             <span className="inline-flex items-center gap-1"><CalendarDays className="size-3.5" /> 가입 {d(p.created_at)}{p.approved_at ? ` · 승인 ${d(p.approved_at)}` : ""}</span>
+            {(() => {
+              // 가입 경로 (첫 터치) — UTM 이 있으면 그것을, 없으면 유입원 도메인을
+              const src = p.signup_source as { utm_source?: string; utm_medium?: string; utm_campaign?: string; referrer?: string } | null;
+              if (!src) return null;
+              const label = src.utm_source
+                ? [src.utm_source, src.utm_medium, src.utm_campaign].filter(Boolean).join(" / ")
+                : src.referrer
+                  ? (() => { try { return new URL(src.referrer!).hostname; } catch { return src.referrer; } })()
+                  : null;
+              return label ? <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px]">유입 {label}</span> : null;
+            })()}
             {refBy && <span>추천인: <Link href={`/dashboard/operator/users/${refBy.id}`} className="underline underline-offset-2">{refBy.name}</Link></span>}
           </div>
         </div>
