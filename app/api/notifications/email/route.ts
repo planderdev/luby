@@ -4,7 +4,8 @@ import { categoryOf, normalizePrefs } from "@/lib/notification-categories";
 import { renderNotificationEmail } from "@/lib/notifications/email-template";
 import { sendPushToUser } from "@/lib/notifications/push";
 
-export const maxDuration = 15;
+// 429 재시도가 최대 ~15초까지 기다릴 수 있어 여유를 둔다 (다이제스트 20명 버스트 = 초당 2건 제한에서 ~10초 소요)
+export const maxDuration = 30;
 
 /**
  * 알림 생성 시 DB 트리거(pg_net)가 호출하는 이메일 발송 웹훅.
@@ -88,7 +89,7 @@ export async function POST(request: Request) {
   // Resend API 는 초당 2건 제한 — 일괄 승인처럼 알림이 한꺼번에 만들어지면 웹훅이 동시에 몰려 429 가 난다.
   // (2026-08-31 일괄 승인 31건 중 21건이 429 로 유실) 지터를 섞은 재시도로 버스트를 흩뜨린다.
   let res: Response | null = null;
-  for (let attempt = 0; attempt < 4; attempt++) {
+  for (let attempt = 0; attempt < 6; attempt++) {
     if (attempt > 0) await new Promise((r) => setTimeout(r, 700 * attempt + Math.random() * 800));
     res = await fetch("https://api.resend.com/emails", {
       method: "POST",
