@@ -85,19 +85,27 @@ export async function POST(request: Request) {
     category,
   });
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${resendKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: "Luby AI <notify@luby.im>",
-      to: [profile.email],
-      subject,
-      html,
-    }),
-  });
+  // Resend API 는 초당 2건 제한 — 일괄 승인처럼 알림이 한꺼번에 만들어지면 웹훅이 동시에 몰려 429 가 난다.
+  // (2026-08-31 일괄 승인 31건 중 21건이 429 로 유실) 지터를 섞은 재시도로 버스트를 흩뜨린다.
+  let res: Response | null = null;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    if (attempt > 0) await new Promise((r) => setTimeout(r, 700 * attempt + Math.random() * 800));
+    res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${resendKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "Luby AI <notify@luby.im>",
+        to: [profile.email],
+        subject,
+        html,
+      }),
+    });
+    if (res.status !== 429) break;
+  }
+  res = res!;
 
   if (!res.ok) {
     const err = await res.text();
