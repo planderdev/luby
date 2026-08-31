@@ -4,6 +4,7 @@ import { dbErrorWith } from "@/lib/db-errors";
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { revalidatePublicCampaign } from "@/lib/cache/public-revalidate";
 import { createClient } from "@/lib/supabase/server";
 import { getEntitlements } from "@/lib/plans/entitlements";
 
@@ -230,12 +231,24 @@ export async function updateCampaign(
 
   const { data: existing } = await supabase
     .from("campaigns")
-    .select("id, status, advertiser_id")
+    .select("id, status, advertiser_id, title")
     .eq("id", campaignId)
     .maybeSingle();
-  if (!existing || existing.advertiser_id !== user.id) return { ok: false, error: "캠페인을 찾을 수 없습니다." };
-  if (!["draft", "pending_approval", "cancelled", "rejected"].includes(existing.status)) {
-    return { ok: false, error: "모집이 시작된 캠페인은 수정할 수 없습니다. 복제해서 새로 만드세요." };
+  // 운영자는 오타·내용 정정을 위해 남의 캠페인도 수정할 수 있다 (2026-08-31 사장님 지시).
+  // RLS(campaigns_operator_all)와 보호 트리거(is_operator 예외)는 이미 허용 — 앱 가드만 연다.
+  const { data: me } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+  const isOperatorEdit = me?.role === "operator" && existing?.advertiser_id !== user.id;
+  if (!existing || (existing.advertiser_id !== user.id && !isOperatorEdit)) {
+    return { ok: false, error: "캠페인을 찾을 수 없습니다." };
+  }
+  const editableStatuses = isOperatorEdit
+    ? ["draft", "pending_approval", "cancelled", "rejected", "open"] // 운영자는 모집중 정정까지
+    : ["draft", "pending_approval", "cancelled", "rejected"];
+  if (!editableStatuses.includes(existing.status)) {
+    return {
+      ok: false,
+      error: isOperatorEdit ? "마감·완료된 캠페인은 수정할 수 없습니다." : "모집이 시작된 캠페인은 수정할 수 없습니다. 복제해서 새로 만드세요.",
+    };
   }
   if (!draft.recruit_start || !draft.recruit_end) {
     return { ok: false, error: "모집 기간(시작일·종료일)을 입력해주세요. (STEP 3 체험 일정)" };
@@ -260,7 +273,8 @@ export async function updateCampaign(
       always_open: draft.always_open,
       recruit_count: draft.recruit_count,
       point_amount: draft.point_amount,
-      status: submit ? "pending_approval" : "draft",
+      // 운영자 정정은 상태를 바꾸지 않는다 — 모집중 캠페인이 검수중/초안으로 내려가면 사고다
+      status: isOperatorEdit ? existing.status : submit ? "pending_approval" : "draft",
     })
     .eq("id", campaignId);
   if (upErr) return { ok: false, error: dbErrorWith("캠페인 수정 실패", upErr) };
@@ -295,6 +309,19 @@ export async function updateCampaign(
   if (draft.schedules.length > 0) {
     const { error } = await supabase.from("campaign_schedules").insert(draft.schedules.map((s) => ({ campaign_id: campaignId, day_of_week: s.day_of_week, start_time: s.start_time || null, end_time: s.end_time || null })));
     if (error) return { ok: false, error: dbErrorWith("일정 저장 실패", error) };
+  }
+
+  // 운영자가 남의 캠페인을 고쳤으면 광고주에게 알리고, 공개 페이지 캐시도 갱신
+  if (isOperatorEdit) {
+    const { getAdminSupabase } = await import("@/lib/supabase/admin");
+    await getAdminSupabase().from("notifications").insert({
+      user_id: existing.advertiser_id,
+      type: "campaign_edited_by_operator",
+      title: "운영팀이 캠페인 내용을 정리했어요",
+      body: `"${(existing.title ?? draft.title).slice(0, 60)}" 캠페인의 내용이 운영팀에 의해 수정됐습니다. 변경 내용을 확인해보세요.`,
+      link: `/dashboard/campaigns/${campaignId}`,
+    });
+    revalidatePublicCampaign(campaignId);
   }
 
   revalidatePath(`/dashboard/campaigns/${campaignId}`);

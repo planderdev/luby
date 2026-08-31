@@ -8,22 +8,26 @@ import type { CampaignDraft } from "../../new/actions";
 export const metadata = { title: "캠페인 수정 — 루비AI" };
 export const maxDuration = 60;
 
-/** 캠페인 수정 — 소유주, 초안·검수중·반려(취소) 상태만. 모집 시작 후에는 복제 이용 */
+/** 캠페인 수정 — 소유주(초안·검수중·반려·취소) + 운영자(모집중 정정 포함, 상태는 보존됨) */
 export default async function EditCampaignPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const profile = await getCurrentProfile();
   if (!profile) redirect(`/login?redirect=/dashboard/campaigns/${id}/edit`);
-  if (profile.role !== "advertiser") redirect(`/dashboard/campaigns/${id}`);
+  const isOperator = profile.role === "operator";
+  if (profile.role !== "advertiser" && !isOperator) redirect(`/dashboard/campaigns/${id}`);
 
   const supabase = await createClient();
-  const { data: src } = await supabase
+  let q = supabase
     .from("campaigns")
     .select("id, advertiser_id, status, title, business_name, industry_brief, thumbnail_url, contact_phone, region_id, promotion_type_id, category_id, recruit_start, recruit_end, experience_start, experience_end, same_day_reservation, always_open, recruit_count, point_amount, review_note")
-    .eq("id", id)
-    .eq("advertiser_id", profile.id)
-    .maybeSingle();
+    .eq("id", id);
+  if (!isOperator) q = q.eq("advertiser_id", profile.id);
+  const { data: src } = await q.maybeSingle();
   if (!src) redirect("/dashboard/campaigns");
-  if (!["draft", "pending_approval", "cancelled", "rejected"].includes(src.status)) redirect(`/dashboard/campaigns/${id}`);
+  const editable = isOperator
+    ? ["draft", "pending_approval", "cancelled", "rejected", "open"]
+    : ["draft", "pending_approval", "cancelled", "rejected"];
+  if (!editable.includes(src.status)) redirect(`/dashboard/campaigns/${id}`);
 
   const [{ data: ch }, { data: ms }, { data: kw }, { data: of }, { data: sc }, catalog] = await Promise.all([
     supabase.from("campaign_channels").select("channel_type_id").eq("campaign_id", id),

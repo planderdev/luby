@@ -188,6 +188,15 @@ export default async function CampaignDetailPage({
             )}
           </div>
         )}
+        {isOperator && ["draft", "pending_approval", "cancelled", "rejected", "open"].includes(campaign.status) && (
+          <Link
+            href={`/dashboard/campaigns/${id}/edit`}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-xs font-medium hover:bg-muted"
+            title="운영자 정정 — 상태는 바뀌지 않고 광고주에게 수정 알림이 갑니다"
+          >
+            <Pencil className="size-3.5" /> 내용 정정 (운영자)
+          </Link>
+        )}
         {isInfluencer && campaign.status === "open" && (
           <ShareLinkButton campaignId={id} refId={profile.id} buttonLabel="친구에게 공유" />
         )}
