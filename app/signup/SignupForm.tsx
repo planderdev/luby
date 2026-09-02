@@ -171,6 +171,7 @@ function FormStep({
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
 
   const [error, setError] = useState<string | null>(null);
+  const [alreadyRegistered, setAlreadyRegistered] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
@@ -223,6 +224,14 @@ function FormStep({
 
     if (error) {
       setError(authErrorMessage(error, "가입에 실패했어요. 입력값을 확인하고 다시 시도해 주세요."));
+      return;
+    }
+
+    // 이미 가입된(인증까지 끝난) 이메일이면 Supabase 는 보안상 성공한 척 응답하고 메일을 보내지 않는다
+    // — 이때 user.identities 가 빈 배열이다. 인증 대기 화면으로 보내면 오지 않을 메일을 기다리게 된다.
+    if (data.user && (data.user.identities?.length ?? 0) === 0) {
+      setAlreadyRegistered(true);
+      setError("이미 가입된 이메일이에요. 아래에서 로그인하거나 비밀번호를 재설정해주세요.");
       return;
     }
 
@@ -412,6 +421,12 @@ function FormStep({
       {error && (
         <div className="rounded-2xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent-ink">
           {error}
+          {alreadyRegistered && (
+            <div className="mt-2 flex flex-wrap gap-3 text-sm font-medium">
+              <a href="/login" className="underline underline-offset-2">로그인하러 가기</a>
+              <a href="/forgot-password" className="underline underline-offset-2">비밀번호 재설정</a>
+            </div>
+          )}
         </div>
       )}
 
