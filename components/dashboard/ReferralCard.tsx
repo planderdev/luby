@@ -6,7 +6,8 @@ import { Check, Copy, Gift, Share2 } from "lucide-react";
 /** 크리에이터 홈 — 내 추천 링크(/creators?ref=) 복사·공유 + 추천 현황 */
 export function ReferralCard({ profileId, total, rewarded, rewardPoints, monthRewarded }: { profileId: string; total: number; rewarded: number; rewardPoints: number; monthRewarded: number }) {
   const [copied, setCopied] = useState(false);
-  const link = `${typeof window !== "undefined" ? window.location.origin : "https://luby.im"}/creators?ref=${profileId}`;
+  // 서버/클라이언트 동일 값(빌드 상수) — window 분기는 하이드레이션 불일치를 만든다
+  const link = `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://luby.im"}/creators?ref=${profileId}`;
   async function copy() {
     try {
       await navigator.clipboard.writeText(link);

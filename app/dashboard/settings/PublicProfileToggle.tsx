@@ -9,7 +9,8 @@ export function PublicProfileToggle({ userId, initial, approved }: { userId: str
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  // 서버/클라이언트 렌더가 같아야 한다 — window 로 만들면 하이드레이션 텍스트 불일치(React #418)가 난다
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "https://luby.im";
   const url = `${origin}/p/${userId}`;
 
   function toggle() {
