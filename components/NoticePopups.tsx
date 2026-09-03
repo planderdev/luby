@@ -86,13 +86,13 @@ export function NoticePopups({ locale = "ko" }: { locale?: "ko" | "en" | "zh" })
         type="button"
         aria-label={t.close}
         onClick={() => setItems([])}
-        className="fixed inset-0 z-40 hidden bg-black/50 backdrop-blur-[2px] sm:block"
+        className="fixed inset-0 z-[2500] hidden bg-black/50 backdrop-blur-[2px] sm:block"
       />
       <div
         role="dialog"
         aria-modal="false"
         aria-label={t.notice}
-        className="fixed inset-x-0 bottom-0 z-50 flex max-h-[85dvh] flex-col items-center gap-3 overflow-y-auto px-4 pb-4 sm:inset-0 sm:justify-center sm:overflow-visible sm:p-6"
+        className="fixed inset-x-0 bottom-0 z-[2600] flex max-h-[85dvh] flex-col items-center gap-3 overflow-y-auto px-4 pb-4 sm:inset-0 sm:justify-center sm:overflow-visible sm:p-6"
       >
       <div className="flex w-full max-w-5xl flex-col items-center gap-3 sm:flex-row sm:items-start sm:justify-center">
         {items.map((n) => {
