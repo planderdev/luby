@@ -1,5 +1,5 @@
 /* 자동 생성 — scripts/luby-re-sync.mjs (SPA 재진입 대비 1회 실행 가드) */
-if (!window.__lre_home) { window.__lre_home = true;
+if (!window.__lre_solutions) { window.__lre_solutions = true;
 /* ═══ data.js ═══ */
 (function () {
     var entries = [
@@ -1966,7 +1966,7 @@ if (!window.__lre_home) { window.__lre_home = true;
 })();
 
 
-/* ═══ pages/home.js ═══ */
+/* ═══ pages/creative.js ═══ */
 (function () {
     function ready(callback) {
         if (document.readyState === 'loading') {
@@ -1976,309 +1976,176 @@ if (!window.__lre_home) { window.__lre_home = true;
         }
     }
 
-    function initHeroStory() {
-        var story = document.querySelector('[data-luby-hero-story]');
-        if (!story || story.dataset.heroReady === 'true') return;
-        story.dataset.heroReady = 'true';
+    function initCreativeServicePin() {
+        var section = document.querySelector('[data-creative-service-pin]');
+        if (!section) return;
 
-        var stage = story.querySelector('[data-luby-hero-stage]');
-        var media = story.querySelector('[data-luby-hero-media]');
-        var video = story.querySelector('[data-luby-hero-video]');
-        var panels = Array.prototype.slice.call(story.querySelectorAll('[data-luby-hero-panel]'));
-        if (!stage || !media || !video) return;
-        var heroTimeline = null;
-        var heroRefreshTimer = null;
+        var stage = section.querySelector('[data-creative-service-stage]');
+        var copies = Array.prototype.slice.call(section.querySelectorAll('[data-creative-service-copy]'));
+        var mediaItems = Array.prototype.slice.call(section.querySelectorAll('[data-creative-service-media]'));
+        var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-        video.autoplay = true;
-        video.loop = true;
-        video.muted = true;
-        video.defaultMuted = true;
-        video.playsInline = true;
-        video.setAttribute('autoplay', '');
-        video.setAttribute('muted', '');
-        video.setAttribute('loop', '');
-        video.setAttribute('playsinline', '');
-
-        function playVideo() {
-            var promise = video.play();
-            if (promise && promise.then) {
-                promise.then(function () {
-                    story.dataset.heroVideoState = 'playing';
-                }).catch(function () {
-                    story.dataset.heroVideoState = 'blocked';
-                });
-            } else {
-                story.dataset.heroVideoState = 'playing';
-            }
-        }
-
-        function getFinalClip() {
-            var isMobile = window.innerWidth < 768;
-            var viewportWidth = window.innerWidth;
-            var viewportHeight = window.innerHeight;
-            var top = Math.round(viewportHeight * (isMobile ? 0.2 : 0.16));
-            var bottom = Math.round(viewportHeight * (isMobile ? 0.2 : 0.18));
-            var side = isMobile ? 16 : Math.max(72, Math.round(viewportWidth * 0.075));
-            var radius = isMobile ? 28 : 64;
-            return 'inset(' + top + 'px ' + side + 'px ' + bottom + 'px ' + side + 'px round ' + radius + 'px)';
-        }
-
-        function createPinnedTextTimeline() {
-            var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            story.dataset.heroMode = 'video-play-pinned-text';
-
-            if (heroTimeline) {
-                if (heroTimeline.scrollTrigger) heroTimeline.scrollTrigger.kill();
-                heroTimeline.kill();
-                heroTimeline = null;
-            }
-
-            if (reduced || !window.gsap || !window.ScrollTrigger) {
-                story.classList.add('is-reduced');
-                story.dataset.heroMode = 'video-play-reduced';
-                panels.forEach(function (panel, index) {
-                    panel.style.opacity = index === 0 ? '1' : '0';
-                    panel.style.visibility = index === 0 ? 'visible' : 'hidden';
-                    panel.style.transform = index === 0 ? 'none' : 'translate3d(0, 44px, 0)';
-                });
-                return;
-            }
-
-            gsap.registerPlugin(ScrollTrigger);
-            gsap.set(media, { clipPath: 'inset(0px 0px 0px 0px round 0px)' });
-            gsap.set(video, { scale: 1, transformOrigin: '50% 50%' });
-            gsap.set(panels, { autoAlpha: 0, y: 44 });
-            var panelChars = panels.map(function (panel) {
-                return Array.prototype.slice.call(panel.querySelectorAll('.type-char'));
+        function setActive(index, manageAria) {
+            copies.forEach(function (copy, copyIndex) {
+                var isActive = copyIndex === index;
+                copy.classList.toggle('is-active', isActive);
+                if (manageAria) {
+                    copy.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+                } else {
+                    copy.removeAttribute('aria-hidden');
+                }
             });
-            var allPanelChars = panelChars.reduce(function (items, chars) {
-                return items.concat(chars);
-            }, []);
 
-            if (allPanelChars.length) {
-                gsap.set(allPanelChars, {
-                    autoAlpha: 0,
-                    y: '0.82em',
-                    rotateX: -22,
-                    transformOrigin: '50% 100%'
-                });
-            }
+            mediaItems.forEach(function (media, mediaIndex) {
+                media.classList.toggle('is-active', mediaIndex === index);
+            });
+        }
 
-            function showPanel(timeline, index, at) {
-                timeline.to(panels[index], { autoAlpha: 1, y: 0, duration: 0.42, ease: 'power2.out' }, at);
-                if (panelChars[index] && panelChars[index].length) {
-                    timeline.to(panelChars[index], {
-                        autoAlpha: 1,
-                        y: 0,
-                        rotateX: 0,
-                        duration: 0.52,
-                        stagger: 0.018,
-                        ease: 'expo.out'
-                    }, at + 0.08);
-                }
-            }
+        setActive(0, false);
 
-            function hidePanel(timeline, index, at) {
-                if (panelChars[index] && panelChars[index].length) {
-                    timeline.to(panelChars[index], {
-                        autoAlpha: 0,
-                        y: '-0.18em',
-                        rotateX: 8,
-                        duration: 0.18,
-                        stagger: 0,
-                        overwrite: 'auto',
-                        ease: 'power1.in'
-                    }, at);
-                    timeline.set(panelChars[index], {
-                        autoAlpha: 0,
-                        y: '0.82em',
-                        rotateX: -22
-                    }, at + 0.2);
-                }
-                timeline.to(panels[index], { autoAlpha: 0, y: -34, duration: 0.22, overwrite: 'auto', ease: 'power1.in' }, at);
-            }
+        if (!stage || copies.length < 2 || reduced || !window.gsap || !window.ScrollTrigger) return;
 
-            var tl = gsap.timeline({
+        gsap.registerPlugin(ScrollTrigger);
+
+        var match = gsap.matchMedia();
+        match.add('(min-width: 1024px)', function () {
+            var activeIndex = 0;
+            var stepSpan = 1.45;
+
+            gsap.set(copies, { autoAlpha: 0, y: 72 });
+            gsap.set(copies[0], { autoAlpha: 1, y: 0 });
+            gsap.set(mediaItems, { autoAlpha: 0 });
+            gsap.set(mediaItems[0], { autoAlpha: 1 });
+            setActive(0, true);
+
+            var timeline = gsap.timeline({
                 scrollTrigger: {
-                    trigger: story,
-                    start: 'top top',
-                    end: 'bottom bottom',
-                    scrub: 1,
+                    trigger: stage,
+                    start: 'center center',
+                    end: function () {
+                        return '+=' + Math.round(window.innerHeight * (copies.length + 0.75));
+                    },
+                    scrub: 0.9,
+                    pin: stage,
+                    anticipatePin: 1,
                     invalidateOnRefresh: true,
                     onUpdate: function (self) {
-                        story.dataset.heroProgress = self.progress.toFixed(4);
-                        story.dataset.heroPanel = String(Math.min(panels.length, Math.max(1, Math.ceil(self.progress * panels.length))));
-                        playVideo();
+                        var nextIndex = Math.min(copies.length - 1, Math.max(0, Math.round(self.progress * (copies.length - 1))));
+                        if (nextIndex === activeIndex) return;
+                        activeIndex = nextIndex;
+                        setActive(nextIndex, true);
                     }
                 }
             });
 
-            showPanel(tl, 0, 0.16);
-            hidePanel(tl, 0, 0.78);
-            showPanel(tl, 1, 1.05);
-            hidePanel(tl, 1, 1.68);
-            showPanel(tl, 2, 1.98);
-            tl.to(media, { clipPath: getFinalClip, duration: 0.92, ease: 'power2.inOut' }, 2.42)
-                .to(video, { scale: function () { return window.innerWidth < 768 ? 1.02 : 1.04; }, duration: 0.92, ease: 'none' }, 2.42)
-                .to(panels[2], { y: function () { return window.innerWidth < 768 ? -8 : -16; }, duration: 0.72, ease: 'none' }, 2.56);
-            heroTimeline = tl;
+            copies.forEach(function (copy, index) {
+                if (index === 0) return;
 
-            window.setTimeout(function () {
-                ScrollTrigger.refresh();
-            }, 180);
-        }
+                var start = index * stepSpan;
+                timeline.to(copies[index - 1], {
+                    autoAlpha: 0,
+                    y: -72,
+                    duration: 0.56,
+                    ease: 'none'
+                }, start);
 
-        playVideo();
-        window.addEventListener('scroll', playVideo, { passive: true });
-        document.addEventListener('visibilitychange', function () {
-            if (!document.hidden) playVideo();
-        });
-        document.addEventListener('luby:languagechange', function () {
-            window.clearTimeout(heroRefreshTimer);
-            heroRefreshTimer = window.setTimeout(function () {
-                if (window.LUBY && window.LUBY.prepareTextMotion) {
-                    window.LUBY.prepareTextMotion(story);
+                timeline.fromTo(copy, {
+                    autoAlpha: 0,
+                    y: 72
+                }, {
+                    autoAlpha: 1,
+                    y: 0,
+                    duration: 0.68,
+                    ease: 'none'
+                }, start + 0.2);
+
+                if (mediaItems[index]) {
+                    timeline.to(mediaItems[index - 1], {
+                        autoAlpha: 0,
+                        duration: 0.44,
+                        ease: 'none'
+                    }, start + 0.04);
+
+                    timeline.fromTo(mediaItems[index], {
+                        autoAlpha: 0
+                    }, {
+                        autoAlpha: 1,
+                        duration: 0.54,
+                        ease: 'none'
+                    }, start + 0.18);
                 }
-                createPinnedTextTimeline();
-                if (window.ScrollTrigger) window.ScrollTrigger.refresh();
-            }, 40);
-        });
-        createPinnedTextTimeline();
-    }
-
-    function initRecognitionSculpture() {
-        var section = document.querySelector('.recognition-stage');
-        var sculpture = document.querySelector('[data-recognition-sculpture]');
-        if (!section || !sculpture) return;
-
-        var canHover = window.matchMedia('(pointer: fine)').matches;
-        var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (!canHover || reducedMotion) return;
-
-        var frame = null;
-        var nextState = {
-            x: 0,
-            y: 0
-        };
-
-        function setSculptureVars(x, y) {
-            sculpture.style.setProperty('--sculpture-x', (x * 24).toFixed(2) + 'px');
-            sculpture.style.setProperty('--sculpture-y', (y * 16).toFixed(2) + 'px');
-            sculpture.style.setProperty('--sculpture-rotate-x', (y * -6).toFixed(2) + 'deg');
-            sculpture.style.setProperty('--sculpture-rotate-y', (x * 8).toFixed(2) + 'deg');
-        }
-
-        function applySculptureMove() {
-            frame = null;
-            setSculptureVars(nextState.x, nextState.y);
-        }
-
-        function requestMove(event) {
-            var rect = section.getBoundingClientRect();
-            if (!rect.width || !rect.height) return;
-
-            nextState.x = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
-            nextState.y = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
-
-            if (!frame) {
-                frame = window.requestAnimationFrame(applySculptureMove);
-            }
-        }
-
-        function resetMove() {
-            nextState.x = 0;
-            nextState.y = 0;
-            if (frame) {
-                window.cancelAnimationFrame(frame);
-                frame = null;
-            }
-            setSculptureVars(0, 0);
-        }
-
-        section.addEventListener('pointermove', requestMove, { passive: true });
-        section.addEventListener('pointerleave', resetMove);
-    }
-
-    function initHistoryTrackMotion() {
-        var section = document.querySelector('.history-track');
-        if (!section) return;
-
-        var items = Array.prototype.slice.call(section.querySelectorAll('.history-track__list li'));
-        var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (!items.length) return;
-
-        function showItemsWithoutMotion() {
-            section.classList.remove('is-history-motion-ready');
-            section.classList.add('is-history-motion-complete');
-            items.forEach(function (item) {
-                item.style.opacity = '';
-                item.style.transform = '';
-                item.style.willChange = '';
             });
-        }
 
-        if (reduced || !window.gsap || !window.ScrollTrigger) {
-            showItemsWithoutMotion();
-            return;
-        }
+            timeline.to(copies[copies.length - 1], {
+                autoAlpha: 1,
+                y: 0,
+                duration: 0.72,
+                ease: 'none'
+            }, copies.length * stepSpan);
 
-        gsap.registerPlugin(ScrollTrigger);
-        section.classList.add('is-history-motion-ready');
-        gsap.set(items, { autoAlpha: 0, x: -56 });
-
-        gsap.to(items, {
-            autoAlpha: 1,
-            x: 0,
-            duration: 0.64,
-            stagger: 0.1,
-            ease: 'power3.out',
-            scrollTrigger: {
-                trigger: section,
-                start: 'top 72%',
-                once: true
-            },
-            onComplete: function () {
-                section.classList.remove('is-history-motion-ready');
-                section.classList.add('is-history-motion-complete');
-                gsap.set(items, { clearProps: 'opacity,visibility,transform,willChange' });
-            }
-        });
-    }
-
-    function initNewsSwiper() {
-        var swiperEl = document.querySelector('[data-news-swiper]');
-        if (!swiperEl || !window.Swiper) return;
-
-        new Swiper(swiperEl, {
-            loop: true,
-            speed: 720,
-            spaceBetween: 24,
-            slidesPerView: 1,
-            grabCursor: true,
-            navigation: {
-                prevEl: '.news-prev',
-                nextEl: '.news-next'
-            },
-            autoplay: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? false : {
-                delay: 3200,
-                disableOnInteraction: false
-            },
-            breakpoints: {
-                768: {
-                    slidesPerView: 2
-                },
-                1180: {
-                    slidesPerView: 3
-                }
-            }
+            return function () {
+                setActive(0, false);
+                gsap.set(copies, { clearProps: 'all' });
+                gsap.set(mediaItems, { clearProps: 'all' });
+            };
         });
     }
 
     ready(function () {
-        initHeroStory();
-        initRecognitionSculpture();
-        initHistoryTrackMotion();
-        initNewsSwiper();
+        Array.prototype.forEach.call(document.querySelectorAll('[data-solution-accordion]'), function (root) {
+            var triggers = Array.prototype.slice.call(root.querySelectorAll('[data-solution-toggle]'));
+
+            function setExpanded(trigger, expanded, focusTrigger) {
+                var panelId = trigger.getAttribute('data-solution-toggle');
+                var panel = document.getElementById(panelId);
+                var item = trigger.closest('.portfolio-solution');
+                var icon = trigger.querySelector('.portfolio-solution__mark');
+
+                if (item) item.classList.toggle('is-active', expanded);
+                trigger.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+
+                if (panel) {
+                    panel.classList.toggle('is-active', expanded);
+                    panel.setAttribute('aria-hidden', expanded ? 'false' : 'true');
+                }
+
+                if (icon) {
+                    icon.classList.toggle('ri-add-line', !expanded);
+                    icon.classList.toggle('ri-subtract-line', expanded);
+                }
+
+                if (expanded && focusTrigger) trigger.focus();
+            }
+
+            function activate(trigger, focusTrigger) {
+                var shouldExpand = trigger.getAttribute('aria-expanded') !== 'true';
+                triggers.forEach(function (itemTrigger) {
+                    setExpanded(itemTrigger, itemTrigger === trigger && shouldExpand, focusTrigger && itemTrigger === trigger);
+                });
+            }
+
+            triggers.forEach(function (trigger, index) {
+                setExpanded(trigger, trigger.getAttribute('aria-expanded') === 'true', false);
+
+                trigger.addEventListener('click', function () {
+                    activate(trigger, false);
+                });
+
+                trigger.addEventListener('keydown', function (event) {
+                    var nextIndex = index;
+                    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') nextIndex = (index + 1) % triggers.length;
+                    if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') nextIndex = (index - 1 + triggers.length) % triggers.length;
+                    if (event.key === 'Home') nextIndex = 0;
+                    if (event.key === 'End') nextIndex = triggers.length - 1;
+                    if (nextIndex === index) return;
+
+                    event.preventDefault();
+                    triggers[nextIndex].focus();
+                });
+            });
+        });
+
+        initCreativeServicePin();
     });
 })();
 

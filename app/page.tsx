@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { LandingRe } from "@/components/landing-re/LandingRe";
+import { LrePage } from "@/components/landing-re/LrePage";
+import { fragment } from "@/components/landing-re/home-fragment";
 import { NoticePopups } from "@/components/NoticePopups";
 import { RecoveryRedirect } from "@/components/RecoveryRedirect";
 import { buildMetadata } from "@/lib/i18n/metadata";
@@ -12,7 +13,7 @@ export default function Home() {
   return (
     <>
       <RecoveryRedirect />
-      <LandingRe />
+      <LrePage html={fragment} bundle="/lre/home.js" />
       <NoticePopups locale="ko" />
     </>
   );

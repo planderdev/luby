@@ -75,6 +75,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
       alternates: { languages: { "ko-KR": `${base}/c`, en: `${base}/en/c`, "zh-CN": `${base}/zh/c`, "x-default": `${base}/c` } },
     })),
+    // 랜딩 리뉴얼(luby-re) 마케팅 페이지
+    ...(["/brands", "/solutions", "/for-creators", "/faq"] as const).map((p) => ({
+      url: `${base}${p}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    })),
     { url: `${base}/docs`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.7 },
     ...loadDocs().flatMap((g) => g.pages.map((p) => ({ url: `${base}/docs/${g.key}/${p.slug}`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.6 }))),
     ...(["en", "zh"] as const).flatMap((lang) => [
