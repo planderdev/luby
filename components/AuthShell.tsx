@@ -1,72 +1,47 @@
-import Link from "next/link";
-import Image from "next/image";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { authPre, authPost } from "@/components/landing-re/auth-chrome";
+import { LreScripts } from "@/components/landing-re/LreScripts";
 
+/**
+ * 인증(로그인·가입·재설정) 공통 셸 — 팀장님 리뉴얼 시안(luby-re)의 auth 레이아웃.
+ *
+ * 크롬(사이트 헤더·푸터·오버레이)은 시안 조각을 그대로 서버 렌더하고, 폼 영역은
+ * 시안의 signup-form 마크업 계약(.form-field 등)에 맞춰 React 자식을 담는다.
+ * 폼 로직(Supabase 인증·오타 힌트·중복가입 안내)은 각 페이지의 React 컴포넌트 소관.
+ */
 export function AuthShell({
   children,
   title,
   subtitle,
+  eyebrow = "Login",
 }: {
   children: React.ReactNode;
   title: string;
   subtitle: string;
+  eyebrow?: string;
 }) {
   return (
-    <main className="relative flex min-h-dvh">
-      {/* left: form */}
-      <section className="flex flex-1 flex-col px-6 py-10 md:px-16 lg:px-24">
-        <div className="flex items-center justify-between">
-          <Link href="/" className="inline-flex items-center" aria-label="루비AI 홈">
-            <Image
-              src="/logo.png"
-              alt="루비AI"
-              width={1298}
-              height={410}
-              className="h-7 w-auto invert dark:invert-0"
-            />
-          </Link>
-          <ThemeToggle />
-        </div>
-
-        <div className="my-auto w-full max-w-md py-12">
-          <h1 className="display text-3xl font-semibold lg:text-4xl">{title}</h1>
-          <p className="mt-3 text-sm text-muted-foreground lg:text-base">{subtitle}</p>
-          <div className="mt-10">{children}</div>
-        </div>
-
-        <p className="text-xs text-muted-foreground">
-          © 2026 루비AI · <Link href="/" className="hover:text-foreground">홈으로</Link>
-        </p>
-      </section>
-
-      {/* right: visual (hidden on mobile) */}
-      <aside className="relative hidden flex-1 overflow-hidden bg-foreground text-background lg:block">
-        <div
-          aria-hidden
-          className="bg-grid absolute inset-0 opacity-[0.07]"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -left-40 top-1/3 size-[640px] rounded-full opacity-50 blur-3xl"
-          style={{
-            background:
-              "radial-gradient(closest-side, rgb(236 72 153 / 0.5), transparent)",
-          }}
-        />
-        <div className="relative flex h-full flex-col justify-end p-16">
-          <div className="text-xs uppercase tracking-[0.2em] text-background/60">
-            Global Campaign Platform
+    <div className="lre-root page page-signup page-auth">
+      <div dangerouslySetInnerHTML={{ __html: authPre }} />
+      <main id="main" tabIndex={-1}>
+        <section className="signup-section auth-section theme-paper" data-header-theme="light">
+          <div className="section-shell signup-layout auth-layout">
+            {/* data-i18n-ignore: 시안 i18n.js 의 텍스트 노드 치환(CJK 래핑)이 React 소유
+                DOM 을 건드리면 재렌더 때 insertBefore 가 깨진다 — 폼 영역은 제외 */}
+            <div className="signup-form auth-form" data-i18n-ignore>
+              <div className="signup-form__top auth-form__top">
+                <div>
+                  <span className="signup-form__eyebrow">{eyebrow}</span>
+                  <h2>{title}</h2>
+                  <p className="auth-form__copy">{subtitle}</p>
+                </div>
+              </div>
+              {children}
+            </div>
           </div>
-          <p className="display mt-4 max-w-md break-keep text-3xl font-semibold leading-[1.2] lg:text-4xl" style={{ textWrap: "balance" }}>
-            전 세계 체험단을,
-            <br />
-            한 번의 캠페인으로.
-          </p>
-          <p className="mt-4 max-w-sm break-keep text-sm text-background/70">
-            8,500명 이상의 글로벌 인플루언서가 루비AI에서 새 캠페인을 기다리고 있습니다.
-          </p>
-        </div>
-      </aside>
-    </main>
+        </section>
+      </main>
+      <div dangerouslySetInnerHTML={{ __html: authPost }} />
+      <LreScripts bundle="/lre/shared.js" />
+    </div>
   );
 }
