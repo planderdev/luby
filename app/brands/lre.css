@@ -223,7 +223,7 @@ button {
 }
 
 .lre-root {
-    overflow-x: hidden;
+    overflow-x: clip;
     background: var(--color-void);
     color: var(--color-text);
     font-family: var(--font-.lre-root);
@@ -251,13 +251,13 @@ button {
     font-weight: normal;
 }
 
-.lre-root.is-menu-open,
-.lre-root.is-contact-modal-open,
-.lre-root.is-transitioning {
+body.is-menu-open,
+body.is-contact-modal-open,
+body.is-transitioning {
     overflow: hidden;
 }
 
-.lre-root.is-contact-modal-open {
+body.is-contact-modal-open {
     position: fixed;
     inset-inline: 0;
     width: 100%;
@@ -437,25 +437,25 @@ main[tabindex="-1"]:focus {
     backdrop-filter: blur(14px);
 }
 
-.lre-root.is-menu-open .site-header {
+body.is-menu-open .site-header {
     z-index: 1800;
     color: var(--color-paper);
 }
 
-.lre-root.is-menu-open .site-header::before {
+body.is-menu-open .site-header::before {
     background: transparent;
     border-color: transparent;
     backdrop-filter: none;
 }
 
-.lre-root.is-menu-open .site-header__brand,
-.lre-root.is-menu-open .site-header__nav,
-.lre-root.is-menu-open .site-header__actions > :not(.menu-toggle) {
+body.is-menu-open .site-header__brand,
+body.is-menu-open .site-header__nav,
+body.is-menu-open .site-header__actions > :not(.menu-toggle) {
     opacity: 0;
     pointer-events: none;
 }
 
-.lre-root.is-menu-open .site-header__actions > .menu-toggle {
+body.is-menu-open .site-header__actions > .menu-toggle {
     opacity: 1;
     pointer-events: auto;
 }

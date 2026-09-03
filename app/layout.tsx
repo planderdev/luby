@@ -101,7 +101,11 @@ export const viewport = {
 };
 
 const themeScript = `
-(function(){try{
+(function(){
+  // 랜딩 시안(luby-re) CSS 는 html.js 로 "JS 있음"을 게이트한다 — 시안 헤더의
+  // 부트스트랩 인라인 스크립트가 조각 생성 때 제거되므로 여기서 페인트 전에 복원
+  document.documentElement.classList.add('js');
+try{
   var s=localStorage.getItem('theme');
   var q=new URLSearchParams(location.search).get('theme');
   if(q==='light'||q==='dark')s=q;

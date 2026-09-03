@@ -53,8 +53,12 @@ const sharedJs = ["data", "i18n", "scroll", "common", "marquee", "counter", "mot
 
 const scopeCss = (css) =>
   css
-    .replace(/\bbody\b/g, ".lre-root")
+    // 시안 JS 가 real body 에 토글하는 상태 클래스(is-menu-open 등)는 body 셀렉터를 유지해야 동작한다
+    .replace(/\bbody\b(?!\.is-)/g, ".lre-root")
     .replace(/\bhtml\b(?![.\w-])/g, ".lre-root")
+    // body 였을 땐 뷰포트 특례로 sticky 가 살지만 일반 div(.lre-root)의 overflow-x: hidden 은
+    // 하위 position: sticky 를 전부 죽인다 — clip 은 스크롤 컨테이너를 만들지 않아 sticky 가 보존된다
+    .replace(/(\.lre-root\s*\{[^}]*?)overflow-x: hidden/g, "$1overflow-x: clip")
     // 언어 드롭다운 항목이 button → a 로 바뀌었으므로 셀렉터를 확장한다 (:hover 등 접미사 보존,
     // 링크의 활성 표시는 aria-checked 대신 aria-current)
     .replace(/\.language-dropdown__panel button([^,{]*)/g, (m, suf) => {
