@@ -10,7 +10,7 @@
  *   + svg/image 는 참조된 것만 public/lre/ 복사 (영상은 Supabase landing-assets 버킷 URL)
  */
 import { execFileSync } from "node:child_process";
-import { cpSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 const SRC = process.argv[2];
@@ -55,21 +55,41 @@ const scopeCss = (css) =>
   css
     .replace(/\bbody\b/g, ".lre-root")
     .replace(/\bhtml\b(?![.\w-])/g, ".lre-root")
+    // 언어 드롭다운 항목이 button → a 로 바뀌었으므로 셀렉터를 확장한다 (:hover 등 접미사 보존,
+    // 링크의 활성 표시는 aria-checked 대신 aria-current)
+    .replace(/\.language-dropdown__panel button([^,{]*)/g, (m, suf) => {
+      const aSuf = suf.replace(/\[aria-(?:checked|pressed)="true"\]/g, '[aria-current="true"]');
+      return `.language-dropdown__panel button${suf}, .language-dropdown__panel a${aSuf}`;
+    })
     .replace(/url\((['"]?)\.\.\/svg\//g, "url($1/lre/svg/")
     .replace(/url\((['"]?)\.\.\/image\//g, `url($1${VIDEO_BASE}/image/`)
     .replace(/url\((['"]?)\.\.\/video\//g, `url($1${VIDEO_BASE}/`);
+
+// 언어 전환은 클라이언트 텍스트 스왑 대신 실제 라우트 링크로 — 각 로케일이 서버 렌더 페이지다
+const LANG_ROUTES = { ko: "/", en: "/en", zh: "/zh" };
 
 const rewriteBody = (body) => {
   for (const [from, to] of LINKS) {
     body = body.replace(new RegExp(`href="(\\.\\./|\\./)?${from}"`, "g"), `href="${to}"`);
   }
+  body = body.replace(
+    /<button type="button" role="menuitemradio" data-lang-toggle="(ko|en|zh)"[^>]*>([\s\S]*?)<\/button>/g,
+    (_, code, inner) => `<a role="menuitemradio" data-lang-link="${code}" href="${LANG_ROUTES[code]}">${inner}</a>`
+  );
   return body
     .replace(/(src|href)="(\.\.\/|\.\/)?assets\/svg\//g, '$1="/lre/svg/')
     .replace(/(src|href)="(\.\.\/|\.\/)?assets\/image\//g, `$1="${VIDEO_BASE}/image/`)
     .replace(/(src|href)="(\.\.\/|\.\/)?assets\/video\//g, `$1="${VIDEO_BASE}/`);
 };
 
+/** 페이지의 로케일 링크에 활성 표시를 단다 (CSS 는 a[aria-current] 를 강조하도록 패치됨) */
+const markLang = (html, code) =>
+  html
+    .replace(/(<a role="menuitemradio" data-lang-link="[a-z]+") aria-current="true"/g, "$1")
+    .replace(`data-lang-link="${code}"`, `data-lang-link="${code}" aria-current="true"`);
+
 const referenced = new Set();
+let homeParts = null;
 mkdirSync(join(ROOT, "components/landing-re"), { recursive: true });
 mkdirSync(join(ROOT, "public/lre"), { recursive: true });
 
@@ -91,7 +111,8 @@ for (const p of PAGES) {
 
   body = rewriteBody(body);
 
-  const fragment = headLinks.join("\n") + `\n<div class="lre-root ${bodyClass}">` + body + "</div>";
+  const fragment = markLang(headLinks.join("\n") + `\n<div class="lre-root ${bodyClass}">` + body + "</div>", "ko");
+  if (p.name === "home") homeParts = { headLinks: headLinks.join("\n"), fragment };
   writeFileSync(
     join(ROOT, `components/landing-re/${p.name}-fragment.ts`),
     "// 자동 생성 — scripts/luby-re-sync.mjs 가 luby-re 시안에서 만들었다. 직접 수정 금지.\n" +
@@ -129,7 +150,7 @@ for (const p of PAGES) {
     .replace(/<\/body>[\s\S]*/, "")
     .replace(/<script[\s\S]*?<\/script>/g, "");
   body = rewriteBody(body);
-  const pre = body.replace(/<main[\s\S]*/, "");
+  const pre = markLang(body.replace(/<main[\s\S]*/, ""), "ko");
   const post = body.replace(/[\s\S]*<\/main>/, "");
   writeFileSync(
     join(ROOT, "components/landing-re/auth-chrome.ts"),
@@ -181,3 +202,33 @@ if (KEY) {
   console.warn("SUPABASE_SERVICE_ROLE_KEY 미설정 — 이미지", uploads.length, "개는 버킷에 있어야 한다:", uploads.join(", "));
 }
 console.log("svg", referenced.size - uploads.length, "개 복사 완료");
+
+// ── en/zh 홈 베이크 — 시안의 i18n 엔진(data.js+i18n.js)을 헤드리스 Chrome 에서 그대로 실행해
+// 번역이 서버 렌더로 나가게 정적 조각을 만든다 (클라이언트 스왑 없음 → SEO·FOUC 문제 없음)
+const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+if (!existsSync(CHROME)) {
+  console.warn("Chrome 미설치 — en/zh 베이크 생략 (기존 조각 유지)");
+} else {
+  const { default: puppeteer } = await import("puppeteer-core");
+  const browser = await puppeteer.launch({ executablePath: CHROME, headless: true });
+  const page = await browser.newPage();
+  for (const locale of ["en", "zh"]) {
+    await page.setContent(
+      `<!doctype html><html><head><meta charset="utf-8"><title>x</title></head><body>${homeParts.fragment}</body></html>`
+    );
+    await page.addScriptTag({ path: join(SRC, "assets/js/data.js") });
+    await page.addScriptTag({ path: join(SRC, "assets/js/i18n.js") });
+    await page.evaluate((loc) => window.LUBY_I18N.setLocale(loc), locale);
+    let html = await page.evaluate(() => document.querySelector(".lre-root").outerHTML);
+    // 베이크 흔적 제거 — 남겨두면 클라이언트 i18n 이 키를 근거로 한국어로 되돌린다
+    html = html.replace(/ data-i18n-key="[^"]*"/g, "").replace(/ data-i18n-attr-[a-z-]+="[^"]*"/g, "");
+    html = markLang(homeParts.headLinks + "\n" + html, locale);
+    writeFileSync(
+      join(ROOT, `components/landing-re/home-${locale}-fragment.ts`),
+      "// 자동 생성 — scripts/luby-re-sync.mjs (시안 i18n 엔진으로 베이크). 직접 수정 금지.\n" +
+        `export const fragment = ${JSON.stringify(html)};\n`
+    );
+    console.log(`home-${locale} → 베이크`, html.length, "B");
+  }
+  await browser.close();
+}

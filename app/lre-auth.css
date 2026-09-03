@@ -610,7 +610,7 @@ main[tabindex="-1"]:focus {
     pointer-events: auto;
 }
 
-.language-dropdown__panel button {
+.language-dropdown__panel button , .language-dropdown__panel a {
     min-height: 44px;
     display: grid;
     grid-template-columns: 44px 1fr;
@@ -626,35 +626,35 @@ main[tabindex="-1"]:focus {
         color var(--duration-fast) var(--ease-standard);
 }
 
-.language-dropdown__panel button span {
+.language-dropdown__panel button span , .language-dropdown__panel a span {
     font-size: var(--font-size-14);
 }
 
-.language-dropdown__panel button em {
+.language-dropdown__panel button em , .language-dropdown__panel a em {
     color: color-mix(in srgb, currentColor 58%, transparent);
     font-size: var(--font-size-13);
     font-style: normal;
     text-transform: none;
 }
 
-.language-dropdown__panel button:hover,
-.language-dropdown__panel button:focus-visible {
+.language-dropdown__panel button:hover, .language-dropdown__panel a:hover,
+.language-dropdown__panel button:focus-visible , .language-dropdown__panel a:focus-visible {
     background: color-mix(in srgb, currentColor 12%, transparent);
 }
 
-.language-dropdown__panel button[aria-checked="true"],
-.language-dropdown__panel button[aria-pressed="true"] {
+.language-dropdown__panel button[aria-checked="true"], .language-dropdown__panel a[aria-current="true"],
+.language-dropdown__panel button[aria-pressed="true"] , .language-dropdown__panel a[aria-current="true"] {
     background: var(--color-accent);
     color: var(--color-paper);
 }
 
-.language-dropdown__panel button[aria-checked="true"] em,
-.language-dropdown__panel button[aria-pressed="true"] em {
+.language-dropdown__panel button[aria-checked="true"] em, .language-dropdown__panel a[aria-current="true"] em,
+.language-dropdown__panel button[aria-pressed="true"] em , .language-dropdown__panel a[aria-current="true"] em {
     color: rgba(247, 248, 242, 0.78);
 }
 
 .language-dropdown__trigger:focus-visible,
-.language-dropdown__panel button:focus-visible {
+.language-dropdown__panel button:focus-visible , .language-dropdown__panel a:focus-visible {
     outline: 2px solid var(--color-accent-soft);
     outline-offset: 3px;
 }
