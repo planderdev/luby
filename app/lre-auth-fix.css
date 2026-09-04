@@ -4,10 +4,29 @@
 .lre-root.page-auth {
   --background: 255 255 255;
   --foreground: 21 18 23;
+  --muted: 243 240 245;
   --muted-foreground: 107 100 114;
   --border: 235 230 239;
   --accent-soft: 255 229 244;
   --accent-ink: 188 0 111;
+}
+
+/* ── 배경 교정(2026-09-04 사장님 지시): 시안의 페이퍼 회색이 인증 화면에선 어색 —
+   흰색 베이스에 브랜드 핑크가 은은하게 비치는 그라데이션으로, 인풋·카드는 순백으로 ── */
+.lre-root.page-auth .signup-section.theme-paper {
+  background:
+    radial-gradient(1100px 620px at 88% -8%, rgba(230, 36, 133, 0.08), transparent 62%),
+    radial-gradient(900px 540px at -6% 108%, rgba(230, 36, 133, 0.05), transparent 58%),
+    var(--color-white, #fff);
+}
+.lre-root.page-auth .signup-form {
+  background: var(--color-white, #fff);
+  border-color: rgba(17, 16, 14, 0.12);
+}
+.lre-root.page-auth .form-field input,
+.lre-root.page-auth .form-field select {
+  background: var(--color-white, #fff);
+  border-color: rgba(17, 16, 14, 0.24);
 }
 
 /* ── 믹스 레이아웃: 기존 기획의 2단 구조(폼 + 브랜드 패널)를 시안 토큰으로 ── */
