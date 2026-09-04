@@ -4,6 +4,7 @@ import { completeEmail, suggestEmail } from "@/lib/email-typo";
 import { readAttribution } from "@/lib/attribution";
 import { trackClient } from "@/lib/analytics";
 import { ADVERTISER_KINDS, type AdvertiserKind } from "@/lib/advertiser-kind";
+import { normalizeChannelUrl } from "@/lib/channel-url";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -187,6 +188,18 @@ function FormStep({
       }
     }
 
+    // 크리에이터는 채널 URL 필수 — 없으면 검수·승인 자체가 불가능해 가입이 무의미하다.
+    // @아이디만 적어도 플랫폼 프로필 URL 로 완성한다.
+    let normalizedChannelUrl: string | null = null;
+    if (role === "influencer") {
+      const slug = channelTypes.find((c) => c.id === channelTypeId)?.slug ?? "";
+      normalizedChannelUrl = normalizeChannelUrl(channelUrl, slug);
+      if (!normalizedChannelUrl) {
+        setError("대표 채널의 URL 또는 @아이디를 입력해주세요. 검수와 승인에 꼭 필요해요.");
+        return;
+      }
+    }
+
     setLoading(true);
 
     const supabase = createClient();
@@ -209,7 +222,7 @@ function FormStep({
     } else {
       metadata.region_id = regionId;
       metadata.channel_type_id = channelTypeId;
-      metadata.channel_url = channelUrl;
+      metadata.channel_url = normalizedChannelUrl ?? "";
       metadata.category_ids = categoryIds.join(",");
     }
 
@@ -373,11 +386,13 @@ function FormStep({
             options={channelTypes.map((c) => ({ value: c.id, label: c.name }))}
           />
           <Field
-            label="채널 URL (선택)"
-            type="url"
+            label="채널 URL 또는 @아이디"
+            type="text"
             value={channelUrl}
             onChange={setChannelUrl}
-            placeholder="https://instagram.com/..."
+            required
+            placeholder={channelPlaceholder(channelTypes.find((c) => c.id === channelTypeId)?.slug)}
+            hint="@아이디만 적어도 돼요 · 운영자가 채널을 확인하고 승인하는 데 꼭 필요합니다"
           />
           <div>
             <label className="text-xs font-medium text-muted-foreground">
@@ -460,6 +475,22 @@ function CheckEmailStep() {
   );
 }
 
+/** 플랫폼별 입력 예시 — 아이디만 적어도 된다는 걸 placeholder 로 보여준다 */
+function channelPlaceholder(slug?: string) {
+  switch (slug) {
+    case "youtube":
+      return "@채널아이디 또는 https://youtube.com/@...";
+    case "tiktok":
+      return "@아이디 또는 https://tiktok.com/@...";
+    case "blog":
+      return "블로그 아이디 또는 https://blog.naver.com/...";
+    case "xiaohongshu":
+      return "小红书号 또는 프로필 URL";
+    default:
+      return "@아이디 또는 https://instagram.com/...";
+  }
+}
+
 function Field({
   label,
   type,
@@ -468,6 +499,7 @@ function Field({
   required,
   minLength,
   placeholder,
+  hint,
 }: {
   label: string;
   type: string;
@@ -476,10 +508,14 @@ function Field({
   required?: boolean;
   minLength?: number;
   placeholder?: string;
+  hint?: string;
 }) {
   return (
     <label className="form-field">
-      <span>{label}</span>
+      <span>
+        {label}
+        {required && <span className="important">*</span>}
+      </span>
       <input
         type={type}
         value={value}
@@ -488,6 +524,7 @@ function Field({
         minLength={minLength}
         placeholder={placeholder}
       />
+      {hint && <small className="mt-1.5 block text-xs leading-relaxed text-muted-foreground">{hint}</small>}
     </label>
   );
 }
