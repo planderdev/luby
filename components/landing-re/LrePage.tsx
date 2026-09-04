@@ -7,10 +7,22 @@ import { LreScripts } from "./LreScripts";
  * 기계적 치환뿐), 연출은 시안의 vanilla JS 를 마운트 후 로드해 그대로 돌린다.
  * React 는 이 div 를 다시 건드리지 않으므로 시안 JS 의 DOM 변형과 충돌하지 않는다.
  */
-export function LrePage({ html, bundle }: { html: string; bundle: string }) {
+export function LrePage({
+  html,
+  htmlBottom,
+  bundle,
+  children,
+}: {
+  html: string;
+  htmlBottom?: string;
+  bundle: string;
+  children?: React.ReactNode;
+}) {
   return (
     <>
       <div dangerouslySetInnerHTML={{ __html: html }} />
+      {children}
+      {htmlBottom && <div dangerouslySetInnerHTML={{ __html: htmlBottom }} />}
       <LreScripts bundle={bundle} />
     </>
   );

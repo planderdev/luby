@@ -1,0 +1,106 @@
+/* 믹싱 섹션(기존 기획 × 리뉴얼 스킨) — 시안 토큰(tokens.css :root 변수)만 사용한다.
+   .lre-root 밖(형제)에 렌더되므로 글꼴·색을 스스로 지정한다. */
+
+.lmx {
+  background: var(--color-paper, #f3f5f0);
+  color: var(--color-text-dark, #161412);
+  font-family: var(--font-ko, "SUIT Variable", sans-serif);
+}
+.lmx-section { padding: 96px 0; }
+.lmx-section--tint { background: var(--color-paper-soft, #e4e9e4); }
+.lmx-shell { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+.lmx-label {
+  margin: 0 0 12px;
+  font-family: var(--font-en, "Raleway", sans-serif);
+  font-size: var(--font-size-13, 13px);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-accent, #e62485);
+}
+.lmx-heading {
+  margin: 0 0 44px;
+  font-size: clamp(28px, 4vw, var(--font-size-48, 48px));
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.lmx-muted { color: color-mix(in srgb, var(--color-text-dark, #161412) 55%, transparent); }
+
+/* 작동 방식 — 역할 2단 */
+.lmx-roles { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.lmx-role {
+  display: flex; flex-direction: column;
+  border: 1px solid var(--color-line-dark, rgba(17, 16, 14, 0.18));
+  background: var(--color-white, #fff);
+  padding: 32px 28px;
+}
+.lmx-badge {
+  align-self: flex-start;
+  font-family: var(--font-en, "Raleway", sans-serif);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.16em;
+  padding: 4px 10px;
+  background: var(--color-ink, #11100e); color: var(--color-text, #f7f8f2);
+}
+.lmx-role h3 { margin: 14px 0 4px; font-size: var(--font-size-24, 24px); font-weight: 700; }
+.lmx-role > .lmx-muted { margin: 0 0 20px; font-size: var(--font-size-14, 14px); }
+.lmx-role ol { list-style: none; margin: 0 0 26px; padding: 0; display: grid; gap: 14px; }
+.lmx-role li { display: flex; gap: 14px; align-items: baseline; }
+.lmx-num {
+  font-family: var(--font-en, "Raleway", sans-serif);
+  font-size: var(--font-size-13, 13px); font-weight: 700;
+  color: var(--color-accent, #e62485);
+}
+.lmx-role li strong { display: block; font-size: var(--font-size-16, 16px); font-weight: 600; }
+.lmx-role li p { margin: 2px 0 0; font-size: var(--font-size-14, 14px); color: color-mix(in srgb, var(--color-text-dark) 55%, transparent); }
+
+/* 버튼 — 시안 form-button 과 같은 어휘 */
+.lmx-btn {
+  margin-top: auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 48px; padding: 0 26px;
+  border: 1px solid var(--color-ink, #11100e);
+  font-size: var(--font-size-14, 14px); font-weight: 600;
+  color: var(--color-text-dark, #161412); text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.lmx-btn:hover { background: var(--color-ink, #11100e); color: var(--color-text, #f7f8f2); }
+.lmx-btn--primary { background: var(--color-accent, #e62485); border-color: var(--color-accent, #e62485); color: #fff; }
+.lmx-btn--primary:hover { background: var(--color-accent-dark, #9b1557); border-color: var(--color-accent-dark, #9b1557); color: #fff; }
+
+/* 핵심 기능 — 카드 그리드 */
+.lmx-cards { display: grid; gap: 1px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); background: var(--color-line-dark, rgba(17, 16, 14, 0.18)); border: 1px solid var(--color-line-dark, rgba(17, 16, 14, 0.18)); }
+.lmx-card { background: var(--color-paper, #f3f5f0); padding: 28px 26px; }
+.lmx-card h3 { margin: 0 0 8px; font-size: var(--font-size-18, 18px); font-weight: 700; }
+.lmx-card p { margin: 0; font-size: var(--font-size-14, 14px); line-height: 1.65; color: color-mix(in srgb, var(--color-text-dark) 62%, transparent); }
+
+/* 요금제 */
+.lmx-plans { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); align-items: stretch; }
+.lmx-plan {
+  position: relative; display: flex; flex-direction: column;
+  border: 1px solid var(--color-line-dark, rgba(17, 16, 14, 0.18));
+  background: var(--color-white, #fff);
+  padding: 30px 28px;
+}
+.lmx-plan--primary { border: 2px solid var(--color-accent, #e62485); }
+.lmx-plan__badge {
+  position: absolute; top: -12px; left: 26px;
+  background: var(--color-accent, #e62485); color: #fff;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+  padding: 3px 10px;
+}
+.lmx-plan h3 { margin: 0 0 6px; font-family: var(--font-en, "Raleway", sans-serif); font-size: var(--font-size-14, 14px); font-weight: 700; letter-spacing: 0.12em; }
+.lmx-plan__price { margin: 0 0 6px; font-size: var(--font-size-32, 32px); font-weight: 700; font-variant-numeric: tabular-nums; }
+.lmx-plan__price span { font-size: var(--font-size-14, 14px); font-weight: 500; color: color-mix(in srgb, var(--color-text-dark) 55%, transparent); }
+.lmx-plan > .lmx-muted { margin: 0 0 18px; font-size: var(--font-size-14, 14px); }
+.lmx-plan ul { list-style: none; margin: 0 0 26px; padding: 0; display: grid; gap: 9px; }
+.lmx-plan li { position: relative; padding-left: 20px; font-size: var(--font-size-14, 14px); }
+.lmx-plan li::before { content: ""; position: absolute; left: 0; top: 8px; width: 10px; height: 2px; background: var(--color-accent, #e62485); }
+.lmx-footnote { margin: 26px 0 0; text-align: center; font-size: var(--font-size-13, 13px); color: color-mix(in srgb, var(--color-text-dark) 50%, transparent); }
+
+@media (max-width: 640px) {
+  .lmx-section { padding: 64px 0; }
+  .lmx-heading { margin-bottom: 32px; }
+}

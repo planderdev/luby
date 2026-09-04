@@ -92,6 +92,20 @@ const markLang = (html, code) =>
     .replace(/(<a role="menuitemradio" data-lang-link="[a-z]+") aria-current="true"/g, "$1")
     .replace(`data-lang-link="${code}"`, `data-lang-link="${code}" aria-current="true"`);
 
+// 홈은 기존 기획 섹션(React)을 CTA(contact-choice) 직전에 끼워 넣는다 — 조각을 둘로 나눠 내보낸다.
+// innerHTML 파서가 열린 태그를 자동으로 닫아버리므로, 양쪽 모두 완결된 .lre-root 래퍼로 감싼다
+// (형제 .lre-root 두 개가 되지만 스코프 CSS·토큰은 동일하게 적용된다).
+const SPLIT_MARK = '<section class="contact-choice';
+const splitExports = (fragment) => {
+  const i = fragment.indexOf(SPLIT_MARK);
+  const wrapper = fragment.match(/<div class="lre-root[^"]*">/)?.[0];
+  if (i === -1 || !wrapper) return "";
+  return (
+    `export const fragmentTop = ${JSON.stringify(fragment.slice(0, i) + "</div>")};\n` +
+    `export const fragmentBottom = ${JSON.stringify(wrapper + fragment.slice(i))};\n`
+  );
+};
+
 const referenced = new Set();
 let homeParts = null;
 mkdirSync(join(ROOT, "components/landing-re"), { recursive: true });
@@ -121,6 +135,7 @@ for (const p of PAGES) {
     join(ROOT, `components/landing-re/${p.name}-fragment.ts`),
     "// 자동 생성 — scripts/luby-re-sync.mjs 가 luby-re 시안에서 만들었다. 직접 수정 금지.\n" +
       `export const fragment = ${JSON.stringify(fragment)};\n` +
+      splitExports(fragment) +
       `export const pageTitle = ${JSON.stringify(title)};\n` +
       `export const pageDescription = ${JSON.stringify(description)};\n`
   );
@@ -230,7 +245,8 @@ if (!existsSync(CHROME)) {
     writeFileSync(
       join(ROOT, `components/landing-re/home-${locale}-fragment.ts`),
       "// 자동 생성 — scripts/luby-re-sync.mjs (시안 i18n 엔진으로 베이크). 직접 수정 금지.\n" +
-        `export const fragment = ${JSON.stringify(html)};\n`
+        `export const fragment = ${JSON.stringify(html)};\n` +
+        splitExports(html)
     );
     console.log(`home-${locale} → 베이크`, html.length, "B");
   }

@@ -1,17 +1,25 @@
 import type { Metadata } from "next";
 import { LrePage } from "@/components/landing-re/LrePage";
-import { fragment } from "@/components/landing-re/home-zh-fragment";
+import { LreMixSections } from "@/components/landing-re/LreMixSections";
+import { fragmentTop, fragmentBottom } from "@/components/landing-re/home-zh-fragment";
 import { NoticePopups } from "@/components/NoticePopups";
+import { StructuredData } from "@/components/StructuredData";
+import { HtmlLang } from "@/components/HtmlLang";
 import { buildMetadata } from "@/lib/i18n/metadata";
 import "../landing-re.css";
+import "../lre-mix.css";
 
 export const metadata: Metadata = buildMetadata("zh");
 
-// 팀장님 리뉴얼 시안(luby-re) 홈 — 시안 i18n 엔진으로 베이크한 중국어 조각을 서버 렌더
+// 리뉴얼 시안 홈(중국어 베이크) + 기존 기획 섹션 믹싱
 export default function HomeZh() {
   return (
     <>
-      <LrePage html={fragment} bundle="/lre/home.js" />
+      <HtmlLang locale="zh" />
+      <StructuredData locale="zh" />
+      <LrePage html={fragmentTop} htmlBottom={fragmentBottom} bundle="/lre/home.js">
+        <LreMixSections locale="zh" />
+      </LrePage>
       <NoticePopups locale="zh" />
     </>
   );

@@ -24,7 +24,8 @@ export function AuthShell({
       <div dangerouslySetInnerHTML={{ __html: authPre }} />
       <main id="main" tabIndex={-1}>
         <section className="signup-section auth-section theme-paper" data-header-theme="light">
-          <div className="section-shell signup-layout auth-layout">
+          {/* 기존 기획의 2단 구조(폼 + 브랜드 패널)에 시안 스킨을 입힌 믹스 레이아웃 */}
+          <div className="section-shell signup-layout auth-layout lax-grid">
             {/* data-i18n-ignore: 시안 i18n.js 의 텍스트 노드 치환(CJK 래핑)이 React 소유
                 DOM 을 건드리면 재렌더 때 insertBefore 가 깨진다 — 폼 영역은 제외 */}
             <div className="signup-form auth-form" data-i18n-ignore>
@@ -37,6 +38,29 @@ export function AuthShell({
               </div>
               {children}
             </div>
+            <aside className="lax-visual" aria-hidden="true" data-i18n-ignore>
+              <p className="lax-eyebrow">Global Campaign Platform</p>
+              <p className="lax-copy">
+                전 세계 체험단을,
+                <br />
+                한 번의 캠페인으로.
+              </p>
+              <p className="lax-sub">8,500명 이상의 글로벌 인플루언서가 루비AI에서 새 캠페인을 기다리고 있습니다.</p>
+              <dl className="lax-stats">
+                <div>
+                  <dd>8,500+</dd>
+                  <dt>등록 크리에이터</dt>
+                </div>
+                <div>
+                  <dd>1,200+</dd>
+                  <dt>진행 캠페인</dt>
+                </div>
+                <div>
+                  <dd>12</dd>
+                  <dt>활동 국가</dt>
+                </div>
+              </dl>
+            </aside>
           </div>
         </section>
       </main>
