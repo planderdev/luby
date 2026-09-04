@@ -4,8 +4,6 @@ import { AuthShell } from "@/components/AuthShell";
 import { SignupForm } from "./SignupForm";
 import { OAuthButtons } from "@/components/OAuthButtons";
 import { enabledProviders } from "@/lib/auth-providers";
-import "../lre-auth.css";
-import "../lre-auth-fix.css";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -42,7 +40,7 @@ export default async function SignupPage({
   ]);
 
   return (
-    <AuthShell eyebrow="Join" title="루비AI에 합류하세요" subtitle="역할을 선택하고 30초 안에 가입을 마쳐요.">
+    <AuthShell title="루비AI에 합류하세요" subtitle="역할을 선택하고 30초 안에 가입을 마쳐요.">
       {enabledProviders().length > 0 && (
         <div className="mb-6">
           <OAuthButtons

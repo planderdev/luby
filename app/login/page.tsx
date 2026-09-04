@@ -5,8 +5,6 @@ import { AuthShell } from "@/components/AuthShell";
 import { LoginForm } from "./LoginForm";
 import { OAuthButtons } from "@/components/OAuthButtons";
 import { enabledProviders } from "@/lib/auth-providers";
-import "../lre-auth.css";
-import "../lre-auth-fix.css";
 
 export const metadata: Metadata = {
   title: "로그인",

@@ -35,36 +35,36 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={onSubmit}>
-      <div className="form-grid form-grid--single auth-form__grid">
-        <Field
-          label="이메일"
-          type="email"
-          value={email}
-          onChange={setEmail}
-          autoComplete="email"
-          required
-        />
-        <Field
-          label="비밀번호"
-          type="password"
-          value={password}
-          onChange={setPassword}
-          autoComplete="current-password"
-          required
-        />
-      </div>
+    <form onSubmit={onSubmit} className="space-y-4">
+      <Field
+        label="이메일"
+        type="email"
+        value={email}
+        onChange={setEmail}
+        autoComplete="email"
+        required
+      />
+      <Field
+        label="비밀번호"
+        type="password"
+        value={password}
+        onChange={setPassword}
+        autoComplete="current-password"
+        required
+      />
       {error && (
-        <div className="mt-4 rounded-2xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent-ink">
+        <div className="rounded-2xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent-ink">
           {error}
         </div>
       )}
-      <div className="signup-actions auth-actions">
-        <button type="submit" disabled={loading} className="form-button form-button--primary disabled:opacity-60">
-          {loading && <Loader2 className="size-4 animate-spin" />}
-          로그인
-        </button>
-      </div>
+      <button
+        type="submit"
+        disabled={loading}
+        className="btn-neon flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-bold disabled:opacity-60"
+      >
+        {loading && <Loader2 className="size-4 animate-spin" />}
+        로그인
+      </button>
     </form>
   );
 }
@@ -85,14 +85,15 @@ function Field({
   required?: boolean;
 }) {
   return (
-    <label className="form-field">
-      <span>{label}</span>
+    <label className="block">
+      <span className="mb-1.5 block text-xs font-medium text-muted-foreground">{label}</span>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         autoComplete={autoComplete}
         required={required}
+        className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none transition-colors focus:border-foreground"
       />
     </label>
   );

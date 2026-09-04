@@ -445,12 +445,14 @@ function FormStep({
         </div>
       )}
 
-      <div className="signup-actions auth-actions">
-        <button type="submit" disabled={loading} className="form-button form-button--primary disabled:opacity-60">
-          {loading && <Loader2 className="size-4 animate-spin" />}
-          가입하고 시작하기
-        </button>
-      </div>
+      <button
+        type="submit"
+        disabled={loading}
+        className="btn-neon flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-bold disabled:opacity-60"
+      >
+        {loading && <Loader2 className="size-4 animate-spin" />}
+        가입하고 시작하기
+      </button>
 
       {role === "influencer" && (
         <p className="text-xs text-muted-foreground">
@@ -511,10 +513,10 @@ function Field({
   hint?: string;
 }) {
   return (
-    <label className="form-field">
-      <span>
+    <label className="block">
+      <span className="mb-1.5 block text-xs font-medium text-muted-foreground">
         {label}
-        {required && <span className="important">*</span>}
+        {required && <span className="ml-0.5 text-accent-ink">*</span>}
       </span>
       <input
         type={type}
@@ -523,6 +525,7 @@ function Field({
         required={required}
         minLength={minLength}
         placeholder={placeholder}
+        className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none transition-colors focus:border-foreground"
       />
       {hint && <small className="mt-1.5 block text-xs leading-relaxed text-muted-foreground">{hint}</small>}
     </label>
@@ -541,17 +544,19 @@ function SelectField({
   options: { value: string; label: string }[];
 }) {
   return (
-    <label className="form-field">
-      <span>{label}</span>
-      <span className="select-shell">
-        <select value={value} onChange={(e) => onChange(e.target.value)}>
-          {options.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      </span>
+    <label className="block">
+      <span className="mb-1.5 block text-xs font-medium text-muted-foreground">{label}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none transition-colors focus:border-foreground"
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
     </label>
   );
 }

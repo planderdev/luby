@@ -47,35 +47,32 @@ export function ForgotForm() {
   }
 
   return (
-    <form onSubmit={onSubmit}>
-      <div className="form-grid form-grid--single auth-form__grid">
-        <label className="form-field">
-          <span>이메일</span>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
-            required
-            placeholder="가입한 이메일 주소"
-          />
-        </label>
+    <form onSubmit={onSubmit} className="space-y-4">
+      <div>
+        <label className="mb-1.5 block text-xs font-medium text-muted-foreground">이메일</label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          autoComplete="email"
+          required
+          placeholder="가입한 이메일 주소"
+          className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none transition-colors focus:border-foreground"
+        />
       </div>
       {error && (
-        <div className="mt-4 rounded-2xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent-ink">
+        <div className="rounded-2xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent-ink">
           {error}
         </div>
       )}
-      <div className="signup-actions auth-actions">
-        <button
-          type="submit"
-          disabled={loading || !email.trim()}
-          className="form-button form-button--primary disabled:opacity-60"
-        >
-          {loading && <Loader2 className="size-4 animate-spin" />}
-          재설정 링크 보내기
-        </button>
-      </div>
+      <button
+        type="submit"
+        disabled={loading || !email.trim()}
+        className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-6 py-3.5 text-sm font-medium text-background transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60"
+      >
+        {loading && <Loader2 className="size-4 animate-spin" />}
+        재설정 링크 보내기
+      </button>
     </form>
   );
 }

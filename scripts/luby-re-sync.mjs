@@ -161,35 +161,6 @@ for (const p of PAGES) {
   console.log(p.name, "→ 조각", fragment.length, "B");
 }
 
-// ── 인증(로그인·가입·재설정) 스킨 산출물 — 폼 로직은 React 가 갖고, 시안에선 크롬(헤더·푸터)과 CSS 만 가져온다
-{
-  const html = execFileSync("npx", ["-y", "@php-wasm/cli", "login.php"], { cwd: SRC, encoding: "utf8", maxBuffer: 16 * 1024 * 1024 });
-  let body = html
-    .replace(/[\s\S]*<body[^>]*>/, "")
-    .replace(/<\/body>[\s\S]*/, "")
-    .replace(/<script[\s\S]*?<\/script>/g, "");
-  body = rewriteBody(body);
-  const pre = markLang(body.replace(/<main[\s\S]*/, ""), "ko");
-  const post = body.replace(/[\s\S]*<\/main>/, "");
-  writeFileSync(
-    join(ROOT, "components/landing-re/auth-chrome.ts"),
-    "// 자동 생성 — scripts/luby-re-sync.mjs 가 luby-re 시안에서 만들었다. 직접 수정 금지.\n" +
-      `export const authPre = ${JSON.stringify(pre)};\n` +
-      `export const authPost = ${JSON.stringify(post)};\n`
-  );
-  const authCss = scopeCss(sharedCss + "\n\n/* ═══ signup.css ═══ */\n" + readFileSync(join(SRC, "assets/css/signup.css"), "utf8"));
-  writeFileSync(join(ROOT, "app/lre-auth.css"), "/* 자동 생성 — scripts/luby-re-sync.mjs. 직접 수정 금지. */\n" + authCss);
-  writeFileSync(
-    join(ROOT, "public/lre/shared.js"),
-    `/* 자동 생성 — scripts/luby-re-sync.mjs */\nif (!window.__lre_shared) { window.__lre_shared = true;\n${sharedJs}\n}\n`
-  );
-  for (const m of (pre + post + authCss).matchAll(/\/lre\/svg\/([A-Za-z0-9_.-]+)/g)) referenced.add(`svg/${m[1]}`);
-  for (const m of (pre + post + authCss).matchAll(new RegExp(`${VIDEO_BASE}/image/([A-Za-z0-9_.-]+)`, "g"))) {
-    referenced.add(`image/${m[1]}`);
-  }
-  console.log("auth → 크롬", pre.length + post.length, "B");
-}
-
 // svg 는 리포(public/lre)에, 래스터 이미지는 영상과 같은 Supabase 버킷에 (git 비대 방지)
 const uploads = [];
 for (const rel of referenced) {
