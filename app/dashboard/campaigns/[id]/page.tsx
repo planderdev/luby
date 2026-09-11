@@ -10,6 +10,7 @@ import { FitHint } from "./FitHint";
 import { ApplicantList } from "./ApplicantList";
 import { AIMatches } from "./AIMatches";
 import { CampaignPerformance } from "./CampaignPerformance";
+import { ExternalResultsPanel, type ExternalResultItem } from "./ExternalResultsPanel";
 import { CancelCampaignButton } from "./CancelCampaignButton";
 import { ShareLinkButton } from "./ShareLinkButton";
 import { OperatorForceMatch } from "./OperatorForceMatch";
@@ -62,6 +63,14 @@ export default async function CampaignDetailPage({
   // Permission check: advertiser can see own; influencer & operator can see open/closed/completed
   const isOwner = profile.role === "advertiser" && campaign.advertiser_id === profile.id;
   const isOperator = profile.role === "operator";
+  // 외부 채널(샤오홍슈 등) 체험단 결과 — 소유 광고주·운영자만 (RLS 도 동일)
+  const { data: externalResults } = isOwner || isOperator
+    ? await supabase
+        .from("campaign_external_results")
+        .select("id, seq, visited_at, creator_url, followers, post_url, likes, note")
+        .eq("campaign_id", id)
+        .order("seq")
+    : { data: [] as ExternalResultItem[] };
   const isInfluencer = profile.role === "influencer";
   const isPublic = ["open", "closed", "completed"].includes(campaign.status);
 
@@ -382,6 +391,7 @@ export default async function CampaignDetailPage({
       </div>
 
       {isOperator && <OperatorForceMatch campaignId={id} campaignStatus={campaign.status} />}
+      {(isOwner || isOperator) && <ExternalResultsPanel campaignId={id} items={(externalResults ?? []) as ExternalResultItem[]} />}
 
       {/* Advertiser: AI influencer matching + applicants */}
       {isOwner && (

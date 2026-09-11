@@ -43,7 +43,7 @@ export async function CampaignPerformance({
   const appIds = selectedRows.map((a) => a.id);
   const influencerIds = [...new Set(selectedRows.map((a) => a.influencer_id))];
 
-  const [{ data: subs }, { data: channels }, { data: channelTypes }, { data: viewsRaw }] = await Promise.all([
+  const [{ data: subs }, { data: channels }, { data: channelTypes }, { data: viewsRaw }, { data: extRows }] = await Promise.all([
     appIds.length
       ? supabase.from("submissions").select("application_id, status").in("application_id", appIds)
       : Promise.resolve({ data: [] as { application_id: string; status: string }[] }),
@@ -55,7 +55,13 @@ export async function CampaignPerformance({
       : Promise.resolve({ data: [] as { influencer_id: string; channel_type_id: string; followers: number }[] }),
     supabase.from("channel_types").select("id, name").eq("active", true).order("sort_order"),
     supabase.rpc("campaign_view_stats", { p_campaign: campaignId }),
+    supabase.from("campaign_external_results").select("post_url, followers, likes").eq("campaign_id", campaignId),
   ]);
+  // 외부 채널(샤오홍슈 등) 체험단 결과 — 루비 응모와 별개로 보고서에 실린다
+  const ext = extRows ?? [];
+  const extSummary = ext.length
+    ? { creators: ext.length, posted: ext.filter((r) => r.post_url).length, followers: ext.reduce((a, r) => a + (r.followers ?? 0), 0), likes: ext.reduce((a, r) => a + (r.likes ?? 0), 0) }
+    : null;
   const views = (viewsRaw as { total: number; uniques: number; last7: number; by_source: Record<string, { views: number; uniques: number }> } | null) ?? null;
   const uniques = views?.uniques ?? 0;
   const sourceRows = viewSourceRows(views?.by_source);
@@ -127,6 +133,16 @@ export async function CampaignPerformance({
         </div>
       )}
 
+      {extSummary && (
+        <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl border border-border px-4 py-3 text-sm">
+          <span className="font-medium">외부 채널 체험단</span>
+          <span className="text-muted-foreground"><b className="text-foreground">{extSummary.creators}</b>명 참여</span>
+          <span className="text-muted-foreground"><b className="text-foreground">{extSummary.posted}</b>건 게시</span>
+          <span className="text-muted-foreground">팔로워 합 <b className="text-foreground">{fmt(extSummary.followers)}</b></span>
+          {extSummary.likes > 0 && <span className="text-muted-foreground">좋아요·즐겨찾기 <b className="text-foreground">{fmt(extSummary.likes)}</b></span>}
+          <span className="text-xs text-muted-foreground">· 결과 보고서에 표로 실립니다</span>
+        </div>
+      )}
       {/* 핵심 지표 4종 */}
       <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div className="rounded-2xl bg-muted/50 px-4 py-3">

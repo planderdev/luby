@@ -34,6 +34,8 @@ export type ReportSummaryInput = {
     views_by_source?: Record<string, number>;
   };
   contents: { creator_name: string | null; status: string; channels: { channel: string; followers: number | null }[] | null }[];
+  /** 루비 밖(샤오홍슈 등)에서 운영한 체험단 결과 — 있으면 응모 퍼널 대신 이것이 성과의 중심이다 */
+  external?: { source: string; creators: number; posted: number; followers: number; likes: number } | null;
 };
 
 export type ReportSummary = {
@@ -87,7 +89,10 @@ export async function summarizeCampaignReport(input: ReportSummaryInput, ctx?: O
 예상 도달 ${m.total_reach.toLocaleString()} (채널별: ${m.reach_by_channel.map((r) => `${r.channel} ${r.followers.toLocaleString()}`).join(", ") || "-"})
 지급 포인트 ${m.points_paid.toLocaleString()}P
 공개 페이지 조회 ${m.page_views ?? 0}회 · 순 방문 ${m.page_uniques ?? 0}명${(m.page_uniques ?? 0) > 0 ? ` (방문→응모 전환 ${pct(m.applied, m.page_uniques ?? 0)}%)` : ""} · 유입: ${viewSourceRows(m.views_by_source).map((r) => `${r.label} ${r.views}`).join(", ") || "기록 없음"}
-승인 콘텐츠 크리에이터: ${topCreators.join("; ") || "-"}`;
+승인 콘텐츠 크리에이터: ${topCreators.join("; ") || "-"}${input.external ? `
+[외부 채널 체험단 결과 — ${input.external.source === "xiaohongshu" ? "샤오홍슈(小红书)" : input.external.source}]
+방문 크리에이터 ${input.external.creators}명 · 게시 완료 ${input.external.posted}건 (게시율 ${pct(input.external.posted, input.external.creators)}%) · 팔로워 합 ${input.external.followers.toLocaleString()} · 좋아요·즐겨찾기 합 ${input.external.likes.toLocaleString()}
+※ 이 캠페인은 루비 응모가 아니라 외부 채널에서 직접 섭외·방문시킨 체험단입니다. 응모/선정 수치가 0이면 그 부분은 언급하지 말고 외부 결과를 중심으로 요약하세요.` : ""}`;
 
   try {
     const r = await trackedCreate({

@@ -59,10 +59,19 @@ type Report = {
     creator_name: string | null;
     channels: { channel: string; handle: string | null; followers: number | null }[] | null;
   }[];
+  external: {
+    source: string;
+    creators: number;
+    posted: number;
+    followers: number;
+    likes: number;
+    rows: { id: string; seq: number; visited_at: string | null; creator_url: string; followers: number | null; post_url: string | null; likes: number | null; note: string | null }[];
+  } | null;
   ai_summary: { headline: string; summary: string; highlights: string[]; next_steps: string[] } | null;
   ai_summary_at: string | null;
   generated_at: string;
 };
+const SOURCE_LABEL: Record<string, string> = { xiaohongshu: "샤오홍슈 (小红书)", instagram: "Instagram", youtube: "YouTube", tiktok: "TikTok", douyin: "Douyin (抖音)", blog: "블로그" };
 
 const STATUS_LABEL: Record<Report["campaign"]["status"], string> = {
   open: "모집중",
@@ -99,6 +108,10 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
   const maxFunnel = Math.max(1, ...funnel.map((f) => f.value));
   const approvedContents = contents.filter((x) => x.status === "approved");
   const pendingContents = contents.filter((x) => x.status !== "approved");
+  // 루비 밖(샤오홍슈 등)에서 운영해 응모 데이터가 없는 캠페인은 외부 결과가 곧 성과다
+  const ext = report.external;
+  const externalOnly = !!ext && ext.rows.length > 0 && m.applied === 0;
+  const extHost = (u: string) => u.replace(/^https?:\/\//, "").split("/")[0];
 
   return (
     <main className="min-h-dvh bg-canvas text-foreground print:bg-white">
@@ -165,12 +178,17 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
 
         {/* 핵심 지표 */}
         <section className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4 print:grid-cols-4">
-          {[
+          {(externalOnly && ext ? [
+            { l: "참여 크리에이터", v: `${ext.creators}명`, s: `모집 ${c.recruit_count}명 중` },
+            { l: "게시 완료", v: `${ext.posted}건`, s: `${pct(ext.posted, ext.creators)}% 게시율` },
+            { l: "팔로워 도달", v: fmtNum(ext.followers), s: "참여 크리에이터 팔로워 합" },
+            { l: "좋아요 · 즐겨찾기", v: fmtNum(ext.likes), s: "게시물 반응 합" },
+          ] : [
             { l: "모집 진행률", v: `${fillRate}%`, s: `${m.selected}/${c.recruit_count}명 선정` },
             { l: "응모 경쟁률", v: `${c.recruit_count > 0 ? (m.applied / c.recruit_count).toFixed(1) : "0"}:1`, s: `${m.applied}명 응모` },
             { l: "예상 도달", v: fmtNum(m.total_reach), s: "선정 크리에이터 팔로워 합" },
             { l: "발행 콘텐츠", v: `${m.approved}건`, s: `${m.points_paid.toLocaleString()}P 지급` },
-          ].map((k) => (
+          ]).map((k) => (
             <div key={k.l} className="rounded-2xl glass-card px-4 py-4 print:border print:border-border print:shadow-none">
               <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{k.l}</div>
               <div className="display mt-1 text-2xl font-semibold tabular-nums">{k.v}</div>
@@ -179,7 +197,55 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
           ))}
         </section>
 
+        {/* 외부 채널 체험단 결과 */}
+        {ext && ext.rows.length > 0 && (
+          <section className="mt-6 rounded-3xl glass-card p-6 print:border print:border-border print:shadow-none">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                외부 채널 체험단 결과 · {SOURCE_LABEL[ext.source] ?? ext.source}
+              </h2>
+              <span className="text-xs text-muted-foreground">
+                {ext.creators}명 방문 · {ext.posted}건 게시 · 팔로워 합 {fmtNum(ext.followers)}{ext.likes > 0 ? ` · 좋아요·즐겨찾기 ${fmtNum(ext.likes)}` : ""}
+              </span>
+            </div>
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full min-w-[640px] text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
+                    <th className="pb-2 pr-3 font-medium">#</th>
+                    <th className="pb-2 pr-3 font-medium">방문일</th>
+                    <th className="pb-2 pr-3 font-medium">크리에이터</th>
+                    <th className="pb-2 pr-3 font-medium">팔로워</th>
+                    <th className="pb-2 pr-3 font-medium">게시</th>
+                    <th className="pb-2 pr-3 font-medium">반응</th>
+                    <th className="pb-2 font-medium">게시 내용</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ext.rows.map((r) => (
+                    <tr key={r.id} className="border-b border-border/60 last:border-0">
+                      <td className="py-2 pr-3 tabular-nums text-muted-foreground">{r.seq}</td>
+                      <td className="py-2 pr-3 tabular-nums">{r.visited_at ? fmtDate(r.visited_at) : "—"}</td>
+                      <td className="py-2 pr-3"><a href={r.creator_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 underline underline-offset-2">{extHost(r.creator_url)} <ExternalLink className="size-3" /></a></td>
+                      <td className="py-2 pr-3 tabular-nums">{r.followers == null ? "—" : fmtNum(r.followers)}</td>
+                      <td className="py-2 pr-3">
+                        {r.post_url ? (
+                          <a href={r.post_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-0.5 text-[11px] font-medium text-success">게시 완료 <ExternalLink className="size-3" /></a>
+                        ) : (
+                          <span className="rounded-full bg-warning-soft px-2 py-0.5 text-[11px] font-medium text-warning">게시 대기</span>
+                        )}
+                      </td>
+                      <td className="py-2 pr-3 tabular-nums">{r.likes == null ? "—" : r.likes.toLocaleString()}</td>
+                      <td className="py-2 text-xs text-muted-foreground">{r.note ?? ""}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
         {/* 퍼널 + 채널 도달 */}
+        {!externalOnly && (
         <section className="mt-6 grid gap-4 md:grid-cols-[1.4fr_1fr] print:grid-cols-[1.4fr_1fr]">
           <div className="rounded-3xl glass-card p-6 print:border print:border-border print:shadow-none">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">진행 퍼널</h2>
@@ -223,7 +289,9 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
           </div>
         </section>
 
+        )}
         {/* 발행 콘텐츠 */}
+        {!externalOnly && (
         <section className="mt-6 rounded-3xl glass-card p-6 print:border print:border-border print:shadow-none">
           <div className="flex items-baseline justify-between">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">발행 콘텐츠</h2>
@@ -274,8 +342,10 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
           )}
         </section>
 
+        )}
+
         <footer className="mt-8 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground">
-          <span>{fmtDate(report.generated_at)} 기준 · 예상 도달은 선정 크리에이터의 팔로워 합산 근사치입니다.</span>
+          <span>{fmtDate(report.generated_at)} 기준 · {externalOnly ? "팔로워 도달은 참여 크리에이터의 팔로워 합산 근사치입니다." : "예상 도달은 선정 크리에이터의 팔로워 합산 근사치입니다."}</span>
           <span>© 2026 루비AI · luby.im</span>
         </footer>
       </div>

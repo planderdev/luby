@@ -42,6 +42,7 @@ export async function generateReportSummary(campaignId: string): Promise<Result>
     channels: string[];
     metrics: ReportSummaryInput["metrics"];
     contents: ReportSummaryInput["contents"];
+    external?: ReportSummaryInput["external"];
   };
   if (!report) return { ok: false, error: "리포트 데이터를 불러오지 못했습니다." };
   const c = report.campaign;
@@ -63,6 +64,7 @@ export async function generateReportSummary(campaignId: string): Promise<Result>
     alwaysOpen: Boolean(c.always_open),
     metrics: report.metrics,
     contents: report.contents ?? [],
+    external: report.external ?? null,
   }, { userId: user.id, campaignId });
   if (!result.ok) return result;
 

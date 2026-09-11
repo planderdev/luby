@@ -219,6 +219,59 @@ export type Database = {
           },
         ]
       }
+      campaign_external_results: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          creator_url: string
+          followers: number | null
+          id: string
+          likes: number | null
+          note: string | null
+          post_url: string | null
+          seq: number
+          source: string
+          updated_at: string
+          visited_at: string | null
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          creator_url: string
+          followers?: number | null
+          id?: string
+          likes?: number | null
+          note?: string | null
+          post_url?: string | null
+          seq: number
+          source?: string
+          updated_at?: string
+          visited_at?: string | null
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          creator_url?: string
+          followers?: number | null
+          id?: string
+          likes?: number | null
+          note?: string | null
+          post_url?: string | null
+          seq?: number
+          source?: string
+          updated_at?: string
+          visited_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_external_results_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_keywords: {
         Row: {
           campaign_id: string
