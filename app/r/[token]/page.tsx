@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 import { getStaticSupabase } from "@/lib/supabase/static";
 import { PrintButton } from "./PrintButton";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 // 토큰 링크 — 검색엔진 제외, 열 때마다 최신 수치
 export const dynamic = "force-dynamic";
@@ -122,7 +123,11 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
             <Image src="/logo.png" alt="루비AI" width={1298} height={410} className="h-5 w-auto invert dark:invert-0 print:invert" />
             <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Campaign Report</span>
           </Link>
-          <PrintButton />
+          <div className="flex items-center gap-2">
+            {/* 클라이언트가 보는 화면 — 다크/라이트를 직접 고를 수 있게 (인쇄엔 미포함) */}
+            <span className="print:hidden"><ThemeToggle /></span>
+            <PrintButton />
+          </div>
         </div>
 
         {/* 헤더 */}
