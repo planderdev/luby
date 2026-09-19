@@ -69,6 +69,29 @@ const scopeCss = (css) =>
     .replace(/url\((['"]?)\.\.\/image\//g, `url($1${VIDEO_BASE}/image/`)
     .replace(/url\((['"]?)\.\.\/video\//g, `url($1${VIDEO_BASE}/`);
 
+// 내비 순서 — 사장님 지시(2026-09-20): Solutions 를 두 번째로.
+// 시안 header.php 의 $navItems 는 건드리지 않고(원본 무수정) 생성 단계에서 재배열한다.
+// 여기 없는 링크는 원래 순서 그대로 뒤에 붙는다. 활성 표시(aria-current·is-active)는 앵커에 붙어 함께 이동.
+const NAV_ORDER = ["/", "/solutions", "/brands", "/for-creators", "/faq"];
+const ANCHOR = /<a\b[^>]*>[\s\S]*?<\/a>/g;
+const reorderAnchors = (block) => {
+  const anchors = [...block.matchAll(ANCHOR)].map((m, idx) => ({ html: m[0], idx }));
+  if (anchors.length < 2) return block;
+  const rank = (html) => {
+    const i = NAV_ORDER.indexOf(html.match(/href="([^"]*)"/)?.[1] ?? "");
+    return i === -1 ? NAV_ORDER.length : i;
+  };
+  anchors.sort((x, y) => rank(x.html) - rank(y.html) || x.idx - y.idx);
+  let k = 0;
+  return block.replace(ANCHOR, () => anchors[k++].html); // 앵커 사이 공백·줄바꿈은 그대로 둔다
+};
+const reorderNav = (body) =>
+  body
+    // 상단 헤더 내비
+    .replace(/<nav class="site-header__nav"[^>]*>[\s\S]*?<\/nav>/g, reorderAnchors)
+    // 전체화면(햄버거) 메뉴 — global-menu__link 앵커가 연달아 나오는 구간
+    .replace(/(?:<a class="global-menu__link[^"]*"[^>]*>[\s\S]*?<\/a>\s*){2,}/g, reorderAnchors);
+
 // 언어 전환은 클라이언트 텍스트 스왑 대신 실제 라우트 링크로 — 각 로케일이 서버 렌더 페이지다
 const LANG_ROUTES = { ko: "/", en: "/en", zh: "/zh" };
 
@@ -80,6 +103,7 @@ const rewriteBody = (body) => {
     /<button type="button" role="menuitemradio" data-lang-toggle="(ko|en|zh)"[^>]*>([\s\S]*?)<\/button>/g,
     (_, code, inner) => `<a role="menuitemradio" data-lang-link="${code}" href="${LANG_ROUTES[code]}">${inner}</a>`
   );
+  body = reorderNav(body); // 링크가 실제 라우트로 바뀐 뒤에 재배열해야 NAV_ORDER 와 매칭된다
   return body
     .replace(/(src|href)="(\.\.\/|\.\/)?assets\/svg\//g, '$1="/lre/svg/')
     .replace(/(src|href)="(\.\.\/|\.\/)?assets\/image\//g, `$1="${VIDEO_BASE}/image/`)
@@ -204,7 +228,9 @@ if (!existsSync(CHROME)) {
   const page = await browser.newPage();
   for (const locale of ["en", "zh"]) {
     await page.setContent(
-      `<!doctype html><html><head><meta charset="utf-8"><title>x</title></head><body>${homeParts.fragment}</body></html>`
+      `<!doctype html><html><head><meta charset="utf-8"><title>x</title></head><body>${homeParts.fragment}</body></html>`,
+      // 번역 엔진은 DOM 만 있으면 된다 — 기본값(load)은 조각 안의 원격 영상·폰트를 기다리다 타임아웃난다
+      { waitUntil: "domcontentloaded" }
     );
     await page.addScriptTag({ path: join(SRC, "assets/js/data.js") });
     await page.addScriptTag({ path: join(SRC, "assets/js/i18n.js") });
