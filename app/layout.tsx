@@ -102,6 +102,16 @@ export const viewport = {
 
 const themeScript = `
 (function(){
+  // 브라우저 자동 번역 내성 — 구글·사파리 번역은 텍스트 노드를 <font> 로 바꿔치기한다. 그 뒤 React 가
+  // "{loading && <Spinner/>}로그인" 같은 자리에서 옛 텍스트 노드를 기준으로 insertBefore/removeChild 하면
+  // NotFoundError 로 화면 전체가 에러 바운더리로 떨어진다(2026-09-16 아이폰 사용자 로그인·가입 3연속 크래시).
+  // 기준 노드가 더는 자식이 아니면: 삽입은 맨 뒤에 붙이고, 제거는 조용히 넘어간다. (React #11538 의 공식 우회법)
+  try{
+    var NP=Node.prototype, rm=NP.removeChild, ins=NP.insertBefore;
+    NP.removeChild=function(c){ if(c&&c.parentNode!==this){ return c; } return rm.apply(this,arguments); };
+    NP.insertBefore=function(n,ref){ if(ref&&ref.parentNode!==this){ return ins.call(this,n,null); } return ins.apply(this,arguments); };
+  }catch(e){}
+
   // 랜딩 시안(luby-re) CSS 는 html.js 로 "JS 있음"을 게이트한다 — 시안 헤더의
   // 부트스트랩 인라인 스크립트가 조각 생성 때 제거되므로 여기서 페인트 전에 복원
   document.documentElement.classList.add('js');
