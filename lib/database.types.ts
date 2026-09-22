@@ -1523,6 +1523,10 @@ export type Database = {
         Args: Record<string, never>
         Returns: number
       }
+      pending_creator_counts: {
+        Args: Record<string, never>
+        Returns: { reviewable: number; no_channel: number }[]
+      }
       is_demo_account: {
         Args: { p_profile: string }
         Returns: boolean

@@ -270,13 +270,14 @@ export default async function DashboardPage() {
 
   // operator
   const [
-    { count: pendingUsersCount },
+    { data: pendingCreatorRows },
     { count: pendingCampaignsCount },
     { count: pendingWithdrawals },
     { count: openCampaigns },
     { data: dormantCount },
   ] = await Promise.all([
-    supabase.from("profiles").select("*", { count: "exact", head: true }).eq("approved", false),
+    // 승인 대기 크리에이터 — 채널이 있어 검수 가능한 사람과 채널 미등록(검수 불가, 등록 안내 자동 발송) 분리
+    supabase.rpc("pending_creator_counts"),
     supabase
       .from("campaigns")
       .select("*", { count: "exact", head: true })
@@ -290,10 +291,13 @@ export default async function DashboardPage() {
     supabase.rpc("operator_dormant_count"),
   ]);
 
+  const pendingCreators = pendingCreatorRows?.[0] ?? { reviewable: 0, no_channel: 0 };
+
   return (
     <OperatorOverview
       name={profile.name}
-      pendingUsersCount={pendingUsersCount ?? 0}
+      pendingUsersCount={pendingCreators.reviewable}
+      noChannelCount={pendingCreators.no_channel}
       pendingCampaignsCount={pendingCampaignsCount ?? 0}
       pendingWithdrawals={pendingWithdrawals ?? 0}
       openCampaigns={openCampaigns ?? 0}

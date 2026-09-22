@@ -9,6 +9,7 @@ export function OperatorOverview({
   pendingWithdrawals,
   openCampaigns,
   dormantCount = 0,
+  noChannelCount = 0,
 }: {
   name: string;
   pendingUsersCount: number;
@@ -17,6 +18,8 @@ export function OperatorOverview({
   openCampaigns: number;
   /** 초대만 되고 한 번도 로그인하지 않은 실계정 수 (데모 제외) */
   dormantCount?: number;
+  /** 채널 미등록으로 검수할 수 없는 승인 대기 크리에이터 수 — 처리 대기에 세지 않고 안내만 */
+  noChannelCount?: number;
 }) {
   const totalPending = pendingUsersCount + pendingCampaignsCount + pendingWithdrawals + dormantCount;
 
@@ -25,7 +28,7 @@ export function OperatorOverview({
       key: "users",
       count: pendingUsersCount,
       label: `크리에이터 ${pendingUsersCount}명이 가입 승인을 기다려요`,
-      hint: "채널·프로필을 확인하고 승인하면 응모를 시작할 수 있어요",
+      hint: "채널 URL이 실제 프로필인지 확인하고 승인하면 응모를 시작할 수 있어요",
       href: "/dashboard/operator/users",
       cta: "승인하기",
       tone: "accent",
@@ -91,6 +94,19 @@ export function OperatorOverview({
       </div>
 
       <TodoList items={todoItems} title="처리 대기" />
+
+      {noChannelCount > 0 && (
+        <p className="mt-4 text-sm text-muted-foreground">
+          채널 미등록 크리에이터 {noChannelCount}명은 검수할 채널이 없어 처리 대기에서 뺐어요. 매일 아침 채널 등록 안내가
+          자동 발송되고, 채널을 등록하면 여기에 나타나요.{" "}
+          <Link
+            href="/dashboard/operator/users?filter=pending"
+            className="font-medium text-foreground underline underline-offset-4"
+          >
+            회원 관리에서 보기
+          </Link>
+        </p>
+      )}
     </div>
   );
 }
