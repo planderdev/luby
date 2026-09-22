@@ -125,7 +125,7 @@ button {
     --font-zh: var(--font-cjk);
 
     --font-display: var(--font-ko);
-    --font-.lre-root: var(--font-ko);
+    --font-body: var(--font-ko);
     --font-wide: var(--font-ko);
 
     --font-size-13: 13px;
@@ -188,13 +188,13 @@ button {
 
 .lre-root[data-lang="en"] {
     --font-display: var(--font-en);
-    --font-.lre-root: var(--font-en);
+    --font-body: var(--font-en);
     --font-wide: var(--font-en);
 }
 
 .lre-root[data-lang="zh"] {
     --font-display: var(--font-zh);
-    --font-.lre-root: var(--font-zh);
+    --font-body: var(--font-zh);
     --font-wide: var(--font-zh);
 }
 
@@ -226,7 +226,7 @@ button {
     overflow-x: clip;
     background: var(--color-void);
     color: var(--color-text);
-    font-family: var(--font-.lre-root);
+    font-family: var(--font-body);
     font-size: var(--font-size-16);
     font-weight: var(--font-weight-400);
     line-height: var(--line-15);

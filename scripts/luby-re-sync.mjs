@@ -110,6 +110,32 @@ const rewriteBody = (body) => {
     .replace(/(src|href)="(\.\.\/|\.\/)?assets\/video\//g, `$1="${VIDEO_BASE}/`);
 };
 
+// 헤더·전체화면 메뉴 CTA 라벨 — 시안은 로케일과 무관하게 Login/Join 이라 서비스 기준 문구로 바꾼다
+// (2026-09-23 사장님: JOIN → "무료로 시작하기", 한글 페이지의 Login → "로그인"). 베이크 뒤에 로케일별로 적용해야
+// 시안 i18n 사전에 없는 한국어 문구가 en/zh 로 새지 않는다. zh 는 시안 엔진과 같은 CJK 래퍼로 감싸 폰트를 맞춘다.
+const CTA_LABELS = {
+  ko: { login: "로그인", join: "무료로 시작하기" },
+  en: { login: "Login", join: "Start for free" },
+  zh: {
+    login: '<span class="hanja" lang="zh-CN" data-cjk-wrap="true">登录</span>',
+    join: '<span class="hanja" lang="zh-CN" data-cjk-wrap="true">免费开始</span>',
+  },
+};
+const relabelCtas = (html, code) => {
+  const L = CTA_LABELS[code];
+  return html
+    .replace(/(<a class="(?:site-header__login|global-menu__login)[^"]*"[^>]*>)[\s\S]*?(<\/a>)/g, `$1${L.login}$2`)
+    .replace(/(<a class="(?:site-header__contact|global-menu__join)[^"]*"[^>]*>)[\s\S]*?(<\/a>)/g, `$1${L.join}$2`);
+};
+
+// 푸터 "상호" 값을 운영사 기업 홈페이지 링크로 (ko: 주식회사 플랜더 (Plander Corp.) / en·zh 베이크: Plander Corp.)
+const COMPANY_URL = "https://plander.io";
+const linkCompany = (html) =>
+  html.replace(
+    /(<br>)(주식회사 플랜더 \(Plander Corp\.\)|Plander Corp\.)(<\/p>)/g,
+    `$1<a class="site-footer__company" href="${COMPANY_URL}" target="_blank" rel="noopener noreferrer">$2</a>$3`
+  );
+
 /** 페이지의 로케일 링크에 활성 표시를 단다 (CSS 는 a[aria-current] 를 강조하도록 패치됨) */
 const markLang = (html, code) =>
   html
@@ -153,8 +179,9 @@ for (const p of PAGES) {
 
   body = rewriteBody(body);
 
-  const fragment = markLang(headLinks.join("\n") + `\n<div class="lre-root ${bodyClass}">` + body + "</div>", "ko");
-  if (p.name === "home") homeParts = { headLinks: headLinks.join("\n"), fragment };
+  const raw = markLang(headLinks.join("\n") + `\n<div class="lre-root ${bodyClass}">` + body + "</div>", "ko");
+  if (p.name === "home") homeParts = { headLinks: headLinks.join("\n"), fragment: raw }; // 베이크는 치환 전 원본으로
+  const fragment = linkCompany(relabelCtas(raw, "ko"));
   writeFileSync(
     join(ROOT, `components/landing-re/${p.name}-fragment.ts`),
     "// 자동 생성 — scripts/luby-re-sync.mjs 가 luby-re 시안에서 만들었다. 직접 수정 금지.\n" +
@@ -238,7 +265,7 @@ if (!existsSync(CHROME)) {
     let html = await page.evaluate(() => document.querySelector(".lre-root").outerHTML);
     // 베이크 흔적 제거 — 남겨두면 클라이언트 i18n 이 키를 근거로 한국어로 되돌린다
     html = html.replace(/ data-i18n-key="[^"]*"/g, "").replace(/ data-i18n-attr-[a-z-]+="[^"]*"/g, "");
-    html = markLang(homeParts.headLinks + "\n" + html, locale);
+    html = linkCompany(relabelCtas(markLang(homeParts.headLinks + "\n" + html, locale), locale));
     writeFileSync(
       join(ROOT, `components/landing-re/home-${locale}-fragment.ts`),
       "// 자동 생성 — scripts/luby-re-sync.mjs (시안 i18n 엔진으로 베이크). 직접 수정 금지.\n" +
