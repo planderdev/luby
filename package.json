@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "ds:sync": "cp design-system/index.html public/design-system/index.html",
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",

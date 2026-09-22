@@ -54,7 +54,7 @@ const sharedJs = ["data", "i18n", "scroll", "common", "marquee", "counter", "mot
 const scopeCss = (css) =>
   css
     // 시안 JS 가 real body 에 토글하는 상태 클래스(is-menu-open 등)는 body 셀렉터를 유지해야 동작한다
-    .replace(/\bbody\b(?!\.is-)/g, ".lre-root")
+    .replace(/(?<![-\w])body\b(?![-\w]|\.is-)/g, ".lre-root") // --font-body 같은 토큰명은 건드리지 않는다
     .replace(/\bhtml\b(?![.\w-])/g, ".lre-root")
     // body 였을 땐 뷰포트 특례로 sticky 가 살지만 일반 div(.lre-root)의 overflow-x: hidden 은
     // 하위 position: sticky 를 전부 죽인다 — clip 은 스크롤 컨테이너를 만들지 않아 sticky 가 보존된다

@@ -26,6 +26,10 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    // 브랜드 디자인 시스템 가이드(정적 단일 HTML, design-system/index.html 의 사본)를 깔끔한 URL 로
+    return [{ source: "/design-system", destination: "/design-system/index.html" }];
+  },
   async redirects() {
     // 표기는 CN 이지만 URL 로케일 코드는 표준 zh 유지 — /cn/* 로 들어오면 /zh/* 로 영구 이동
     const cnAlias = [
