@@ -98,7 +98,7 @@ export async function DocPageView({ lang, group, slug, allowOperator = false }: 
         {page.updated && <p className="mt-6 text-xs text-muted-foreground">{t.updated} {page.updated}</p>}
       </article>
       {page.headings.length > 1 && (
-        <aside className="sticky top-20 hidden w-52 shrink-0 self-start xl:block">
+        <aside className="sticky top-[calc(var(--lre-header-h,92px)+4rem)] hidden w-52 shrink-0 self-start xl:block">
           <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t.onThisPage}</div>
           <ul className="mt-3 space-y-1.5 border-l border-border text-[13px]">
             {page.headings.map((h) => (

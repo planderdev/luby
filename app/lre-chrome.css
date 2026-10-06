@@ -842,8 +842,8 @@ body.is-menu-open .site-header__actions > .menu-toggle {
 
 /* ═══ chrome overrides (공개 체험단 페이지) ═══ */
 .lre-root.lre-chrome { min-height: 0; background: transparent; color: inherit; overflow: visible; }
-.lre-offset { padding-top: 80px; }
-@media (min-width: 768px) { .lre-offset { padding-top: 92px; } }
+.lre-offset { padding-top: 80px; --lre-header-h: 80px; }
+@media (min-width: 768px) { .lre-offset { padding-top: 92px; --lre-header-h: 92px; } }
 .lre-chrome .global-menu { transition: clip-path 0.6s var(--ease-standard), visibility 0s linear 0.6s; }
 .lre-chrome .global-menu.is-open { visibility: visible; pointer-events: auto; clip-path: inset(0 0 0 0); transition: clip-path 0.6s var(--ease-standard), visibility 0s; }
 /* 앱 다크 모드: 밝은 면용 헤더(잉크 글자)를 다시 밝은 글자로 */

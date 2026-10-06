@@ -204,7 +204,9 @@ const buildChromeCss = (css) => {
   const offsets = [];
   src.walkDecls("--header-height", (d) => {
     const mq = d.parent.parent?.type === "atrule" ? `@${d.parent.parent.name} ${d.parent.parent.params}` : null;
-    offsets.push(mq ? `${mq} { .lre-offset { padding-top: ${d.value}; } }` : `.lre-offset { padding-top: ${d.value}; }`);
+    // --lre-header-h: 크롬 밖에서 고정 헤더 아래에 붙는 sticky 요소(문서 서브바·목차)의 top 계산용
+    const rule = `.lre-offset { padding-top: ${d.value}; --lre-header-h: ${d.value}; }`;
+    offsets.push(mq ? `${mq} { ${rule} }` : rule);
   });
   return (
     "/* 자동 생성 — scripts/luby-re-sync.mjs (랜딩 크롬: 헤더·전체화면 메뉴·언어 메뉴·푸터). 직접 수정 금지. */\n" +

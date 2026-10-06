@@ -85,6 +85,8 @@ body {
 .display-lre-hero { font-size: clamp(2.5rem, 5.4vw, 3.5rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; }
 .display-lre-title { font-size: clamp(1.75rem, 3.2vw, 2.5rem); font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; }
 .display-lre-section { font-size: clamp(1.5rem, 2.4vw, 2rem); font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; }
+/* 고정 랜딩 헤더(+가이드 서브바) 아래로 앵커 제목이 숨지 않게 */
+.lre-offset :is(h1, h2, h3, h4)[id] { scroll-margin-top: calc(var(--lre-header-h, 92px) + 4.5rem); }
 
 /* Pink shimmer underline for emphasis */
 .pink-underline {

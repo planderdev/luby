@@ -54,10 +54,10 @@ export function DocsSidebar({ groups: publicGroups, base = "/docs", lang = "ko",
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium lg:hidden" aria-label={labels.tocOpen}>
+      <button type="button" onClick={() => setOpen(true)} className="inline-flex items-center gap-1.5 self-start rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium lg:hidden" aria-label={labels.tocOpen}>
         <Menu className="size-4" /> {labels.toc}
       </button>
-      <aside className="sticky top-20 hidden max-h-[calc(100dvh-6rem)] w-64 shrink-0 overflow-y-auto pr-4 lg:block">{nav}</aside>
+      <aside className="sticky top-[calc(var(--lre-header-h,92px)+4rem)] hidden max-h-[calc(100dvh-var(--lre-header-h,92px)-5rem)] w-64 shrink-0 overflow-y-auto pr-4 lg:block">{nav}</aside>
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="absolute inset-0 bg-foreground/30" onClick={() => setOpen(false)} />
