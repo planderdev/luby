@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { LreChrome, LreChromeFooter } from "@/components/landing-re/LreChrome";
+import "@/app/lre-chrome.css";
+
 import { unstable_cache } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,7 +11,6 @@ import { getSiteUrl, SITE } from "@/lib/seo/site";
 import type { Locale } from "@/lib/i18n/config";
 import { publicCampaignDict, localePrefix } from "@/lib/i18n/public-campaign";
 import { PendingNavArea } from "@/components/dashboard/PendingNavArea";
-import { TopBarAuthLink } from "@/components/public/TopBarAuthLink";
 import { GuestOnly } from "@/components/public/GuestOnly";
 
 const PAGE_SIZE = 24;
@@ -105,30 +107,19 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
   const signupHref = `/signup?role=influencer&redirect=${encodeURIComponent("/dashboard/campaigns")}`;
 
   return (
-    <main lang={locale === "zh" ? "zh-CN" : locale} className="min-h-dvh bg-canvas">
-      {/* Top bar */}
-      <div className="border-b border-border bg-background/80 backdrop-blur">
-        <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-5">
-          <Link href={pfx || "/"} aria-label={t.home} className="inline-flex">
-            <Image src="/logo.png" alt="루비AI" width={1298} height={410} className="h-6 w-auto invert dark:invert-0" />
-          </Link>
-          <div className="flex items-center gap-3">
-            <nav aria-label="language" className="flex items-center gap-1 rounded-full border border-border p-0.5 text-[11px]">
-              {(["ko", "en", "zh"] as Locale[]).map((l) => (
-                <Link key={l} href={`${localePrefix(l)}/c`} hrefLang={l} className={`rounded-full px-2 py-0.5 ${l === locale ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}>
-                  {l === "ko" ? "KR" : l === "en" ? "EN" : "CN"}
-                </Link>
-              ))}
-            </nav>
-            <TopBarAuthLink loginHref="/login?redirect=/dashboard/campaigns" loginLabel={t.login} dashboardLabel={t.dashboard} />
-          </div>
-        </div>
-      </div>
+    <main lang={locale === "zh" ? "zh-CN" : locale} className="lre-offset min-h-dvh bg-canvas">
+      <LreChrome
+        locale={locale}
+        langHrefs={{ ko: "/c", en: "/en/c", zh: "/zh/c" }}
+        loginHref="/login?redirect=/dashboard/campaigns"
+        joinHref={signupHref}
+        dashboardLabel={t.dashboard}
+      />
 
       <div className="mx-auto w-full max-w-6xl px-5 py-8 lg:py-12">
         <header className="max-w-2xl">
           <div className="text-[11px] font-semibold uppercase tracking-wider text-accent-ink">{t.dirEyebrow} · {t.dirCount(dir.total)}</div>
-          <h1 className="display mt-2 break-keep text-3xl font-semibold md:text-4xl" style={{ textWrap: "balance" }}>{t.dirTitle}</h1>
+          <h1 className="display-lre-hero mt-2 break-keep" style={{ textWrap: "balance" }}>{t.dirTitle}</h1>
           <p className="mt-3 text-sm text-muted-foreground md:text-base">{t.dirSubtitle}</p>
         </header>
 
@@ -243,9 +234,7 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
         </PendingNavArea>
       </div>
 
-      <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
-        © 2026 {locale === "ko" ? "루비AI" : "Luby AI"} · <Link href={pfx || "/"} className="hover:text-foreground">{t.footerHome}</Link> · <Link href="/terms" className="hover:text-foreground">{t.terms}</Link> · <Link href="/privacy" className="hover:text-foreground">{t.privacy}</Link>
-      </footer>
+      <LreChromeFooter locale={locale} />
     </main>
   );
 }

@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { LreChrome, LreChromeFooter } from "@/components/landing-re/LreChrome";
+import "@/app/lre-chrome.css";
+
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Coins, Users, Sparkles, Globe, BellRing, IdCard, Gift, CheckCircle2 } from "lucide-react";
@@ -8,7 +11,6 @@ import type { Locale } from "@/lib/i18n/config";
 import { localePrefix, publicCampaignDict } from "@/lib/i18n/public-campaign";
 import { creatorLandingDict } from "@/lib/i18n/creator-landing";
 import { RefAwareLink } from "@/components/RefAwareLink";
-import { TopBarAuthLink } from "@/components/public/TopBarAuthLink";
 
 /** 크리에이터 모집 랜딩 — 실시간 공개 집계(모집 수·남은 자리·포인트)와 상위 포인트 캠페인으로 가입 유도. ISR 10분 */
 
@@ -44,30 +46,20 @@ export async function CreatorLanding({ locale }: { locale: Locale }) {
   const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(tc.dateFmt, { month: "short", day: "numeric" });
 
   return (
-    <main lang={locale === "zh" ? "zh-CN" : locale} className="min-h-dvh bg-canvas">
-      <div className="border-b border-border bg-background/80 backdrop-blur">
-        <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-5">
-          <Link href={pfx || "/"} aria-label={t.home} className="inline-flex">
-            <Image src="/logo.png" alt="루비AI" width={1298} height={410} className="h-6 w-auto invert dark:invert-0" />
-          </Link>
-          <div className="flex items-center gap-3">
-            <nav aria-label="language" className="flex items-center gap-1 rounded-full border border-border p-0.5 text-[11px]">
-              {(["ko", "en", "zh"] as Locale[]).map((l) => (
-                <Link key={l} href={`${localePrefix(l)}/creators`} hrefLang={l} className={`rounded-full px-2 py-0.5 ${l === locale ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}>
-                  {l === "ko" ? "KR" : l === "en" ? "EN" : "CN"}
-                </Link>
-              ))}
-            </nav>
-            <TopBarAuthLink loginHref="/login?redirect=/dashboard/campaigns" loginLabel={t.login} dashboardLabel={tc.dashboard} />
-          </div>
-        </div>
-      </div>
+    <main lang={locale === "zh" ? "zh-CN" : locale} className="lre-offset min-h-dvh bg-canvas">
+      <LreChrome
+        locale={locale}
+        langHrefs={{ ko: "/creators", en: "/en/creators", zh: "/zh/creators" }}
+        loginHref="/login?redirect=/dashboard/campaigns"
+        joinHref={signupHref}
+        dashboardLabel={tc.dashboard}
+      />
 
       {/* Hero */}
       <section className="mx-auto w-full max-w-6xl px-5 pt-12 lg:pt-20">
         <div className="max-w-3xl">
           <div className="text-[11px] font-semibold uppercase tracking-wider text-accent-ink">{t.eyebrow}</div>
-          <h1 className="display mt-3 whitespace-pre-line break-keep text-4xl font-semibold leading-[1.1] md:text-5xl" style={{ textWrap: "balance" }}>{t.title}</h1>
+          <h1 className="display-lre-hero mt-3 whitespace-pre-line break-keep" style={{ textWrap: "balance" }}>{t.title}</h1>
           <p className="mt-5 max-w-2xl text-base text-muted-foreground md:text-lg">{t.sub}</p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <RefAwareLink href={signupHref} className="inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3.5 text-sm font-medium text-background transition-transform hover:scale-[1.02]">
@@ -89,7 +81,7 @@ export async function CreatorLanding({ locale }: { locale: Locale }) {
 
       {/* How */}
       <section className="mx-auto w-full max-w-6xl px-5 pt-16 lg:pt-24">
-        <h2 className="display text-2xl font-semibold tracking-tight md:text-3xl">{t.howTitle}</h2>
+        <h2 className="display-lre-section">{t.howTitle}</h2>
         <ol className="mt-6 grid gap-4 md:grid-cols-4">
           {t.how.map((h, i) => (
             <li key={h.t} className="rounded-3xl glass-card p-6">
@@ -106,7 +98,7 @@ export async function CreatorLanding({ locale }: { locale: Locale }) {
         <section className="mx-auto w-full max-w-6xl px-5 pt-16 lg:pt-24">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 className="display text-2xl font-semibold tracking-tight md:text-3xl">{t.showcaseTitle}</h2>
+              <h2 className="display-lre-section">{t.showcaseTitle}</h2>
               <p className="mt-1 text-sm text-muted-foreground">{t.showcaseSub}</p>
             </div>
             <Link href={`${pfx}/c?sort=points`} aria-label={`${t.showcaseTitle} — ${t.showcaseAll}`} className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">{t.showcaseAll} <ArrowRight className="size-3.5" /></Link>
@@ -137,7 +129,7 @@ export async function CreatorLanding({ locale }: { locale: Locale }) {
 
       {/* Why */}
       <section className="mx-auto w-full max-w-6xl px-5 pt-16 lg:pt-24">
-        <h2 className="display text-2xl font-semibold tracking-tight md:text-3xl">{t.whyTitle}</h2>
+        <h2 className="display-lre-section">{t.whyTitle}</h2>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {t.why.map((w, i) => {
             const Icon = icons[i] ?? Sparkles;
@@ -164,7 +156,7 @@ export async function CreatorLanding({ locale }: { locale: Locale }) {
       {/* FAQ */}
       <section className="mx-auto w-full max-w-6xl px-5 pt-16 lg:pt-24">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <h2 className="display text-2xl font-semibold tracking-tight md:text-3xl">{t.faqTitle}</h2>
+          <h2 className="display-lre-section">{t.faqTitle}</h2>
           <Link href={`${locale === "ko" ? "/docs" : `/docs/${locale}`}/creator/1`} className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">{t.guideLink} <ArrowRight className="size-3.5" /></Link>
         </div>
         <dl className="mt-6 grid gap-4 md:grid-cols-3">
@@ -180,7 +172,7 @@ export async function CreatorLanding({ locale }: { locale: Locale }) {
       {/* Final CTA */}
       <section className="mx-auto w-full max-w-6xl px-5 py-16 lg:py-24">
         <div className="rounded-4xl bg-foreground px-8 py-12 text-center text-background">
-          <h2 className="display break-keep text-2xl font-semibold md:text-3xl" style={{ textWrap: "balance" }}>{t.finalTitle}</h2>
+          <h2 className="display-lre-section break-keep" style={{ textWrap: "balance" }}>{t.finalTitle}</h2>
           <p className="mt-2 text-sm opacity-70">{t.finalSub}</p>
           <RefAwareLink href={signupHref} className="mt-7 inline-flex items-center gap-2 rounded-full bg-background px-6 py-3.5 text-sm font-medium text-foreground hover:opacity-90">
             {t.ctaPrimary} <ArrowRight className="size-4" />
@@ -188,9 +180,7 @@ export async function CreatorLanding({ locale }: { locale: Locale }) {
         </div>
       </section>
 
-      <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
-        © 2026 {locale === "ko" ? "루비AI" : "Luby AI"} · <Link href={pfx || "/"} className="hover:text-foreground">{tc.footerHome}</Link> · <Link href="/terms" className="hover:text-foreground">{tc.terms}</Link> · <Link href="/privacy" className="hover:text-foreground">{tc.privacy}</Link>
-      </footer>
+      <LreChromeFooter locale={locale} />
     </main>
   );
 }

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { LreChrome, LreChromeFooter } from "@/components/landing-re/LreChrome";
+import "@/app/lre-chrome.css";
+
 import { unstable_cache } from "next/cache";
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Calendar, Users, Coins, MapPin, Tag, ArrowRight, Building2, Globe, CheckCircle2 } from "lucide-react";
 import { getStaticSupabase } from "@/lib/supabase/static";
@@ -9,7 +11,6 @@ import { getSiteUrl, SITE } from "@/lib/seo/site";
 import { publicCampaignDict, localePrefix } from "@/lib/i18n/public-campaign";
 import type { Locale } from "@/lib/i18n/config";
 import { CampaignCta, CampaignShareButton } from "@/components/public/CampaignCta";
-import { TopBarAuthLink } from "@/components/public/TopBarAuthLink";
 import { ViewBeacon } from "@/components/ViewBeacon";
 
 // 공개 캠페인 페이지 — 로그인 없이 볼 수 있는 공유·SEO용. 데이터는 get_public_campaign() (민감정보 제외).
@@ -148,32 +149,16 @@ export async function PublicCampaignView({ id, locale }: { id: string; locale: L
   };
 
   return (
-    <main lang={locale === "zh" ? "zh-CN" : locale} className="min-h-dvh bg-canvas">
+    <main lang={locale === "zh" ? "zh-CN" : locale} className="lre-offset min-h-dvh bg-canvas">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <ViewBeacon id={c.id} lang={locale} />
-      {/* Top bar */}
-      <div className="border-b border-border">
-        <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-5">
-          <Link href="/" aria-label={t.home} className="inline-flex">
-            <Image src="/logo.png" alt="루비AI" width={1298} height={410} className="h-6 w-auto invert dark:invert-0" />
-          </Link>
-          <div className="flex items-center gap-3">
-            <nav aria-label="language" className="flex items-center gap-1 rounded-full border border-border p-0.5 text-[11px]">
-              {(["ko", "en", "zh"] as Locale[]).map((l) => (
-                <Link
-                  key={l}
-                  href={`${localePrefix(l)}/c/${c.id}`}
-                  hrefLang={l}
-                  className={`rounded-full px-2 py-0.5 ${l === locale ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}
-                >
-                  {l === "ko" ? "KR" : l === "en" ? "EN" : "CN"}
-                </Link>
-              ))}
-            </nav>
-          <TopBarAuthLink loginHref={loginHref} loginLabel={t.login} dashboardLabel={t.dashboard} />
-          </div>
-        </div>
-      </div>
+      <LreChrome
+        locale={locale}
+        langHrefs={{ ko: `/c/${c.id}`, en: `/en/c/${c.id}`, zh: `/zh/c/${c.id}` }}
+        loginHref={loginHref}
+        joinHref={`/signup?role=influencer&redirect=${encodeURIComponent(dashboardHref)}`}
+        dashboardLabel={t.dashboard}
+      />
 
       <div className="mx-auto w-full max-w-5xl px-5 py-8 lg:py-12">
         <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr]">
@@ -190,7 +175,7 @@ export async function PublicCampaignView({ id, locale }: { id: string; locale: L
             <div className="mt-6 text-[11px] uppercase tracking-wider text-muted-foreground">
               {c.region?.flag} {c.region?.name} · {c.category?.emoji} {c.category?.name}{c.promotion_type ? ` · ${c.promotion_type}` : ""}
             </div>
-            <h1 className="display mt-2 text-3xl font-semibold lg:text-4xl break-keep">{c.title}</h1>
+            <h1 className="display-lre-title mt-2 break-keep">{c.title}</h1>
             <div className="mt-2 flex flex-wrap items-center gap-3">
               <p className="text-sm text-muted-foreground">{c.business_name}</p>
               <CampaignShareButton basePath={`${pfx}/c/${c.id}`} title={c.title} label={locale === "ko" ? "공유하기" : locale === "zh" ? "分享" : "Share"} copiedLabel={locale === "ko" ? "링크 복사됨" : locale === "zh" ? "已复制链接" : "Link copied"} />
@@ -350,9 +335,7 @@ export async function PublicCampaignView({ id, locale }: { id: string; locale: L
         </section>
       )}
 
-      <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
-        © 2026 {locale === "ko" ? "루비AI" : "Luby AI"} · <Link href={pfx || "/"} className="hover:text-foreground">{t.footerHome}</Link> · <Link href="/terms" className="hover:text-foreground">{t.terms}</Link> · <Link href="/privacy" className="hover:text-foreground">{t.privacy}</Link>
-      </footer>
+      <LreChromeFooter locale={locale} />
     </main>
   );
 }

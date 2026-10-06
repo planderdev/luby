@@ -36,8 +36,9 @@
 | danger / soft | #A31842 / #FFE4EC | #FF547E / #3D0C1A | 로즈 — 핑크와 구분 |
 
 ### 마케팅(랜딩) — 리뉴얼 시안 `tokens.css`
-void #080807 · ink #11100E · paper #F3F5F0 · paper-soft #E4E9E4 · text #F7F8F2 · text-muted #A6AAA4 · text-dark #161412 · **accent #E62485** · accent-dark #9B1557 · accent-soft #FF8FC9 · cyan #12C7D8 · yellow #F2D64B · line rgba(247,248,242,.22) · overlay rgba(8,8,7,.44)
-- 두 표면의 핑크를 한 화면에 섞지 않는다. (확장 제안: 랜딩 #E62485 → 앱 accent-strong #E30080 로 수렴)
+void #080807 · ink #11100E · paper #F3F5F0 · paper-soft #E4E9E4 · text #F7F8F2 · text-muted #A6AAA4 · text-dark #161412 · **accent #E30080**(시안 원본 #E62485 — 동기화 때 앱 accent-strong 으로 치환, 2026-10-06) · accent-dark #9B1557 · accent-soft #FF8FC9 · cyan #12C7D8 · yellow #F2D64B · line rgba(247,248,242,.22) · overlay rgba(8,8,7,.44)
+- 흰 글자를 얹는 핑크 면은 두 표면 모두 **#E30080** 하나다(2026-10-06 수렴 완료). 앱의 네온 #FF2AA7 은 글로우·포커스·btn-neon 전용이라 랜딩에는 쓰지 않는다.
+- 공개 체험단 페이지(/c·/creators·/p)는 본문은 앱 토큰, 헤더·전체화면 메뉴·푸터는 랜딩 크롬(components/landing-re/LreChrome)을 쓴다. 제목은 `.display-lre-hero/-title/-section`(랜딩 스케일, Pretendard).
 
 ## 타이포
 - 앱: **Pretendard Variable**(npm 동적 서브셋 셀프호스팅). 디스플레이 letter-spacing −0.02em · line-height 0.98, 본문 14–16px/1.65, 라벨 12px 500, 오버라인 11px 700 대문자 +0.1em, 숫자 tabular-nums. 기능 ss01 ss02 cv01 cv02.
@@ -63,4 +64,4 @@ bg-grid(56px 격자 + 라디얼 마스크) · 핑크 라디얼 글로우(잉크 
 ## 톤 앤 보이스
 UI 존댓말 "~해요" · 마케팅 선언형 단문 · 숫자는 근거와 함께 · 과장 형용사·화려한 그래픽 지양. 키 메시지: "언어와 시장의 장벽을 AI로 낮추다" · "새로운 시장 진출, 복잡할 필요 없습니다" · "전 세계 체험단을, 한 번의 캠페인으로."
 
-_v1.0 · 2026-09-22 · 원천: app/globals.css, luby-re tokens.css, 디자인 언어 결정 기록(2026-08-20 라이트 B안)_
+_v1.1 · 2026-10-06 (핑크 수렴·공개 페이지 크롬) · v1.0 2026-09-22 · 원천: app/globals.css, luby-re tokens.css, 디자인 언어 결정 기록(2026-08-20 라이트 B안)_

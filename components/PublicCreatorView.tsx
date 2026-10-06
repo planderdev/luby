@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { LreChrome, LreChromeFooter } from "@/components/landing-re/LreChrome";
+import "@/app/lre-chrome.css";
+
 import { unstable_cache } from "next/cache";
-import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { MapPin, Users, CheckCircle2, ExternalLink, Sparkles } from "lucide-react";
 import { getStaticSupabase } from "@/lib/supabase/static";
@@ -12,7 +13,6 @@ import { localePrefix } from "@/lib/i18n/public-campaign";
 import type { Locale } from "@/lib/i18n/config";
 import { ViewBeacon } from "@/components/ViewBeacon";
 import { CreatorCta } from "@/components/public/CreatorCta";
-import { TopBarAuthLink } from "@/components/public/TopBarAuthLink";
 
 /** 크리에이터 공개 프로필 (옵트인). 데이터: get_public_creator() — 본인이 켠 경우에만 값 반환 */
 export type PublicCreator = {
@@ -92,7 +92,6 @@ export async function PublicCreatorView({ id, locale = "ko", ownerPreview = fals
   const isDemo = await isDemoAccount(id);
   const t = publicCreatorDict[locale];
   const fmtN = fmtNFor(locale);
-  const pfx = localePrefix(locale);
   const total = c.channels.reduce((s, ch) => s + (ch.followers ?? 0), 0);
 
   const jsonLd = {
@@ -108,25 +107,11 @@ export async function PublicCreatorView({ id, locale = "ko", ownerPreview = fals
   };
 
   return (
-    <main lang={locale === "zh" ? "zh-CN" : locale} className="min-h-dvh bg-canvas">
+    <main lang={locale === "zh" ? "zh-CN" : locale} className="lre-offset min-h-dvh bg-canvas">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {!ownerPreview && <ViewBeacon kind="creator" id={c.id} lang={locale} />}
-      <div className="border-b border-border print:hidden">
-        <div className="mx-auto flex h-14 w-full max-w-4xl items-center justify-between px-5">
-          <Link href={pfx || "/"} aria-label={t.home} className="inline-flex">
-            <Image src="/logo.png" alt="루비AI" width={1298} height={410} className="h-6 w-auto invert dark:invert-0" />
-          </Link>
-          <div className="flex items-center gap-3">
-            <nav aria-label="language" className="flex items-center gap-1 rounded-full border border-border p-0.5 text-[11px]">
-              {(["ko", "en", "zh"] as Locale[]).map((l) => (
-                <Link key={l} href={`${localePrefix(l)}/p/${c.id}`} hrefLang={l} className={`rounded-full px-2 py-0.5 ${l === locale ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}>
-                  {l === "ko" ? "KR" : l === "en" ? "EN" : "CN"}
-                </Link>
-              ))}
-            </nav>
-            <TopBarAuthLink loginHref="/login" loginLabel={t.login} dashboardLabel={t.dashboard} />
-          </div>
-        </div>
+      <div className="print:hidden">
+        <LreChrome locale={locale} langHrefs={{ ko: `/p/${c.id}`, en: `/en/p/${c.id}`, zh: `/zh/p/${c.id}` }} dashboardLabel={t.dashboard} />
       </div>
 
       <div className="mx-auto w-full max-w-4xl px-5 py-8 lg:py-12">
@@ -139,7 +124,7 @@ export async function PublicCreatorView({ id, locale = "ko", ownerPreview = fals
           )}
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="display text-3xl font-semibold">{c.name}</h1>
+              <h1 className="display-lre-title">{c.name}</h1>
               <span className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-1 text-[11px] font-medium text-accent-ink"><Sparkles className="size-3" /> {t.badge}</span>
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
@@ -208,9 +193,9 @@ export async function PublicCreatorView({ id, locale = "ko", ownerPreview = fals
 
         <p className="mt-12 text-[11px] leading-relaxed text-muted-foreground">{t.disclaimer}</p>
       </div>
-      <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground print:hidden">
-        © 2026 {t.brand} · <Link href={pfx || "/"} className="hover:text-foreground">{t.footerHome}</Link> · <Link href="/terms" className="hover:text-foreground">{t.terms}</Link> · <Link href="/privacy" className="hover:text-foreground">{t.privacy}</Link>
-      </footer>
+      <div className="print:hidden">
+        <LreChromeFooter locale={locale} />
+      </div>
     </main>
   );
 }

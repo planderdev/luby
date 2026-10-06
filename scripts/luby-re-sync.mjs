@@ -12,6 +12,7 @@
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import postcss from "postcss";
 
 const SRC = process.argv[2];
 if (!SRC) {
@@ -67,7 +68,10 @@ const scopeCss = (css) =>
     })
     .replace(/url\((['"]?)\.\.\/svg\//g, "url($1/lre/svg/")
     .replace(/url\((['"]?)\.\.\/image\//g, `url($1${VIDEO_BASE}/image/`)
-    .replace(/url\((['"]?)\.\.\/video\//g, `url($1${VIDEO_BASE}/`);
+    .replace(/url\((['"]?)\.\.\/video\//g, `url($1${VIDEO_BASE}/`)
+    // 핑크 수렴(2026-10-06 사장님 A안): 시안 #E62485 → 앱 accent-strong #E30080(흰 글자 AA 4.59:1). 글로우 rgba 도 함께
+    .replace(/#E62485/gi, "#E30080")
+    .replace(/rgba\(230,\s*36,\s*133,/g, "rgba(227, 0, 128,");
 
 // 내비 순서 — 사장님 지시(2026-09-20): Solutions 를 두 번째로.
 // 시안 header.php 의 $navItems 는 건드리지 않고(원본 무수정) 생성 단계에서 재배열한다.
@@ -136,6 +140,96 @@ const linkCompany = (html) =>
     `$1<a class="site-footer__company" href="${COMPANY_URL}" target="_blank" rel="noopener noreferrer">$2</a>$3`
   );
 
+// 푸터 법적 링크 — 시안 푸터엔 상호·주소만 있고 이용약관·개인정보처리방침이 없다(가입·응모가 일어나는 면이라 필수)
+const FOOTER_LINKS = {
+  ko: [["/terms", "이용약관"], ["/privacy", "개인정보처리방침"]],
+  en: [["/terms", "Terms"], ["/privacy", "Privacy"]],
+  zh: [["/terms", "服务条款"], ["/privacy", "隐私政策"]],
+};
+const addFooterLinks = (html, code) =>
+  html.replace(
+    /<p class="site-footer__copy">/,
+    `<nav class="site-footer__links" aria-label="Legal">` +
+      FOOTER_LINKS[code].map(([h, l]) => `<a href="${h}">${l}</a>`).join("") +
+      `</nav>\n    <p class="site-footer__copy">`
+  );
+
+// ── 공개 체험단 페이지(/c·/creators·/p)가 랜딩과 같은 헤더·전체화면 메뉴·푸터를 쓰도록 크롬만 따로 추출한다
+// (2026-10-06 A안). 동적 React 페이지라 시안 JS 번들은 싣지 않고 components/landing-re/LreChrome.tsx 가 메뉴·언어 메뉴를 흉내낸다.
+const ARROW_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>';
+const extractChrome = (html) => {
+  const pick = (re) => html.match(re)?.[0] ?? "";
+  const clean = (x) =>
+    x
+      .replace(/ aria-current="page"/g, "") // 내비 활성 표시는 홈 전용 — 공개 페이지엔 해당 항목이 없다
+      .replace(/ class="is-active"/g, "")
+      .replace(/<i data-lucide="arrow-up-right"><\/i>/g, ARROW_SVG); // lucide JS 없이도 아이콘이 보이게 인라인
+  return {
+    header: clean(pick(/<header class="site-header"[\s\S]*?<\/header>/)).replace('data-header-state="transparent"', 'data-header-state="light"'),
+    menu: clean(pick(/<aside class="global-menu"[\s\S]*?<\/aside>/)),
+    footer: pick(/<footer class="site-footer"[\s\S]*?<\/footer>/),
+  };
+};
+const chrome = {};
+
+// 크롬 전용 CSS — 시안 CSS 에서 헤더·메뉴·언어 메뉴·푸터 규칙과 토큰만 추려 .lre-root 안에 가둔다
+const CHROME_KEEP = /site-header|global-menu|language-dropdown|hamburger|icon-button|menu-toggle|menu-close|site-footer|skip-link|magnetic-link|is-menu-open/;
+const CHROME_DROP = /custom-cursor|transition-curtain|news-controls|contact-modal/;
+const buildChromeCss = (css) => {
+  const src = postcss.parse(css);
+  const out = postcss.root();
+  const keep = (r) => {
+    const sel = r.selector.replace(/\s+/g, " ");
+    if (CHROME_KEEP.test(sel)) return true;
+    if (CHROME_DROP.test(sel)) return false;
+    return sel === ":root" || sel === ".lre-root" || /^\.lre-root\[data-lang/.test(sel);
+  };
+  const filter = (container, target) => {
+    container.each((n) => {
+      if (n.type === "atrule" && n.name === "font-face") target.append(n.clone());
+      else if (n.type === "atrule" && n.nodes) {
+        const at = postcss.atRule({ name: n.name, params: n.params });
+        filter(n, at);
+        if (at.nodes?.length) target.append(at);
+      } else if (n.type === "rule" && keep(n)) {
+        const c = n.clone();
+        c.selector = c.selector === ":root" ? ".lre-root" : c.selector; // 토큰을 전역 :root 가 아니라 크롬 안에만 (앱 --font-display 와 충돌 방지)
+        target.append(c);
+      }
+    });
+  };
+  filter(src, out);
+  // 헤더 높이 토큰은 크롬 밖(본문 상단 여백)에서도 필요 — 미디어 쿼리별 값을 .lre-offset 규칙으로 옮겨 적는다
+  const offsets = [];
+  src.walkDecls("--header-height", (d) => {
+    const mq = d.parent.parent?.type === "atrule" ? `@${d.parent.parent.name} ${d.parent.parent.params}` : null;
+    offsets.push(mq ? `${mq} { .lre-offset { padding-top: ${d.value}; } }` : `.lre-offset { padding-top: ${d.value}; }`);
+  });
+  return (
+    "/* 자동 생성 — scripts/luby-re-sync.mjs (랜딩 크롬: 헤더·전체화면 메뉴·언어 메뉴·푸터). 직접 수정 금지. */\n" +
+    out.toString() +
+    "\n\n/* ═══ chrome overrides (공개 체험단 페이지) ═══ */\n" +
+    ".lre-root.lre-chrome { min-height: 0; background: transparent; color: inherit; overflow: visible; }\n" +
+    offsets.join("\n") + "\n" +
+    ".lre-chrome .global-menu { transition: clip-path 0.6s var(--ease-standard), visibility 0s linear 0.6s; }\n" +
+    ".lre-chrome .global-menu.is-open { visibility: visible; pointer-events: auto; clip-path: inset(0 0 0 0); transition: clip-path 0.6s var(--ease-standard), visibility 0s; }\n" +
+    "/* 앱 다크 모드: 밝은 면용 헤더(잉크 글자)를 다시 밝은 글자로 */\n" +
+    "html.dark .lre-chrome .site-header[data-header-state=\"light\"] { --header-fg: var(--color-text); --header-line: rgba(247, 248, 242, 0.22); }\n" +
+    "html.dark .lre-chrome .site-header[data-header-state=\"light\"] .site-header__brand img { filter: none; }\n" +
+    "html.dark .lre-chrome .site-header[data-header-state=\"light\"].is-scrolled::before { background: rgba(8, 8, 7, 0.74); border-color: rgba(247, 248, 242, 0.12); }\n" +
+    "html.dark .lre-chrome .site-header[data-header-state=\"light\"] .language-dropdown__panel { background: color-mix(in srgb, var(--color-void) 92%, transparent); color: var(--color-text); }\n"
+  );
+};
+
+// 포팅 추가분 — 시안에 없는 요소(푸터 법적 링크)의 스타일. 시안 CSS 뒤에 붙는다
+const PORT_CSS = `
+
+/* ═══ port additions (scripts/luby-re-sync.mjs) ═══ */
+.site-footer__links { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: var(--space-24); margin-bottom: calc(-1 * var(--space-24)); font-family: var(--font-display); font-size: var(--font-size-14); color: rgba(247, 248, 242, 0.72); }
+.site-footer__links a:hover, .site-footer__links a:focus-visible { color: var(--color-paper); }
+`;
+
 /** 페이지의 로케일 링크에 활성 표시를 단다 (CSS 는 a[aria-current] 를 강조하도록 패치됨) */
 const markLang = (html, code) =>
   html
@@ -181,7 +275,8 @@ for (const p of PAGES) {
 
   const raw = markLang(headLinks.join("\n") + `\n<div class="lre-root ${bodyClass}">` + body + "</div>", "ko");
   if (p.name === "home") homeParts = { headLinks: headLinks.join("\n"), fragment: raw }; // 베이크는 치환 전 원본으로
-  const fragment = linkCompany(relabelCtas(raw, "ko"));
+  const fragment = addFooterLinks(linkCompany(relabelCtas(raw, "ko")), "ko");
+  if (p.name === "home") chrome.ko = extractChrome(fragment);
   writeFileSync(
     join(ROOT, `components/landing-re/${p.name}-fragment.ts`),
     "// 자동 생성 — scripts/luby-re-sync.mjs 가 luby-re 시안에서 만들었다. 직접 수정 금지.\n" +
@@ -195,14 +290,15 @@ for (const p of PAGES) {
     sharedCss + `\n\n/* ═══ ${p.pageCss}.css ═══ */\n` + readFileSync(join(SRC, `assets/css/${p.pageCss}.css`), "utf8")
   );
   mkdirSync(join(ROOT, dirname(p.cssOut)), { recursive: true });
-  writeFileSync(join(ROOT, p.cssOut), "/* 자동 생성 — scripts/luby-re-sync.mjs. 직접 수정 금지. */\n" + css);
+  writeFileSync(join(ROOT, p.cssOut), "/* 자동 생성 — scripts/luby-re-sync.mjs. 직접 수정 금지. */\n" + css + PORT_CSS);
+  if (p.name === "home") writeFileSync(join(ROOT, "app/lre-chrome.css"), buildChromeCss(css + PORT_CSS));
 
   const js = p.pageJs
     ? sharedJs + `\n\n/* ═══ pages/${p.pageJs}.js ═══ */\n` + readFileSync(join(SRC, `assets/js/pages/${p.pageJs}.js`), "utf8")
     : sharedJs;
   writeFileSync(
     join(ROOT, `public/lre/${p.name}.js`),
-    `/* 자동 생성 — scripts/luby-re-sync.mjs (SPA 재진입 대비 1회 실행 가드) */\nif (!window.__lre_${p.name.replace(/-/g, "_")}) { window.__lre_${p.name.replace(/-/g, "_")} = true;\n${js}\n}\n`
+    `/* 자동 생성 — scripts/luby-re-sync.mjs (SPA 재진입 대비 1회 실행 가드) */\nif (!window.__lre_${p.name.replace(/-/g, "_")}) { window.__lre_${p.name.replace(/-/g, "_")} = true;\n${js.replace(/#E62485/gi, "#E30080").replace(/rgba\(230,\s*36,\s*133,/g, "rgba(227, 0, 128,")}\n}\n`
   );
 
   for (const m of (fragment + css).matchAll(/\/lre\/svg\/([A-Za-z0-9_.-]+)/g)) referenced.add(`svg/${m[1]}`);
@@ -265,7 +361,8 @@ if (!existsSync(CHROME)) {
     let html = await page.evaluate(() => document.querySelector(".lre-root").outerHTML);
     // 베이크 흔적 제거 — 남겨두면 클라이언트 i18n 이 키를 근거로 한국어로 되돌린다
     html = html.replace(/ data-i18n-key="[^"]*"/g, "").replace(/ data-i18n-attr-[a-z-]+="[^"]*"/g, "");
-    html = linkCompany(relabelCtas(markLang(homeParts.headLinks + "\n" + html, locale), locale));
+    html = addFooterLinks(linkCompany(relabelCtas(markLang(homeParts.headLinks + "\n" + html, locale), locale)), locale);
+    chrome[locale] = extractChrome(html);
     writeFileSync(
       join(ROOT, `components/landing-re/home-${locale}-fragment.ts`),
       "// 자동 생성 — scripts/luby-re-sync.mjs (시안 i18n 엔진으로 베이크). 직접 수정 금지.\n" +
@@ -275,4 +372,17 @@ if (!existsSync(CHROME)) {
     console.log(`home-${locale} → 베이크`, html.length, "B");
   }
   await browser.close();
+}
+if (chrome.ko && chrome.en && chrome.zh) {
+  // 폰트·아이콘 폰트 링크만 (영상 CDN preconnect 는 공개 페이지에 불필요)
+  const chromeLinks = homeParts.headLinks.split("\n").filter((l) => /fonts\.googleapis|fonts\.gstatic|cdn\.jsdelivr/.test(l)).join("\n");
+  writeFileSync(
+    join(ROOT, "components/landing-re/chrome-fragment.ts"),
+    "// 자동 생성 — scripts/luby-re-sync.mjs (랜딩 크롬: 헤더+전체화면 메뉴·푸터, 로케일별). 직접 수정 금지.\n" +
+      `export const chromeHeadLinks = ${JSON.stringify(chromeLinks)};\n` +
+      `export const chrome = ${JSON.stringify(chrome)} as const;\n`
+  );
+  console.log("chrome-fragment → ko/en/zh");
+} else {
+  console.warn("en/zh 베이크가 없어 chrome-fragment 를 쓰지 않았다 (기존 파일 유지)");
 }

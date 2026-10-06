@@ -81,6 +81,11 @@ body {
   line-height: 0.98;
 }
 
+/* 공개 체험단 페이지(/c·/creators·/p) 제목 — 랜딩 시안 타입 스케일(28·40·48·56 / 700 / 1.2)을 Pretendard 로 (2026-10-06 A안) */
+.display-lre-hero { font-size: clamp(2.5rem, 5.4vw, 3.5rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; }
+.display-lre-title { font-size: clamp(1.75rem, 3.2vw, 2.5rem); font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; }
+.display-lre-section { font-size: clamp(1.5rem, 2.4vw, 2rem); font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; }
+
 /* Pink shimmer underline for emphasis */
 .pink-underline {
   background-image: linear-gradient(120deg, rgb(var(--accent)) 0%, rgb(var(--accent)) 100%);

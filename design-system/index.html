@@ -194,7 +194,7 @@
   .lnd h4 { font-size: clamp(28px, 4vw, 48px); line-height: 1.2; margin: 0 0 20px; font-weight: 700; letter-spacing: -.01em; }
   .lnd .lnd-btns { display: flex; gap: 12px; flex-wrap: wrap; }
   .lnd .lnd-btn { display: inline-flex; align-items: center; min-height: 52px; padding: 0 28px; border-radius: 8px; border: 1px solid rgba(247,248,242,.46); font-weight: 700; font-size: 15px; text-decoration: none; color: #f7f8f2; }
-  .lnd .lnd-btn--primary { background: #E62485; border-color: #E62485; color: #fff; }
+  .lnd .lnd-btn--primary { background: #E30080; border-color: #E30080; color: #fff; }
   .lnd .lnd-card { margin-top: 20px; border: 1px solid rgba(247,248,242,.46); border-radius: 8px; padding: 24px; max-width: 360px; }
   .lnd .lnd-card strong { display: block; font-size: 22px; margin-bottom: 6px; } .lnd .lnd-card span { color: rgba(247,248,242,.74); font-size: 14px; }
   .lnd .en { font-family: var(--font-landing-en); font-size: 40px; font-weight: 800; line-height: 1; letter-spacing: -.01em; text-transform: uppercase; margin-top: 24px; }
@@ -395,13 +395,13 @@
         <button class="sw" data-hex="#f7f8f2"><div class="sw-chip" style="background:#f7f8f2"></div><div class="sw-meta"><b>text</b><code>#F7F8F2</code><small>어두운 면 위 본문</small></div></button>
         <button class="sw" data-hex="#a6aaa4"><div class="sw-chip" style="background:#a6aaa4"></div><div class="sw-meta"><b>text-muted</b><code>#A6AAA4</code></div></button>
         <button class="sw" data-hex="#161412"><div class="sw-chip" style="background:#161412"></div><div class="sw-meta"><b>text-dark</b><code>#161412</code><small>페이퍼 위 본문</small></div></button>
-        <button class="sw" data-hex="#e62485"><div class="sw-chip" style="background:#e62485"><span class="sw-primary">ACCENT</span></div><div class="sw-meta"><b>accent</b><code>#E62485</code><small>JOIN 버튼·추천 뱃지</small></div></button>
+        <button class="sw" data-hex="#e30080"><div class="sw-chip" style="background:#e30080"><span class="sw-primary">ACCENT</span></div><div class="sw-meta"><b>accent</b><code>#E30080</code><small>무료로 시작하기 버튼·추천 뱃지 (시안 원본 #E62485 → 수렴)</small></div></button>
         <button class="sw" data-hex="#9b1557"><div class="sw-chip" style="background:#9b1557"></div><div class="sw-meta"><b>accent-dark</b><code>#9B1557</code><small>호버</small></div></button>
         <button class="sw" data-hex="#ff8fc9"><div class="sw-chip" style="background:#ff8fc9"></div><div class="sw-meta"><b>accent-soft</b><code>#FF8FC9</code><small>아이브로·번호·라벨</small></div></button>
         <button class="sw" data-hex="#12c7d8"><div class="sw-chip" style="background:#12c7d8"></div><div class="sw-meta"><b>cyan</b><code>#12C7D8</code><small>보조 신호 — 카드 호버 그라데이션</small></div></button>
         <button class="sw" data-hex="#f2d64b"><div class="sw-chip" style="background:#f2d64b"></div><div class="sw-meta"><b>yellow</b><code>#F2D64B</code><small>보조 신호 — 극히 드물게</small></div></button>
       </div>
-      <div class="note ext"><b>두 표면의 핑크가 다른 이유</b> — 앱은 검은 바탕에서 빛나야 해서 채도 높은 네온 <code>#FF2AA7</code>, 랜딩은 잉크 위 인쇄물 느낌의 <code>#E62485</code>를 씁니다. 같은 화면에 두 핑크를 섞지 않습니다. <span class="tag tag--ext">확장 제안</span> 장기적으로는 랜딩 <code>#E62485</code> 를 앱의 <code>accent-strong #E30080</code> 으로 수렴시켜 한 값으로 통일할 수 있습니다.</div>
+      <div class="note"><b>핑크는 두 종류, 역할이 다릅니다</b> — 흰 글자를 얹는 핑크 면(버튼·뱃지)은 두 표면 모두 <code>#E30080</code> 하나입니다(2026-10-06 수렴 — 시안 원본 <code>#E62485</code>는 동기화 때 치환). 앱의 네온 <code>#FF2AA7</code>은 검은 바탕의 글로우·포커스 링·btn-neon 전용이라 면 색으로 쓰지 않습니다.</div>
     </section>
 
     <!-- 03 -->
@@ -587,7 +587,7 @@
 :root {
   --color-void: #080807;  --color-ink: #11100e;  --color-paper: #f3f5f0;  --color-paper-soft: #e4e9e4;
   --color-text: #f7f8f2;  --color-text-muted: #a6aaa4;  --color-text-dark: #161412;
-  --color-accent: #E62485;  --color-accent-dark: #9b1557;  --color-accent-soft: #ff8fc9;
+  --color-accent: #E30080;  --color-accent-dark: #9b1557;  --color-accent-soft: #ff8fc9;
   --color-cyan: #12c7d8;  --color-yellow: #f2d64b;
   --color-line: rgba(247,248,242,.22);  --color-line-dark: rgba(17,16,14,.18);  --color-overlay: rgba(8,8,7,.44);
   --radius-8: 8px;  --radius-16: 16px;  --radius-24: 24px;
