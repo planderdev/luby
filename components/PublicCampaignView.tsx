@@ -4,6 +4,7 @@ import "@/app/lre-chrome.css";
 
 import { unstable_cache } from "next/cache";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Calendar, Users, Coins, MapPin, Tag, ArrowRight, Building2, Globe, CheckCircle2 } from "lucide-react";
 import { getStaticSupabase } from "@/lib/supabase/static";
@@ -165,8 +166,8 @@ export async function PublicCampaignView({ id, locale }: { id: string; locale: L
           {/* Left: content */}
           <article>
             <div className="relative aspect-[16/9] w-full overflow-hidden rounded-3xl bg-muted">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={c.thumbnail_url ?? `/api/og/campaign/${c.id}`} alt={c.title} className={`size-full object-cover ${c.thumbnail_url ? "" : "object-left"}`} />
+              {/* 썸네일 원본(최대 4.6MB PNG)을 그대로 내리면 모바일 LCP 13초 — next/image 로 AVIF·크기 최적화 (2026-10-06) */}
+              <Image src={c.thumbnail_url ?? `/api/og/campaign/${c.id}`} alt={c.title} fill priority sizes="(min-width: 1024px) 620px, 100vw" className={`object-cover ${c.thumbnail_url ? "" : "object-left"}`} />
               <span className={`absolute left-4 top-4 rounded-full px-3 py-1 text-xs font-medium ${isOpen ? "bg-success-soft text-success" : "bg-muted text-muted-foreground"}`}>
                 {isOpen ? (c.always_open ? t.statusAlways : daysLeft > 0 ? t.dLeft(daysLeft) : t.statusOpen) : c.status === "closed" ? t.statusClosed : t.statusCompleted}
               </span>
@@ -310,7 +311,7 @@ export async function PublicCampaignView({ id, locale }: { id: string; locale: L
                   <Link key={r.id} href={`${pfx}/c/${r.id}?src=dir`} className="group flex flex-col overflow-hidden rounded-3xl glass-card transition-transform hover:-translate-y-0.5">
                     <div className="relative aspect-[16/9] w-full bg-muted">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={r.thumbnail_url ?? `/api/og/campaign/${r.id}`} alt={r.title} loading="lazy" className={`size-full object-cover ${r.thumbnail_url ? "" : "object-left"}`} />
+                      <Image src={r.thumbnail_url ?? `/api/og/campaign/${r.id}`} alt={r.title} fill sizes="(min-width: 1024px) 300px, 100vw" className={`object-cover ${r.thumbnail_url ? "" : "object-left"}`} />
                       {!r.always_open && d > 0 && d <= 7 && (
                         <span className="absolute right-2 top-2 rounded-full bg-accent-strong px-2 py-0.5 text-[10px] font-semibold text-white">{t.closesIn(d)}</span>
                       )}

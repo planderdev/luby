@@ -11,14 +11,6 @@
     margin: 0;
 }
 
-@font-face {
-    font-family: "SUIT Variable";
-    font-weight: 100 900;
-    font-style: normal;
-    font-display: swap;
-    src: url("https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/variable/woff2/SUIT-Variable.woff2") format("woff2-variations");
-}
-
 .lre-root {
     --color-void: #080807;
     --color-ink: #11100e;
@@ -841,7 +833,9 @@ body.is-menu-open .site-header__actions > .menu-toggle {
 .site-footer__links a:hover, .site-footer__links a:focus-visible { color: var(--color-paper); }
 
 /* ═══ chrome overrides (공개 체험단 페이지) ═══ */
-.lre-root.lre-chrome { min-height: 0; background: transparent; color: inherit; overflow: visible; }
+.lre-root.lre-chrome { min-height: 0; background: transparent; color: inherit; overflow: visible; --font-ko: "Pretendard Variable", Pretendard, var(--font-cjk); }
+.lre-chrome .language-dropdown__trigger svg { width: 20px; height: 20px; }
+.lre-root.lre-chrome { --font-cjk: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans SC", sans-serif; }
 .lre-offset { padding-top: 80px; --lre-header-h: 80px; }
 @media (min-width: 768px) { .lre-offset { padding-top: 92px; --lre-header-h: 92px; } }
 .lre-chrome .global-menu { transition: clip-path 0.6s var(--ease-standard), visibility 0s linear 0.6s; }

@@ -13,6 +13,7 @@ import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import postcss from "postcss";
+import sharp from "sharp";
 
 const SRC = process.argv[2];
 if (!SRC) {
@@ -69,6 +70,8 @@ const scopeCss = (css) =>
     .replace(/url\((['"]?)\.\.\/svg\//g, "url($1/lre/svg/")
     .replace(/url\((['"]?)\.\.\/image\//g, `url($1${VIDEO_BASE}/image/`)
     .replace(/url\((['"]?)\.\.\/video\//g, `url($1${VIDEO_BASE}/`)
+    // 래스터 이미지는 업로드 때 WebP 로 변환해 올리므로 참조도 .webp (2026-10-06 성능: PNG 600~1100KB → 100KB 대)
+    .replace(/(landing-assets\/image\/[A-Za-z0-9_-]+)\.(?:png|jpe?g)\b/g, "$1.webp")
     // 핑크 수렴(2026-10-06 사장님 A안): 시안 #E62485 → 앱 accent-strong #E30080(흰 글자 AA 4.59:1). 글로우 rgba 도 함께
     .replace(/#E62485/gi, "#E30080")
     .replace(/rgba\(230,\s*36,\s*133,/g, "rgba(227, 0, 128,");
@@ -111,7 +114,12 @@ const rewriteBody = (body) => {
   return body
     .replace(/(src|href)="(\.\.\/|\.\/)?assets\/svg\//g, '$1="/lre/svg/')
     .replace(/(src|href)="(\.\.\/|\.\/)?assets\/image\//g, `$1="${VIDEO_BASE}/image/`)
-    .replace(/(src|href)="(\.\.\/|\.\/)?assets\/video\//g, `$1="${VIDEO_BASE}/`);
+    .replace(/(src|href)="(\.\.\/|\.\/)?assets\/video\//g, `$1="${VIDEO_BASE}/`)
+    .replace(/(landing-assets\/image\/[A-Za-z0-9_-]+)\.(?:png|jpe?g)\b/g, "$1.webp")
+    // 영상 경량화(2026-10-06): 원본(hero 17.6MB 등)은 버킷에 그대로 두고 웹용 트랜스코드본(-web.mp4, scripts/.local/upload-landing-videos.mjs)을 가리킨다
+    .replace(/(landing-assets\/)(hero|solution-\d)\.mp4/g, "$1$2-web.mp4")
+    // 히어로: preload=auto 는 모바일에서 영상 전체를 LCP 전에 받게 한다 — 포스터(첫 프레임 JPEG)를 먼저 보여주고 metadata 만 선로드
+    .replace(/preload="auto"(\s+data-luby-hero-video)/g, `preload="metadata" poster="${VIDEO_BASE}/hero-poster.jpg"$1`);
 };
 
 // 헤더·전체화면 메뉴 CTA 라벨 — 시안은 로케일과 무관하게 Login/Join 이라 서비스 기준 문구로 바꾼다
@@ -158,13 +166,17 @@ const addFooterLinks = (html, code) =>
 // (2026-10-06 A안). 동적 React 페이지라 시안 JS 번들은 싣지 않고 components/landing-re/LreChrome.tsx 가 메뉴·언어 메뉴를 흉내낸다.
 const ARROW_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>';
+// 언어 메뉴 지구본 — remixicon 폰트(186KB)를 공개 페이지에 싣지 않으려고 인라인 SVG(lucide globe)
+const GLOBE_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>';
 const extractChrome = (html) => {
   const pick = (re) => html.match(re)?.[0] ?? "";
   const clean = (x) =>
     x
       .replace(/ aria-current="page"/g, "") // 내비 활성 표시는 홈 전용 — 공개 페이지엔 해당 항목이 없다
       .replace(/ class="is-active"/g, "")
-      .replace(/<i data-lucide="arrow-up-right"><\/i>/g, ARROW_SVG); // lucide JS 없이도 아이콘이 보이게 인라인
+      .replace(/<i data-lucide="arrow-up-right"><\/i>/g, ARROW_SVG) // lucide JS 없이도 아이콘이 보이게 인라인
+      .replace(/<i class="ri-global-line" aria-hidden="true"><\/i>/g, GLOBE_SVG);
   return {
     header: clean(pick(/<header class="site-header"[\s\S]*?<\/header>/)).replace('data-header-state="transparent"', 'data-header-state="light"'),
     menu: clean(pick(/<aside class="global-menu"[\s\S]*?<\/aside>/)),
@@ -187,8 +199,8 @@ const buildChromeCss = (css) => {
   };
   const filter = (container, target) => {
     container.each((n) => {
-      if (n.type === "atrule" && n.name === "font-face") target.append(n.clone());
-      else if (n.type === "atrule" && n.nodes) {
+      if (n.type === "atrule" && n.name === "font-face") return; // SUIT 611KB 는 공개 페이지에 싣지 않는다 — 한국어 크롬 글자는 앱의 Pretendard
+      if (n.type === "atrule" && n.nodes) {
         const at = postcss.atRule({ name: n.name, params: n.params });
         filter(n, at);
         if (at.nodes?.length) target.append(at);
@@ -212,7 +224,9 @@ const buildChromeCss = (css) => {
     "/* 자동 생성 — scripts/luby-re-sync.mjs (랜딩 크롬: 헤더·전체화면 메뉴·언어 메뉴·푸터). 직접 수정 금지. */\n" +
     out.toString() +
     "\n\n/* ═══ chrome overrides (공개 체험단 페이지) ═══ */\n" +
-    ".lre-root.lre-chrome { min-height: 0; background: transparent; color: inherit; overflow: visible; }\n" +
+    ".lre-root.lre-chrome { min-height: 0; background: transparent; color: inherit; overflow: visible; --font-ko: \"Pretendard Variable\", Pretendard, var(--font-cjk); }\n" +
+    ".lre-chrome .language-dropdown__trigger svg { width: 20px; height: 20px; }\n" +
+    ".lre-root.lre-chrome { --font-cjk: \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", \"Noto Sans SC\", sans-serif; }\n" +
     offsets.join("\n") + "\n" +
     ".lre-chrome .global-menu { transition: clip-path 0.6s var(--ease-standard), visibility 0s linear 0.6s; }\n" +
     ".lre-chrome .global-menu.is-open { visibility: visible; pointer-events: auto; clip-path: inset(0 0 0 0); transition: clip-path 0.6s var(--ease-standard), visibility 0s; }\n" +
@@ -324,7 +338,14 @@ const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (KEY) {
   const TYPES = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp" };
   for (const rel of uploads) {
-    const data = readFileSync(join(SRC, "assets", rel));
+    // 참조는 .webp 로 바뀌어 있다 — 시안의 원본(png/jpg)을 찾아 sharp 로 변환해 올린다(알파 유지, 품질 80)
+    const srcRel = rel.endsWith(".webp")
+      ? ["png", "jpg", "jpeg"].map((e) => rel.replace(/\.webp$/, "." + e)).find((r) => existsSync(join(SRC, "assets", r)))
+      : rel;
+    if (!srcRel) { console.error("원본 없음", rel); continue; }
+    const data = rel.endsWith(".webp")
+      ? await sharp(readFileSync(join(SRC, "assets", srcRel))).webp({ quality: 80, effort: 4 }).toBuffer()
+      : readFileSync(join(SRC, "assets", srcRel));
     const r = await fetch(`https://ncyuljyeyuorgsfuzzmw.supabase.co/storage/v1/object/landing-assets/${rel}`, {
       method: "POST",
       headers: {
@@ -377,7 +398,13 @@ if (!existsSync(CHROME)) {
 }
 if (chrome.ko && chrome.en && chrome.zh) {
   // 폰트·아이콘 폰트 링크만 (영상 CDN preconnect 는 공개 페이지에 불필요)
-  const chromeLinks = homeParts.headLinks.split("\n").filter((l) => /fonts\.googleapis|fonts\.gstatic|cdn\.jsdelivr/.test(l)).join("\n");
+  // 폰트 preconnect + Google Fonts(Raleway 디스플레이·중국어 Noto Sans SC 만). remixicon·Noto Sans 라틴·SUIT 은 공개 페이지에 불필요
+  const chromeLinks = homeParts.headLinks
+    .split("\n")
+    .filter((l) => /fonts\.googleapis|fonts\.gstatic/.test(l))
+    // Raleway(영문 디스플레이)만 — 중국어는 본문과 같이 기기 CJK 폰트를 쓰고, 언어 메뉴의 '中文' 두 글자 때문에 Noto Sans SC 서브셋(120KB)이 내려오지 않게 한다
+    .map((l) => l.replace(/css2\?family=[^"]*display=swap/, "css2?family=Raleway:wght@100..900&display=swap"))
+    .join("\n");
   writeFileSync(
     join(ROOT, "components/landing-re/chrome-fragment.ts"),
     "// 자동 생성 — scripts/luby-re-sync.mjs (랜딩 크롬: 헤더+전체화면 메뉴·푸터, 로케일별). 직접 수정 금지.\n" +
