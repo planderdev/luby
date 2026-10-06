@@ -119,7 +119,10 @@ const rewriteBody = (body) => {
     // 영상 경량화(2026-10-06): 원본(hero 17.6MB 등)은 버킷에 그대로 두고 웹용 트랜스코드본(-web.mp4, scripts/.local/upload-landing-videos.mjs)을 가리킨다
     .replace(/(landing-assets\/)(hero|solution-\d)\.mp4/g, "$1$2-web.mp4")
     // 히어로: preload=auto 는 모바일에서 영상 전체를 LCP 전에 받게 한다 — 포스터(첫 프레임 JPEG)를 먼저 보여주고 metadata 만 선로드
-    .replace(/preload="auto"(\s+data-luby-hero-video)/g, `preload="metadata" poster="${VIDEO_BASE}/hero-poster.jpg"$1`);
+    .replace(/preload="auto"(\s+data-luby-hero-video)/g, `preload="metadata" poster="${VIDEO_BASE}/hero-poster.jpg"$1`)
+    // Chrome 은 자동재생 영상(포스터 포함)을 LCP 후보로 세지 않아 LCP 가 GSAP 이 드러내는 제목(6초대)이 된다 —
+    // 영상 밑에 실제 <img> 포스터를 깔아 첫 페인트 직후 큰 LCP 후보를 만든다(영상이 재생되면 위에서 덮는다)
+    .replace(/(<video class="luby-hero-video")/g, `<img class="luby-hero-poster" src="${VIDEO_BASE}/hero-poster.jpg" alt="" width="1600" height="900" fetchpriority="high" decoding="async">$1`);
 };
 
 // 헤더·전체화면 메뉴 CTA 라벨 — 시안은 로케일과 무관하게 Login/Join 이라 서비스 기준 문구로 바꾼다
@@ -147,6 +150,18 @@ const linkCompany = (html) =>
     /(<br>)(주식회사 플랜더 \(Plander Corp\.\)|Plander Corp\.)(<\/p>)/g,
     `$1<a class="site-footer__company" href="${COMPANY_URL}" target="_blank" rel="noopener noreferrer">$2</a>$3`
   );
+
+// LreScripts.tsx 의 CDN 체인과 동일 (preload 힌트용)
+const SCRIPT_CHAIN = [
+  "https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js",
+  "https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/ScrollTrigger.min.js",
+  "https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.min.js",
+  "https://cdn.jsdelivr.net/npm/lucide@1.38.0/dist/umd/lucide.min.js",
+];
+const asyncStylesheet = (link) =>
+  /rel="stylesheet"/.test(link)
+    ? link.replace(/>$/, ' media="print" onload="this.media=\'all\'">') + `<noscript>${link}</noscript>`
+    : link;
 
 // 푸터 법적 링크 — 시안 푸터엔 상호·주소만 있고 이용약관·개인정보처리방침이 없다(가입·응모가 일어나는 면이라 필수)
 const FOOTER_LINKS = {
@@ -244,6 +259,10 @@ const PORT_CSS = `
 /* ═══ port additions (scripts/luby-re-sync.mjs) ═══ */
 .site-footer__links { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: var(--space-24); margin-bottom: calc(-1 * var(--space-24)); font-family: var(--font-display); font-size: var(--font-size-14); color: rgba(247, 248, 242, 0.72); }
 .site-footer__links a:hover, .site-footer__links a:focus-visible { color: var(--color-paper); }
+/* 페이지 전환 커튼은 JS(GSAP set yPercent:100)가 돌기 전까지 화면 전체를 덮어 첫 페인트를 6초 넘게 막았다(2026-10-06 Lighthouse 모바일 FCP 6.5s).
+   기본 상태를 치워 두고, 전환 시에는 GSAP 이 인라인 transform 으로 다시 끌어올린다. */
+.transition-curtain span { transform: translateY(100%); }
+.luby-hero-poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 `;
 
 /** 페이지의 로케일 링크에 활성 표시를 단다 (CSS 는 a[aria-current] 를 강조하도록 패치됨) */
@@ -280,7 +299,15 @@ for (const p of PAGES) {
 
   const title = html.match(/<title>([^<]*)<\/title>/)?.[1] ?? "LUBY";
   const description = html.match(/<meta name="description" content="([^"]*)"/)?.[1] ?? "";
-  const headLinks = [...html.matchAll(/<link[^>]+href="https:\/\/[^"]+"[^>]*>/g)].map((m) => m[0]);
+  // 외부 스타일시트(Google Fonts·remixicon)는 비차단으로: 조각이 <body> 안에 들어가므로 일반 <link rel=stylesheet> 는
+  // 그 뒤 콘텐츠의 렌더를 막는다(2026-10-06 Lighthouse 모바일 FCP 6.5s 원인). 폰트는 어차피 swap 이라 먼저 그리고 바꿔 끼운다.
+  const headLinks = [
+    ...[...html.matchAll(/<link[^>]+href="https:\/\/[^"]+"[^>]*>/g)].map((m) => asyncStylesheet(m[0])),
+    // 시안 JS 체인(gsap→ScrollTrigger→lenis→lucide→번들)은 하이드레이션 뒤 onload 순차 로드라 느리다(LreScripts.tsx) —
+    // 미리 받아 두면 체인이 캐시에서 바로 돈다. URL 은 components/landing-re/LreScripts.tsx 의 CDN 목록과 같아야 한다.
+    ...SCRIPT_CHAIN.map((u) => `<link rel="preload" as="script" href="${u}">`),
+    `<link rel="preload" as="script" href="/lre/${p.name}.js">`,
+  ];
   const bodyClass = html.match(/<body[^>]*class="([^"]*)"/)?.[1] ?? "";
   let body = html
     .replace(/[\s\S]*<body[^>]*>/, "")
@@ -403,7 +430,7 @@ if (chrome.ko && chrome.en && chrome.zh) {
     .split("\n")
     .filter((l) => /fonts\.googleapis|fonts\.gstatic/.test(l))
     // Raleway(영문 디스플레이)만 — 중국어는 본문과 같이 기기 CJK 폰트를 쓰고, 언어 메뉴의 '中文' 두 글자 때문에 Noto Sans SC 서브셋(120KB)이 내려오지 않게 한다
-    .map((l) => l.replace(/css2\?family=[^"]*display=swap/, "css2?family=Raleway:wght@100..900&display=swap"))
+    .map((l) => l.replace(/css2\?family=[^"]*display=swap/g, "css2?family=Raleway:wght@100..900&display=swap"))
     .join("\n");
   writeFileSync(
     join(ROOT, "components/landing-re/chrome-fragment.ts"),
