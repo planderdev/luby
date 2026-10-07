@@ -17,11 +17,13 @@ export function CampaignFilters({
   regions,
   statusOptions,
   sortOptions,
+  labels = { searchAria: "캠페인 검색", searchPh: "제목·업체명으로 검색", categoryAll: "업종 전체", regionAll: "지역 전체", categoryAria: "업종 필터", regionAria: "지역 필터", statusAria: "상태 필터", sortAria: "정렬" },
 }: {
   categories: FilterOption[];
   regions: FilterOption[];
   statusOptions: FilterOption[] | null;
   sortOptions: FilterOption[];
+  labels?: { searchAria: string; searchPh: string; categoryAll: string; regionAll: string; categoryAria: string; regionAria: string; statusAria: string; sortAria: string };
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -53,34 +55,34 @@ export function CampaignFilters({
         <input
           name="q"
           type="search"
-          aria-label="캠페인 검색"
+          aria-label={labels.searchAria}
           defaultValue={params.get("q") ?? ""}
-          placeholder="제목·업체명으로 검색"
+          placeholder={labels.searchPh}
           className="w-full rounded-full border border-border bg-background py-2.5 pl-11 pr-4 text-sm outline-none"
         />
       </form>
       <FilterSelect
-        ariaLabel="업종 필터"
+        ariaLabel={labels.categoryAria}
         value={params.get("category") ?? ""}
-        options={[{ value: "", label: "업종 전체" }, ...categories]}
+        options={[{ value: "", label: labels.categoryAll }, ...categories]}
         onChange={(v) => setParam("category", v)}
       />
       <FilterSelect
-        ariaLabel="지역 필터"
+        ariaLabel={labels.regionAria}
         value={params.get("region") ?? ""}
-        options={[{ value: "", label: "지역 전체" }, ...regions]}
+        options={[{ value: "", label: labels.regionAll }, ...regions]}
         onChange={(v) => setParam("region", v)}
       />
       {statusOptions && (
         <FilterSelect
-          ariaLabel="상태 필터"
+          ariaLabel={labels.statusAria}
           value={params.get("status") ?? ""}
           options={statusOptions}
           onChange={(v) => setParam("status", v)}
         />
       )}
       <FilterSelect
-        ariaLabel="정렬"
+        ariaLabel={labels.sortAria}
         value={params.get("sort") ?? ""}
         options={sortOptions}
         onChange={(v) => setParam("sort", v)}

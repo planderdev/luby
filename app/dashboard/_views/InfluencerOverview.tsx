@@ -17,6 +17,8 @@ import { TodoList, type TodoItem } from "@/components/dashboard/TodoList";
 import { CompletenessCard } from "@/components/dashboard/CompletenessCard";
 import { ReferralCard } from "@/components/dashboard/ReferralCard";
 import type { CompletenessItem } from "@/lib/profile-completeness";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import type { Locale } from "@/lib/i18n/config";
 
 export type RecommendedCampaign = {
   id: string;
@@ -52,6 +54,7 @@ export function InfluencerOverview({
   referrals = 0,
   referralStats,
   profileId,
+  locale = "ko",
 }: {
   name: string;
   approved: boolean;
@@ -66,55 +69,58 @@ export function InfluencerOverview({
   referrals?: number;
   referralStats?: { total: number; rewarded: number; rewardPoints: number; monthRewarded: number };
   profileId?: string;
+  locale?: Locale;
 }) {
+  const t = dashboardDict[locale].overview;
+  const badgeLabel = dashboardDict[locale].list.badges;
   const todoItems: TodoItem[] = [
     {
       key: "invites",
       count: todo.pendingInvites,
-      label: `광고주 초대 ${todo.pendingInvites}건이 응답을 기다려요`,
-      hint: "수락하면 즉시 응모돼요 — 선정 확률이 높은 기회예요",
+      label: t.todo.invites(todo.pendingInvites),
+      hint: t.todo.invitesHint,
       href: "/dashboard/invitations",
-      cta: "초대 보기",
+      cta: t.todo.invitesCta,
       tone: "accent",
       icon: <Mail className="size-5" />,
     },
     {
       key: "revision",
       count: todo.revisionCount,
-      label: `수정 요청된 콘텐츠 ${todo.revisionCount}건`,
-      hint: "광고주 피드백을 반영해 다시 제출하세요",
+      label: t.todo.revision(todo.revisionCount),
+      hint: t.todo.revisionHint,
       href: "/dashboard/applications",
-      cta: "재제출",
+      cta: t.todo.revisionCta,
       tone: "danger",
       icon: <MessageSquareWarning className="size-5" />,
     },
     {
       key: "submit",
       count: todo.needSubmitCount,
-      label: `선정된 캠페인 ${todo.needSubmitCount}건의 콘텐츠를 제출하세요`,
-      hint: "체험 후 콘텐츠 URL을 올리면 검수 뒤 포인트가 지급돼요",
+      label: t.todo.submit(todo.needSubmitCount),
+      hint: t.todo.submitHint,
       href: "/dashboard/applications",
-      cta: "제출하기",
+      cta: t.todo.submitCta,
       tone: "warning",
       icon: <Upload className="size-5" />,
     },
     {
       key: "messages",
       count: todo.unreadMessages,
-      label: `안 읽은 메시지 ${todo.unreadMessages}개`,
-      hint: "광고주가 일정·안내를 보냈어요",
+      label: t.todo.messages(todo.unreadMessages),
+      hint: t.todo.messagesHint,
       href: "/dashboard/messages",
-      cta: "확인하기",
+      cta: t.todo.messagesCta,
       tone: "accent",
       icon: <MessageSquare className="size-5" />,
     },
     {
       key: "new",
       count: todo.newCampaigns,
-      label: `이번 주 새로 열린 캠페인 ${todo.newCampaigns}개`,
-      hint: "내 업종·지역에 맞는 캠페인을 골라 응모하세요",
+      label: t.todo.newCampaigns(todo.newCampaigns),
+      hint: t.todo.newCampaignsHint,
       href: "/dashboard/campaigns",
-      cta: "둘러보기",
+      cta: t.todo.newCampaignsCta,
       tone: "neutral",
       icon: <Sparkles className="size-5" />,
     },
@@ -125,18 +131,18 @@ export function InfluencerOverview({
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-            인플루언서 대시보드
+            {t.eyebrow}
           </p>
           <h1 className="display mt-2 text-3xl font-semibold lg:text-4xl">
-            {name}님, 환영해요.
+            {t.welcome(name)}
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">활동 지역 · {region}</p>
+          <p className="mt-2 text-sm text-muted-foreground">{t.regionLine(region)}</p>
         </div>
         <Link
           href="/dashboard/campaigns"
           className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-3 text-sm font-medium text-background"
         >
-          캠페인 둘러보기
+          {t.browse}
           <ArrowRight className="size-4" />
         </Link>
       </header>
@@ -148,28 +154,22 @@ export function InfluencerOverview({
           <div className="mt-8 flex items-start gap-4 rounded-3xl border border-accent/30 bg-accent-soft px-6 py-5 text-accent-ink">
             <Clock className="mt-0.5 size-5 shrink-0" />
             <div className="text-sm">
-              <div className="font-semibold">계정 승인 대기 중입니다</div>
-              <div className="mt-1 text-accent-ink/80">
-                운영자가 등록하신 채널·프로필을 검수하고 있어요. 평균 24시간 이내 결과를 알려드립니다.
-                그 사이에 캠페인 둘러보기는 자유롭게 가능합니다.
-              </div>
+              <div className="font-semibold">{t.pendingTitle}</div>
+              <div className="mt-1 text-accent-ink/80">{t.pendingBody}</div>
             </div>
           </div>
         ) : (
           <div className="mt-8 flex flex-wrap items-start gap-4 rounded-3xl border border-accent/30 bg-accent-soft px-6 py-5 text-accent-ink">
             <Clock className="mt-0.5 size-5 shrink-0" />
             <div className="min-w-0 flex-1 text-sm">
-              <div className="font-semibold">승인을 받으려면 SNS 채널 등록이 필요해요</div>
-              <div className="mt-1 text-accent-ink/80">
-                운영자 승인은 채널(인스타그램·유튜브·블로그 등)을 검수해 진행돼요. 채널을 등록하시면
-                검수가 시작되고, 보통 24시간 이내에 승인됩니다.
-              </div>
+              <div className="font-semibold">{t.needChannelTitle}</div>
+              <div className="mt-1 text-accent-ink/80">{t.needChannelBody}</div>
             </div>
             <Link
               href="/dashboard/settings#channels"
               className="shrink-0 rounded-full bg-foreground px-4 py-2 text-xs font-medium text-background"
             >
-              채널 등록하기
+              {t.addChannel}
             </Link>
           </div>
         );
@@ -178,56 +178,54 @@ export function InfluencerOverview({
       <div className="mt-10 grid gap-4 md:grid-cols-4">
         <StatCard
           icon={<Inbox className="size-5" />}
-          label="응모 누적"
+          label={t.stApplied}
           value={applicationCount.toString()}
-          hint="총 응모"
+          hint={t.stAppliedHint}
         />
         <StatCard
           icon={<Star className="size-5" />}
-          label="선정"
+          label={t.stSelected}
           value={selectedCount.toString()}
-          hint="현재 진행"
+          hint={t.stSelectedHint}
         />
         <StatCard
           icon={<Coins className="size-5" />}
-          label="포인트"
+          label={t.stPoints}
           value={totalPoints.toLocaleString()}
-          hint="누적"
+          hint={t.stPointsHint}
         />
         <StatCard
           icon={<Users className="size-5" />}
-          label="내 추천 가입"
+          label={t.stReferrals}
           value={referrals.toString()}
-          hint={referrals > 0 ? "친구가 첫 체험을 완료하면 500P" : "친구 초대 → 첫 체험 완료 시 500P"}
+          hint={referrals > 0 ? t.stReferralsHintSome : t.stReferralsHintNone}
         />
       </div>
 
       {approved && profileId && referralStats && (
-        <ReferralCard profileId={profileId} {...referralStats} />
+        <ReferralCard profileId={profileId} {...referralStats} labels={t.referral} />
       )}
 
       {completeness && completeness.percent < 100 && (
         <div className="mt-8">
-          <CompletenessCard {...completeness} compact />
+          <CompletenessCard {...completeness} compact title={t.completeness.title} doneText={t.completeness.doneText} todoText={t.completeness.todoText} nextText={t.completeness.next} itemLabels={t.completeness.items} />
         </div>
       )}
 
-      {approved && <TodoList items={todoItems} />}
+      {approved && <TodoList items={todoItems} title={t.todo.title} countText={t.todo.count} emptyText={t.todo.empty} />}
 
       {approved && recommended.length > 0 && (
         <section className="mt-10">
           <div className="flex items-baseline justify-between">
             <div>
-              <h2 className="text-lg font-semibold tracking-tight">내게 맞는 캠페인</h2>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                내 전문 분야·활동 지역과 맞는 순으로 골랐어요
-              </p>
+              <h2 className="text-lg font-semibold tracking-tight">{t.recTitle}</h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">{t.recSubtitle}</p>
             </div>
             <Link
               href="/dashboard/campaigns"
               className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
             >
-              전체 보기 <ArrowUpRight className="size-3.5" />
+              {t.seeAll} <ArrowUpRight className="size-3.5" />
             </Link>
           </div>
           <div className="mt-4 grid gap-3 md:grid-cols-3">
@@ -244,7 +242,7 @@ export function InfluencerOverview({
                     <div className="absolute right-2 top-2 flex gap-1">
                       {c.badges.map((b) => (
                         <span key={b} className="rounded-full bg-accent-strong px-2 py-0.5 text-[10px] font-semibold text-white shadow-pink-sm">
-                          {b}
+                          {badgeLabel[b] ?? b}
                         </span>
                       ))}
                     </div>
@@ -260,9 +258,9 @@ export function InfluencerOverview({
                   <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
                     <span className="inline-flex items-center gap-1">
                       <Users className="size-3.5" />
-                      {c.recruit_count}명
+                      {t.recruit(c.recruit_count)}
                     </span>
-                    <span>~{new Date(c.recruit_end).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" })}</span>
+                    <span>~{new Date(c.recruit_end).toLocaleDateString(t.dateLocale, { month: "numeric", day: "numeric" })}</span>
                     {c.point_amount > 0 && (
                       <span className="ml-auto inline-flex items-center gap-1 font-semibold text-accent-ink">
                         <Coins className="size-3.5" />

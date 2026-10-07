@@ -7,6 +7,9 @@ import { redirect } from "next/navigation";
 import { fetchUICatalog } from "@/lib/cache/ui-catalog";
 import { rankCampaigns, campaignBadges, type CreatorSignals } from "@/lib/campaign-ranking";
 import { creatorCompleteness, advertiserCompleteness } from "@/lib/profile-completeness";
+import { getAppLocale } from "@/lib/i18n/app-locale";
+import { getTranslationMap, translateCards } from "@/lib/i18n/campaign-translations";
+import { categoryLabel, regionLabel } from "@/lib/i18n/app/catalog";
 
 export const metadata = { title: "대시보드 — 루비AI" };
 
@@ -168,7 +171,7 @@ export default async function DashboardPage() {
       influencer?.region_id
         ? supabase
             .from("regions")
-            .select("flag, name")
+            .select("flag, name, code")
             .eq("id", influencer.region_id)
             .maybeSingle()
         : Promise.resolve({ data: null }),
@@ -182,6 +185,8 @@ export default async function DashboardPage() {
     const needSubmitCount = selectedApps.filter((a) => !submittedAppIds.has(a.id)).length;
     const revisionCount = (subs ?? []).filter((s) => s.status === "revision_requested").length;
     const region = regionRes.data;
+    // 크리에이터 화면 언어 (?lang → 쿠키 → 프로필)
+    const locale = await getAppLocale({ profileLocale: profile.locale });
 
     const { data: refStats } = await supabase.rpc("get_my_referral_stats");
     const ref = (refStats as { total?: number; rewarded?: number; reward_points?: number; rewarded_this_month?: number } | null) ?? null;
@@ -232,15 +237,18 @@ export default async function DashboardPage() {
         appliedCampaignIds: new Set(apps.map((a) => a.campaign_id)),
       };
       const catById = new Map(catalog.categories.map((c) => [c.id, c]));
-      recommended = rankCampaigns(openCampaigns ?? [], signals)
+      const top3 = rankCampaigns(openCampaigns ?? [], signals)
         .filter((c) => !signals.appliedCampaignIds.has(c.id))
-        .slice(0, 3)
+        .slice(0, 3);
+      // /en·/zh 는 제목·상호를 번역본으로
+      const shown = locale === "ko" ? top3 : translateCards(top3, await getTranslationMap(top3.map((c) => c.id), locale));
+      recommended = shown
         .map((c) => ({
           id: c.id, title: c.title, business_name: c.business_name, thumbnail_url: c.thumbnail_url,
           point_amount: c.point_amount, recruit_end: c.recruit_end, recruit_count: c.recruit_count,
           badges: campaignBadges(c, signals),
           categoryEmoji: catById.get(c.category_id)?.emoji ?? "",
-          categoryName: catById.get(c.category_id)?.name ?? "",
+          categoryName: (() => { const cat = catById.get(c.category_id); return cat ? categoryLabel(cat, locale) : ""; })(),
         }));
     }
 
@@ -251,7 +259,8 @@ export default async function DashboardPage() {
         applicationCount={applicationCount}
         selectedCount={selectedCount}
         totalPoints={influencer?.total_points ?? 0}
-        region={region ? `${region.flag} ${region.name}` : "—"}
+        region={region ? `${region.flag} ${regionLabel(region, locale)}` : "—"}
+        locale={locale}
         todo={{
           needSubmitCount,
           revisionCount,

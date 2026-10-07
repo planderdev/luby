@@ -28,7 +28,7 @@ const TONE: Record<TodoTone, { chip: string; iconWrap: string }> = {
  * 역할별 "오늘 할 일" 액션 센터. count가 0인 항목은 자동으로 숨긴다.
  * 모두 0이면 "밀린 일이 없어요" 상태를 보여준다.
  */
-export function TodoList({ items, title = "오늘 할 일" }: { items: TodoItem[]; title?: string }) {
+export function TodoList({ items, title = "오늘 할 일", countText = (n: number) => `${n}건`, emptyText = "밀린 일이 없어요. 모두 처리됐습니다." }: { items: TodoItem[]; title?: string; countText?: (n: number) => string; emptyText?: string }) {
   const active = items.filter((i) => i.count > 0);
 
   return (
@@ -36,14 +36,14 @@ export function TodoList({ items, title = "오늘 할 일" }: { items: TodoItem[
       <div className="flex items-baseline justify-between">
         <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
         {active.length > 0 && (
-          <span className="text-xs text-muted-foreground">{active.length}건</span>
+          <span className="text-xs text-muted-foreground">{countText(active.length)}</span>
         )}
       </div>
 
       {active.length === 0 ? (
         <div className="mt-4 flex items-center gap-3 rounded-2xl border border-dashed border-border px-5 py-5 text-sm text-muted-foreground">
           <CheckCircle2 className="size-5 shrink-0 text-success" />
-          밀린 일이 없어요. 모두 처리됐습니다.
+          {emptyText}
         </div>
       ) : (
         <div className="mt-4 grid gap-3 md:grid-cols-2">

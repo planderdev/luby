@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { Calendar, Coins, Users, Inbox, CheckCircle2, Sparkles, Eye } from "lucide-react";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import type { Locale } from "@/lib/i18n/config";
 
-const STATUS_LABEL: Record<string, { label: string; tone: "success" | "warning" | "danger" | "muted" | "ink" }> = {
-  draft: { label: "초안", tone: "muted" },
-  pending_approval: { label: "검수중", tone: "warning" },
-  open: { label: "모집중", tone: "success" },
-  closed: { label: "마감", tone: "muted" },
-  completed: { label: "완료", tone: "ink" },
-  rejected: { label: "반려 · 수정 필요", tone: "danger" },
-  cancelled: { label: "취소", tone: "danger" },
+const STATUS_TONE: Record<string, "success" | "warning" | "danger" | "muted" | "ink"> = {
+  draft: "muted",
+  pending_approval: "warning",
+  open: "success",
+  closed: "muted",
+  completed: "ink",
+  rejected: "danger",
+  cancelled: "danger",
 };
 
 const TONE_CLASS: Record<string, string> = {
@@ -40,6 +42,8 @@ export function CampaignCard({
   categoryName,
   badges = [],
   stats,
+  locale = "ko",
+  appliedLabel = "응모함",
 }: {
   id: string;
   title: string;
@@ -58,8 +62,12 @@ export function CampaignCard({
   regionName: string;
   categoryEmoji: string;
   categoryName: string;
+  locale?: Locale;
+  /** '응모함' 배지의 화면 언어 라벨 (스타일 구분용) */
+  appliedLabel?: string;
 }) {
-  const statusInfo = STATUS_LABEL[status] ?? { label: status, tone: "muted" };
+  const d = dashboardDict[locale];
+  const statusInfo = { label: d.status[status] ?? status, tone: STATUS_TONE[status] ?? "muted" };
 
   return (
     <Link
@@ -87,7 +95,7 @@ export function CampaignCard({
               <span
                 key={b}
                 className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                  b === "응모함"
+                  b === appliedLabel
                     ? "bg-foreground/85 text-background"
                     : "bg-accent-strong text-white shadow-pink-sm"
                 }`}
@@ -141,7 +149,7 @@ export function CampaignCard({
           </span>
           <span className="inline-flex items-center gap-1">
             <Users className="size-3.5" />
-            {recruitCount}명
+            {d.list.recruit(recruitCount)}
           </span>
           {typeof pointAmount === "number" && pointAmount > 0 && (
             <span className="ml-auto inline-flex items-center gap-1 font-semibold text-accent-ink">

@@ -16,8 +16,17 @@ import {
   hasPersonalSignal as hasSignal,
   type CreatorSignals,
 } from "@/lib/campaign-ranking";
+import { getAppLocale } from "@/lib/i18n/app-locale";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import { getTranslationMap, translateCards } from "@/lib/i18n/campaign-translations";
+import { categoryLabel, regionLabel } from "@/lib/i18n/app/catalog";
+import type { Locale } from "@/lib/i18n/config";
 
-export const metadata = { title: "캠페인 — 루비AI" };
+export async function generateMetadata() {
+  const locale = await getAppLocale();
+  const t = dashboardDict[locale].list.metaTitle;
+  return { title: locale === "ko" ? t : { absolute: `${t} — Luby AI` } };
+}
 
 const PAGE_SIZE = 24;
 /** 추천순(크리에이터)은 가져온 뒤 메모리에서 재랭킹하므로, 랭킹 품질을 위해 이만큼 먼저 가져온다 */
@@ -40,13 +49,16 @@ const SORT_OPTIONS = [
   { value: "deadline", label: "마감 임박순" },
   { value: "points", label: "포인트 높은순" },
 ];
-// 크리에이터: 내 분야·지역·응모 여부를 반영한 추천순이 기본
-const SORT_OPTIONS_INFLUENCER = [
-  { value: "", label: "추천순 (내 분야·지역)" },
-  { value: "recent", label: "최신순" },
-  { value: "deadline", label: "마감 임박순" },
-  { value: "points", label: "포인트 높은순" },
-];
+// 크리에이터: 내 분야·지역·응모 여부를 반영한 추천순이 기본 (화면 언어별 라벨)
+const sortOptionsInfluencer = (locale: Locale) => {
+  const s = dashboardDict[locale].list.sort;
+  return [
+    { value: "", label: s.recommend },
+    { value: "recent", label: s.recent },
+    { value: "deadline", label: s.deadline },
+    { value: "points", label: s.points },
+  ];
+};
 
 export default async function CampaignsPage({
   searchParams,
@@ -82,6 +94,9 @@ export default async function CampaignsPage({
     );
 
   const isInfluencer = profile.role === "influencer";
+  // 크리에이터 화면만 다국어 — 광고주·운영자 화면은 한국어 고정
+  const locale: Locale = isInfluencer ? await getAppLocale({ profileLocale: profile.locale }) : "ko";
+  const L = dashboardDict[locale].list;
   const personalize = isInfluencer && sort === ""; // 추천순 — DB 정렬 후 메모리 재랭킹
 
   if (sort === "deadline") {
@@ -146,7 +161,9 @@ export default async function CampaignsPage({
   }
 
   const ranked = personalize ? rankCampaigns(rawCampaigns ?? [], signals) : rawCampaigns ?? [];
-  const campaigns = personalize ? ranked.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) : ranked;
+  const pageSlice = personalize ? ranked.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) : ranked;
+  // /en·/zh 크리에이터에게는 제목·상호를 번역본으로 (번역이 없으면 원문)
+  const campaigns = locale === "ko" ? pageSlice : translateCards(pageSlice, await getTranslationMap(pageSlice.map((c) => c.id), locale));
   const total = personalize ? Math.min(totalCount ?? ranked.length, RANK_WINDOW) : totalCount ?? ranked.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   // 크리에이터: 모집 인원보다 응모가 적은 캠페인에 "자리 남음" 배지
@@ -210,11 +227,11 @@ export default async function CampaignsPage({
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-            {profile.role === "influencer" ? "캠페인 둘러보기" : "캠페인"}
+            {profile.role === "influencer" ? L.eyebrow : "캠페인"}
           </p>
           <h1 className="display mt-2 text-3xl font-semibold lg:text-4xl">
             {profile.role === "advertiser" && "내 캠페인"}
-            {profile.role === "influencer" && "지금 모집중인 캠페인"}
+            {profile.role === "influencer" && L.title}
             {profile.role === "operator" && "캠페인 풀"}
           </h1>
           {profile.role === "operator" && (
@@ -255,25 +272,27 @@ export default async function CampaignsPage({
       <CampaignFilters
         categories={catalog.categories.map((c) => ({
           value: c.id,
-          label: `${c.emoji ?? ""} ${c.name}`.trim(),
+          label: `${c.emoji ?? ""} ${categoryLabel(c, locale)}`.trim(),
         }))}
         regions={catalog.regions.map((r) => ({
           value: r.id,
-          label: `${r.flag} ${r.name}`.trim(),
+          label: `${r.flag} ${regionLabel(r, locale)}`.trim(),
         }))}
         statusOptions={profile.role === "influencer" ? null : STATUS_OPTIONS_ADVERTISER}
-        sortOptions={isInfluencer ? SORT_OPTIONS_INFLUENCER : SORT_OPTIONS}
+        sortOptions={isInfluencer ? sortOptionsInfluencer(locale) : SORT_OPTIONS}
+        labels={isInfluencer ? { searchAria: L.searchAria, searchPh: L.searchPh, categoryAll: L.categoryAll, regionAll: L.regionAll, categoryAria: L.categoryAria, regionAria: L.regionAria, statusAria: "상태 필터", sortAria: L.sortAria } : undefined}
       />
 
       <p className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-        <span>총 {total}개 캠페인{totalPages > 1 ? ` · ${page}/${totalPages} 페이지` : ""}</span>
+        <span>{L.total(total, page, totalPages)}</span>
         {isInfluencer && personalize && !hasPersonalSignal && (
           <span>
             ·{" "}
+            {L.hintBefore}
             <Link href="/dashboard/settings" className="underline underline-offset-2 hover:text-foreground">
-              설정에서 전문 분야·지역을 등록
+              {L.hintLink}
             </Link>
-            하면 내게 맞는 캠페인이 위로 올라와요
+            {L.hintAfter}
           </span>
         )}
       </p>
@@ -295,12 +314,14 @@ export default async function CampaignsPage({
               recruitEnd={c.recruit_end}
               recruitCount={c.recruit_count}
               pointAmount={c.point_amount}
-              badges={isInfluencer ? [...(c.status === "open" && (appliedById.get(c.id) ?? 0) < c.recruit_count ? [`자리 ${c.recruit_count - (appliedById.get(c.id) ?? 0)}개 남음`] : []), ...campaignBadges(c, signals)] : []}
+              badges={isInfluencer ? [...(c.status === "open" && (appliedById.get(c.id) ?? 0) < c.recruit_count ? [L.spotsLeft(c.recruit_count - (appliedById.get(c.id) ?? 0))] : []), ...campaignBadges(c, signals).map((b) => L.badges[b] ?? b)] : []}
               stats={isInfluencer ? undefined : statsById.get(c.id) ?? { applied: 0, pending: 0, selected: 0, approved: 0 }}
               regionFlag={region?.flag ?? ""}
-              regionName={region?.name ?? ""}
+              regionName={region ? regionLabel(region, locale) : ""}
               categoryEmoji={category?.emoji ?? ""}
-              categoryName={category?.name ?? ""}
+              categoryName={category ? categoryLabel(category, locale) : ""}
+              locale={locale}
+              appliedLabel={L.badges["응모함"]}
             />
           );
         })}
@@ -310,7 +331,7 @@ export default async function CampaignsPage({
             <p className="text-sm text-muted-foreground">
               {profile.role === "advertiser"
                 ? "아직 만든 캠페인이 없어요. 새 캠페인을 만들어보세요."
-                : "조건에 맞는 캠페인이 없습니다."}
+                : L.empty}
             </p>
             {profile.role === "advertiser" && (
               <Link
@@ -325,11 +346,11 @@ export default async function CampaignsPage({
       </div>
 
       {totalPages > 1 && (
-        <nav aria-label="페이지" className="mt-8 flex items-center justify-center gap-2">
+        <nav aria-label={L.pageAria} className="mt-8 flex items-center justify-center gap-2">
           <Link
             href={buildHref(Math.max(1, page - 1))}
             data-pending-nav
-            aria-label="이전 페이지"
+            aria-label={L.prev}
             aria-disabled={page <= 1}
             className={`inline-flex size-9 items-center justify-center rounded-full border border-border ${page <= 1 ? "pointer-events-none opacity-40" : "hover:bg-muted"}`}
           >
@@ -339,7 +360,7 @@ export default async function CampaignsPage({
           <Link
             href={buildHref(Math.min(totalPages, page + 1))}
             data-pending-nav
-            aria-label="다음 페이지"
+            aria-label={L.next}
             aria-disabled={page >= totalPages}
             className={`inline-flex size-9 items-center justify-center rounded-full border border-border ${page >= totalPages ? "pointer-events-none opacity-40" : "hover:bg-muted"}`}
           >
