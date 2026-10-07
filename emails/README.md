@@ -12,6 +12,7 @@ Supabase Auth 가 보내는 5종 트랜잭션 이메일을 Luby AI 브랜드에 
 | `04-change-email.html` | 이메일 주소 변경 확인 | **Change Email Address** |
 | `05-invite-user.html` | 운영자가 사용자 초대 | **Invite user** |
 | `_partials/wrapper.html` | (참고용) 공유 래퍼 — 직접 사용 X | — |
+| `i18n-build.mjs` | 한·영·중 분기 템플릿 생성·자가 검증 스크립트 | — |
 
 ## Supabase 대시보드에 적용하기
 
@@ -25,13 +26,25 @@ Supabase Auth 가 보내는 5종 트랜잭션 이메일을 Luby AI 브랜드에 
 
 ## 제목 (Subject) 모음
 
-| 템플릿 | 제목 (복붙용) |
+| 템플릿 | 제목 (복붙용 — 한·영·중 병기, 제목은 분기 없이 한 줄) |
 |---|---|
-| Confirm signup | `Luby AI 이메일 인증 — 가입을 완료해주세요` |
-| Magic Link | `Luby AI 로그인 링크가 도착했어요` |
-| Reset Password | `Luby AI 비밀번호 재설정 안내` |
-| Change Email Address | `Luby AI 이메일 변경 확인` |
-| Invite user | `Luby AI에 초대되었어요` |
+| Confirm signup | `Luby AI 이메일 인증 · Verify your email · 邮箱验证` |
+| Magic Link | `Luby AI 로그인 링크 · Your login link · 登录链接` |
+| Reset Password | `Luby AI 비밀번호 재설정 · Reset your password · 重置密码` |
+| Change Email Address | `Luby AI 이메일 변경 확인 · Confirm email change · 确认更改邮箱` |
+| Invite user | `Luby AI에 초대되었어요 · You're invited · 邀请函` |
+
+## 한·영·중 분기 (2026-10-07)
+
+본문 HTML 은 Go 템플릿 분기로 **수신자 언어에 맞춰** 렌더됩니다. 가입 폼이 `options.data.locale`(ko/en/zh)을 넣으므로
+Supabase 가 `{{ .Data.locale }}` 로 읽을 수 있고, 값이 없거나 다른 값이면 한국어로 떨어집니다.
+
+- 파일 첫 줄의 선언 `{{ $l := printf "%v" .Data.locale }}…` 을 지우지 마세요(이게 언어를 정합니다).
+- 한국어 원문은 각 분기의 `{{ else }}` 가지에 그대로 있습니다. 문구를 고칠 때는 `emails/i18n-build.mjs` 의 표를 고치고
+  git 에서 원본(한국어 단일) 파일을 되돌린 뒤 `node emails/i18n-build.mjs` 로 다시 만드는 편이 안전합니다(ko 렌더가 원본과 같은지,
+  en/zh 렌더에 한글이 없는지 자가 검증합니다). 그 뒤 `copy-helper.html` 도 같이 갱신됩니다(SKILL.md 참고).
+- 초대 메일(05)은 운영자가 보내므로 수신자 locale 이 없어 한국어로 갑니다 — `inviteUserByEmail` 의 `data.locale` 로 넘기면 분기됩니다.
+- 대시보드 **Subject** 는 분기가 안 되므로 위 표처럼 세 언어를 병기합니다.
 
 ## 디자인 톤
 

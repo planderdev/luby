@@ -1,17 +1,18 @@
+{{ $l := printf "%v" .Data.locale }}{{ if and (ne $l "en") (ne $l "zh") }}{{ $l = "ko" }}{{ end }}
 <!--
   Supabase Email Template: Magic Link
-  Subject (paste separately): Luby AI 로그인 링크가 도착했어요
+  Subject (paste separately): Luby AI {{ if eq $l "zh" }}登录链接{{ else if eq $l "en" }}Login link{{ else }}로그인 링크{{ end }}가 도착했어요
 
   Variables used: {{ .ConfirmationURL }}
 -->
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="{{ $l }}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <meta name="supported-color-schemes" content="light dark">
-<title>Luby AI 로그인</title>
+{{ if eq $l "zh" }}<title>Luby AI 登录链接</title>{{ else if eq $l "en" }}<title>Your login link – Luby AI</title>{{ else }}<title>Luby AI 로그인</title>{{ end }}
 <style>
   @media (prefers-color-scheme: dark) {
     .bg { background:#0a0a0c !important; }
@@ -39,27 +40,27 @@
 
       <tr><td style="padding:0 36px 36px;">
         <div class="pink-soft" style="display:inline-block;background:#fce7f3;color:#831843;font-size:11px;font-weight:600;letter-spacing:0.1em;padding:6px 12px;border-radius:999px;text-transform:uppercase;">
-          로그인 링크
+          {{ if eq $l "zh" }}登录链接{{ else if eq $l "en" }}Login link{{ else }}로그인 링크{{ end }}
         </div>
 
         <h1 class="text" style="margin:20px 0 12px;font-size:28px;line-height:1.2;letter-spacing:-0.02em;color:#0c0c0e;font-weight:600;">
-          한 번의 클릭으로<br>로그인하세요
+          {{ if eq $l "zh" }}一键<br>登录{{ else if eq $l "en" }}Log in with<br>one click{{ else }}한 번의 클릭으로<br>로그인하세요{{ end }}
         </h1>
 
         <p class="muted" style="margin:0 0 28px;font-size:15px;line-height:1.6;color:#6e707a;">
-          요청하신 매직 링크입니다. 아래 버튼을 누르면 비밀번호 없이 즉시 로그인됩니다.<br>
-          <strong style="color:#0c0c0e;">이 링크는 1시간 동안 유효합니다.</strong>
+          {{ if eq $l "zh" }}这是您请求的登录链接。点击按钮即可免密码立即登录。{{ else if eq $l "en" }}Here's the magic link you requested. Click the button to log in instantly without a password.{{ else }}요청하신 매직 링크입니다. 아래 버튼을 누르면 비밀번호 없이 즉시 로그인됩니다.{{ end }}<br>
+          <strong style="color:#0c0c0e;">{{ if eq $l "zh" }}此链接 1 小时内有效。{{ else if eq $l "en" }}This link is valid for 1 hour.{{ else }}이 링크는 1시간 동안 유효합니다.{{ end }}</strong>
         </p>
 
         <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td>
           <a href="{{ .ConfirmationURL }}" class="btn" style="display:inline-block;background:#0c0c0e;color:#ffffff;font-size:15px;font-weight:600;padding:14px 28px;border-radius:999px;text-decoration:none;letter-spacing:-0.01em;">
-            로그인 →
+            {{ if eq $l "zh" }}登录 →{{ else if eq $l "en" }}Log in →{{ else }}로그인 →{{ end }}
           </a>
         </td></tr></table>
 
         <div style="margin-top:32px;padding-top:24px;border-top:1px solid #e2e4ea;" class="border">
           <p class="muted" style="margin:0 0 8px;font-size:12px;color:#9ca0ac;line-height:1.5;">
-            버튼이 작동하지 않으면 아래 링크를 복사해서 사용해주세요.
+            {{ if eq $l "zh" }}如果按钮无法使用，请复制下方链接打开。{{ else if eq $l "en" }}If the button doesn't work, copy and open the link below.{{ else }}버튼이 작동하지 않으면 아래 링크를 복사해서 사용해주세요.{{ end }}
           </p>
           <p class="link-fallback" style="margin:0;padding:10px 12px;background:#f4f4f6;border-radius:10px;font-size:11px;color:#6e707a;word-break:break-all;line-height:1.4;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">
             {{ .ConfirmationURL }}
@@ -70,7 +71,7 @@
 
       <tr><td class="border" style="padding:24px 36px 32px;border-top:1px solid #e2e4ea;">
         <p class="muted" style="margin:0 0 8px;color:#6e707a;font-size:12px;line-height:1.6;">
-          Luby AI · 글로벌 체험단 마케팅 플랫폼
+          {{ if eq $l "zh" }}Luby AI · 全球体验营销平台{{ else if eq $l "en" }}Luby AI · Global creator campaign platform{{ else }}Luby AI · 글로벌 체험단 마케팅 플랫폼{{ end }}
         </p>
         <p class="muted" style="margin:0;font-size:12px;line-height:1.6;">
           <a href="https://luby.im" class="muted" style="color:#6e707a;text-decoration:underline;">luby.im</a>
@@ -84,8 +85,8 @@
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;margin-top:20px;">
       <tr><td align="center" style="padding:0 16px;">
         <p class="muted" style="margin:0;color:#9ca0ac;font-size:11px;line-height:1.6;">
-          본인이 요청하지 않으셨다면 누군가 이메일 주소를 잘못 입력했을 수 있습니다.<br>
-          이 메일을 안전하게 무시해주세요.
+          {{ if eq $l "zh" }}如果不是您本人请求，可能是他人误输入了您的邮箱。{{ else if eq $l "en" }}If you didn't request this, someone may have entered your email by mistake.{{ else }}본인이 요청하지 않으셨다면 누군가 이메일 주소를 잘못 입력했을 수 있습니다.{{ end }}<br>
+          {{ if eq $l "zh" }}请忽略此邮件。{{ else if eq $l "en" }}You can safely ignore this email.{{ else }}이 메일을 안전하게 무시해주세요.{{ end }}
         </p>
       </td></tr>
     </table>
