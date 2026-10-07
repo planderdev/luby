@@ -17,6 +17,15 @@ const UI: Record<Locale, { badTitle: string; badBody: string; noneTitle: string;
  * GET /api/notifications/unsubscribe?u=<userId>&c=<reminders|transactional|digest|all>&t=<token>
  */
 export async function GET(request: Request) {
+  return handle(request, "html");
+}
+
+/** RFC 8058 원클릭 수신 거부 — 메일 클라이언트가 List-Unsubscribe URL 로 POST(List-Unsubscribe=One-Click) 한다. 본문은 보지 않고 URL 토큰만 검증 */
+export async function POST(request: Request) {
+  return handle(request, "text");
+}
+
+async function handle(request: Request, mode: "html" | "text") {
   const { searchParams } = new URL(request.url);
   const u = searchParams.get("u") ?? "";
   const c = (searchParams.get("c") ?? "") as EmailCategory | "all";
@@ -25,18 +34,18 @@ export async function GET(request: Request) {
   const ui = UI[locale];
   const valid = ["reminders", "transactional", "digest", "all"].includes(c) && /^[0-9a-f-]{36}$/.test(u);
   if (!valid || !verifyUnsubscribe(u, c, t)) {
-    return html(ui.badTitle, ui.badBody, 400, locale);
+    return mode === "text" ? new NextResponse("invalid", { status: 400 }) : html(ui.badTitle, ui.badBody, 400, locale);
   }
   const admin = getAdminSupabase();
   const { data: p } = await admin.from("profiles").select("email_prefs").eq("id", u).maybeSingle();
-  if (!p) return html(ui.noneTitle, ui.noneBody, 404, locale);
+  if (!p) return mode === "text" ? new NextResponse("not found", { status: 404 }) : html(ui.noneTitle, ui.noneBody, 404, locale);
   const prefs = normalizePrefs(p.email_prefs);
   if (c === "all") { prefs.transactional = false; prefs.reminders = false; prefs.digest = false; }
   else prefs[c] = false;
   await admin.from("profiles").update({ email_prefs: prefs }).eq("id", u);
   const catLabel = c === "all" ? "" : locale === "ko" ? EMAIL_CATEGORY_LABEL[c].label : dashboardDict[locale].settings.emailPrefs.cats[c]?.label ?? EMAIL_CATEGORY_LABEL[c].label;
   const label = c === "all" ? ui.all : ui.typeMail(catLabel);
-  return html(ui.doneTitle, ui.doneBody(label), 200, locale);
+  return mode === "text" ? new NextResponse("ok", { status: 200 }) : html(ui.doneTitle, ui.doneBody(label), 200, locale);
 }
 
 function html(title: string, body: string, status: number, locale: Locale = "ko") {

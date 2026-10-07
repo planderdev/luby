@@ -5,6 +5,7 @@ import { renderNotificationEmail } from "@/lib/notifications/email-template";
 import { sendPushToUser } from "@/lib/notifications/push";
 import { localizeNotification } from "@/lib/notifications/localize";
 import { parseAppLocale } from "@/lib/i18n/app-locale-shared";
+import { unsubscribeUrl } from "@/lib/unsubscribe-token";
 
 // 429 재시도가 최대 ~15초까지 기다릴 수 있어 여유를 둔다 (다이제스트 20명 버스트 = 초당 2건 제한에서 ~10초 소요)
 export const maxDuration = 30;
@@ -95,6 +96,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ push, email: { skipped: true, reason: `skip domain ${domain}` } });
   }
 
+  // RFC 8058 원클릭 수신 거부 헤더 — Gmail/Yahoo 가 '수신 거부' 버튼을 띄우고 발신 평판에 유리하다. 같은 카테고리만 끈다(2026-10-07)
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://luby.im";
+  const listUnsub = unsubscribeUrl(siteUrl, payload.user_id, category, locale);
   const { subject, html } = renderNotificationEmail({
     userId: payload.user_id,
     title: loc.title,
@@ -120,6 +124,10 @@ export async function POST(request: Request) {
         to: [profile.email],
         subject,
         html,
+        headers: {
+          "List-Unsubscribe": `<${listUnsub}>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
       }),
     });
     if (res.status !== 429) break;
