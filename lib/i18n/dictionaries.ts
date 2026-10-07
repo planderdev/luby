@@ -7,11 +7,11 @@ import type { Locale } from "./config";
 const ko = {
   meta: {
     brand: "루비AI",
-    title: "루비AI — 체험단 모집·글로벌 인플루언서 마케팅 플랫폼",
+    title: "루비AI — 샤오홍슈 체험단 모집 · 글로벌 인플루언서 중국 마케팅 시딩 플랫폼",
     description:
       "체험단 모집부터 인플루언서 마케팅까지 AI가 한 번에. 국내는 물론 샤오홍슈·외국인 관광객 타깃 글로벌 체험단을 캠페인 등록 → 크리에이터 매칭 → 콘텐츠 발행까지 루비AI 한 곳에서.",
     ogLocale: "ko_KR",
-    ogImageAlt: "루비AI — 체험단 모집·글로벌 인플루언서 마케팅 플랫폼",
+    ogImageAlt: "루비AI — 샤오홍슈 체험단 모집 · 글로벌 인플루언서 중국 마케팅 시딩 플랫폼",
   },
   audience: ["광고주", "인플루언서", "마케팅 담당자"],
   nav: {

@@ -13,7 +13,7 @@ export function getSiteUrl(): string {
 export const SITE = {
   name: "루비AI",
   legalName: "루비AI",
-  tagline: "체험단 모집·글로벌 인플루언서 마케팅 플랫폼",
+  tagline: "샤오홍슈 체험단 모집 · 글로벌 인플루언서 중국 마케팅 시딩 플랫폼",
   description:
     "루비AI는 글로벌 인플루언서·체험단을 AI로 매칭하는 마케팅 플랫폼입니다. 캠페인 등록부터 선정·콘텐츠 발행까지 한 곳에서.",
   shortDescription: "글로벌 인플루언서를 AI로 매칭하는 마케팅 플랫폼",
