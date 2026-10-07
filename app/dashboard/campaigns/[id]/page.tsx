@@ -285,6 +285,7 @@ export default async function CampaignDetailPage({
           icon={<Coins className="size-4" />}
           label={tc.points}
           value={campaign.point_amount.toLocaleString()}
+          sub={tc.pointsHint || undefined}
         />
       </div>
 
@@ -470,10 +471,13 @@ function Stat({
   icon,
   label,
   value,
+  sub,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
+  /** 값 아래 작은 보조 설명 (예: 해외 크리에이터용 포인트 출금 안내) */
+  sub?: string;
 }) {
   return (
     <div className="rounded-3xl glass-card p-5">
@@ -482,6 +486,7 @@ function Stat({
         {label}
       </div>
       <div className="mt-2 text-lg font-semibold">{value}</div>
+      {sub && <div className="mt-1 text-[11px] leading-snug text-muted-foreground">{sub}</div>}
     </div>
   );
 }
