@@ -14,12 +14,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let campaignEntries: MetadataRoute.Sitemap = [];
   try {
     const { data } = await getStaticSupabase().rpc("list_public_campaign_ids", { p_limit: 500 });
-    campaignEntries = (data ?? []).map((c) => ({
-      url: `${base}/c/${c.id}`,
-      lastModified: new Date(c.updated_at),
-      changeFrequency: "daily" as const,
-      priority: 0.7,
-    }));
+    // ko/en/zh 세 언어 URL 을 모두 싣고 hreflang 대체 링크를 단다 (2026-10-07: 전엔 ko 만 있어 중문·영문 캠페인 페이지가 색인 신호를 못 받았다)
+    campaignEntries = (data ?? []).flatMap((c) => {
+      const languages = { "ko-KR": `${base}/c/${c.id}`, en: `${base}/en/c/${c.id}`, "zh-CN": `${base}/zh/c/${c.id}`, "x-default": `${base}/c/${c.id}` };
+      return (["", "/en", "/zh"] as const).map((l) => ({
+        url: `${base}${l}/c/${c.id}`,
+        lastModified: new Date(c.updated_at),
+        changeFrequency: "daily" as const,
+        priority: l === "" ? 0.7 : 0.6,
+        alternates: { languages },
+      }));
+    });
   } catch {
     campaignEntries = [];
   }
@@ -27,12 +32,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let creatorEntries: MetadataRoute.Sitemap = [];
   try {
     const { data } = await getStaticSupabase().rpc("list_public_creator_ids", { p_limit: 1000 });
-    creatorEntries = (data ?? []).map((c) => ({
-      url: `${base}/p/${c.id}`,
-      lastModified: new Date(c.updated_at),
-      changeFrequency: "weekly" as const,
-      priority: 0.5,
-    }));
+    creatorEntries = (data ?? []).flatMap((c) => {
+      const languages = { "ko-KR": `${base}/p/${c.id}`, en: `${base}/en/p/${c.id}`, "zh-CN": `${base}/zh/p/${c.id}`, "x-default": `${base}/p/${c.id}` };
+      return (["", "/en", "/zh"] as const).map((l) => ({
+        url: `${base}${l}/p/${c.id}`,
+        lastModified: new Date(c.updated_at),
+        changeFrequency: "weekly" as const,
+        priority: l === "" ? 0.5 : 0.4,
+        alternates: { languages },
+      }));
+    });
   } catch {
     creatorEntries = [];
   }
