@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { LreChrome, LreChromeFooter } from "@/components/landing-re/LreChrome";
 import { getTranslationMap, translateCards } from "@/lib/i18n/campaign-translations";
+import { withLang } from "@/lib/i18n/app-locale-shared";
 import "@/app/lre-chrome.css";
 
 import Image from "next/image";
@@ -43,7 +44,7 @@ export async function CreatorLanding({ locale }: { locale: Locale }) {
   const topKo = ((topRaw as { items?: Card[] } | null)?.items ?? []).slice(0, 3);
   const top = translateCards(topKo, await getTranslationMap(topKo.map((c) => c.id), locale));
   const fmtP = (n: number | null) => (n === null ? "-" : Math.round(n).toLocaleString());
-  const signupHref = `/signup?role=influencer&redirect=${encodeURIComponent("/dashboard/campaigns")}`;
+  const signupHref = withLang(`/signup?role=influencer&redirect=${encodeURIComponent("/dashboard/campaigns")}`, locale);
   const icons = [Globe, Sparkles, BellRing, IdCard];
   const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(tc.dateFmt, { month: "short", day: "numeric" });
 
@@ -52,7 +53,7 @@ export async function CreatorLanding({ locale }: { locale: Locale }) {
       <LreChrome
         locale={locale}
         langHrefs={{ ko: "/creators", en: "/en/creators", zh: "/zh/creators" }}
-        loginHref="/login?redirect=/dashboard/campaigns"
+        loginHref={withLang("/login?redirect=/dashboard/campaigns", locale)}
         joinHref={signupHref}
         dashboardLabel={tc.dashboard}
       />

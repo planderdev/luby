@@ -4,6 +4,8 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PublicShareButton } from "@/components/PublicShareButton";
 import { useRefParam, useViewer } from "./viewer";
+import { withLang } from "@/lib/i18n/app-locale-shared";
+import type { Locale } from "@/lib/i18n/config";
 
 type Labels = { signup: string; apply: string; dashboard: string; haveAccount: string; login: string };
 
@@ -11,11 +13,11 @@ type Labels = { signup: string; apply: string; dashboard: string; haveAccount: s
  * 공개 캠페인 페이지의 응모 CTA — 로그인 여부·역할에 따라 문구와 목적지가 달라진다.
  * 서버에서 쿠키를 읽지 않기 위해 이 조각만 클라이언트에서 판단한다.
  */
-export function CampaignCta({ dashboardHref, loginHref, labels, showHint }: { dashboardHref: string; loginHref: string; labels: Labels; showHint: boolean }) {
+export function CampaignCta({ dashboardHref, loginHref, labels, showHint, locale = "ko" }: { dashboardHref: string; loginHref: string; labels: Labels; showHint: boolean; locale?: Locale }) {
   const { viewer } = useViewer();
   const refId = useRefParam();
   const refQ = refId ? `&ref=${refId}` : "";
-  const href = viewer ? dashboardHref : `/signup?role=influencer&redirect=${encodeURIComponent(dashboardHref)}${refQ}`;
+  const href = viewer ? dashboardHref : withLang(`/signup?role=influencer&redirect=${encodeURIComponent(dashboardHref)}${refQ}`, locale);
   const label = viewer ? (viewer.role === "influencer" ? labels.apply : labels.dashboard) : labels.signup;
   return (
     <>

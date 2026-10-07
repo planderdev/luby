@@ -5,6 +5,7 @@ import { DocsSidebar } from "@/components/docs/DocsSidebar";
 import { DocsSearch } from "@/components/docs/DocsSearch";
 import { LreChrome, LreChromeFooter } from "@/components/landing-re/LreChrome";
 import "@/app/lre-chrome.css";
+import { withLang } from "@/lib/i18n/app-locale-shared";
 
 /** 가이드 셸 — 랜딩 크롬(헤더·언어·로그인) + 가이드 서브바(배지·검색), 좌측 목차, 본문, 랜딩 푸터. 운영자 그룹은 운영자에게만 */
 export async function DocsShell({ lang, children }: { lang: DocsLocale; children: React.ReactNode }) {
@@ -21,7 +22,8 @@ export async function DocsShell({ lang, children }: { lang: DocsLocale; children
       <LreChrome
         locale={lang}
         langHrefs={{ ko: docsPrefix("ko"), en: docsPrefix("en"), zh: docsPrefix("zh") }}
-        loginHref="/login?redirect=/dashboard"
+        loginHref={withLang("/login?redirect=/dashboard", lang)}
+        joinHref={withLang("/signup?role=influencer", lang)}
         dashboardLabel={t.openDashboard}
       />
       {/* 가이드 서브바 — 고정 헤더 바로 아래에 붙는다(top = 헤더 높이 변수) */}

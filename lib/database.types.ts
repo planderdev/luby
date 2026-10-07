@@ -1101,6 +1101,7 @@ export type Database = {
           operator_tags: string[]
           referred_by: string | null
           signup_source: Json | null
+          locale: string | null
           created_at: string
           email: string
           id: string
@@ -1119,6 +1120,7 @@ export type Database = {
           operator_tags?: string[]
           referred_by?: string | null
           signup_source?: Json | null
+          locale?: string | null
           created_at?: string
           email: string
           id: string
@@ -1137,6 +1139,7 @@ export type Database = {
           operator_tags?: string[]
           referred_by?: string | null
           signup_source?: Json | null
+          locale?: string | null
           created_at?: string
           email?: string
           id?: string

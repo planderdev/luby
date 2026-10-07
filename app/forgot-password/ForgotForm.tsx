@@ -4,8 +4,11 @@ import { authErrorMessage } from "@/lib/auth-errors";
 import { useState } from "react";
 import { Loader2, MailCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { authDict } from "@/lib/i18n/app/auth";
+import type { Locale } from "@/lib/i18n/config";
 
-export function ForgotForm() {
+export function ForgotForm({ locale = "ko" }: { locale?: Locale }) {
+  const t = authDict[locale].forgot;
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,12 +21,12 @@ export function ForgotForm() {
 
     const supabase = createClient();
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${window.location.origin}/reset-password${locale === "ko" ? "" : `?lang=${locale}`}`,
     });
 
     setLoading(false);
     if (error) {
-      setError(authErrorMessage(error, "메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요."));
+      setError(authErrorMessage(error, t.failed, locale));
       return;
     }
     // 계정 존재 여부는 노출하지 않음 (보안)
@@ -36,11 +39,11 @@ export function ForgotForm() {
         <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-accent-soft">
           <MailCheck className="size-7 text-accent-ink" />
         </div>
-        <h2 className="mt-4 text-lg font-semibold">메일을 확인해주세요</h2>
+        <h2 className="mt-4 text-lg font-semibold">{t.sentTitle}</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          <strong>{email}</strong>(으)로 재설정 링크를 보냈습니다.
+          {t.sentBefore}<strong>{email}</strong>{t.sentAfter}
           <br />
-          메일이 보이지 않으면 스팸함도 확인해주세요.
+          {t.sentSpam}
         </p>
       </div>
     );
@@ -49,21 +52,19 @@ export function ForgotForm() {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
-        <label className="mb-1.5 block text-xs font-medium text-muted-foreground">이메일</label>
+        <label className="mb-1.5 block text-xs font-medium text-muted-foreground">{t.email}</label>
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
           required
-          placeholder="가입한 이메일 주소"
+          placeholder={t.placeholder}
           className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none transition-colors focus:border-foreground"
         />
       </div>
       {error && (
-        <div className="rounded-2xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent-ink">
-          {error}
-        </div>
+        <div className="rounded-2xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent-ink">{error}</div>
       )}
       <button
         type="submit"
@@ -71,7 +72,7 @@ export function ForgotForm() {
         className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-6 py-3.5 text-sm font-medium text-background transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60"
       >
         {loading && <Loader2 className="size-4 animate-spin" />}
-        재설정 링크 보내기
+        {t.submit}
       </button>
     </form>
   );

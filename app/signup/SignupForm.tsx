@@ -3,8 +3,12 @@ import { authErrorMessage } from "@/lib/auth-errors";
 import { completeEmail, suggestEmail } from "@/lib/email-typo";
 import { readAttribution } from "@/lib/attribution";
 import { trackClient } from "@/lib/analytics";
-import { ADVERTISER_KINDS, type AdvertiserKind } from "@/lib/advertiser-kind";
+import type { AdvertiserKind } from "@/lib/advertiser-kind";
 import { normalizeChannelUrl } from "@/lib/channel-url";
+import { authDict } from "@/lib/i18n/app/auth";
+import type { Locale } from "@/lib/i18n/config";
+import { advertiserKindsFor } from "@/lib/advertiser-kind";
+import { categoryLabel, regionLabel } from "@/lib/i18n/app/catalog";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -15,7 +19,7 @@ type Role = "advertiser" | "influencer";
 
 type RegionOption = { id: string; code: string; name: string; flag: string };
 type ChannelOption = { id: string; slug: string; name: string };
-type CategoryOption = { id: string; name: string; emoji: string | null };
+type CategoryOption = { id: string; slug?: string | null; name: string; emoji: string | null };
 
 export function SignupForm({
   regions,
@@ -24,6 +28,7 @@ export function SignupForm({
   initialRole = null,
   redirectTo = null,
   refId = null,
+  locale = "ko",
 }: {
   regions: RegionOption[];
   channelTypes: ChannelOption[];
@@ -34,7 +39,10 @@ export function SignupForm({
   redirectTo?: string | null;
   /** 추천인(공유한 크리에이터) id — profiles.referred_by 로 저장 */
   refId?: string | null;
+  /** 화면 언어(ko/en/zh) — 가입 메타데이터 locale 로도 저장된다 */
+  locale?: Locale;
 }) {
+  const t = authDict[locale].signup;
   const router = useRouter();
   const [role, setRole] = useState<Role>(initialRole ?? "advertiser");
   const [step, setStep] = useState<"role" | "form" | "check_email">(
@@ -44,7 +52,7 @@ export function SignupForm({
   return (
     <div>
       {step === "role" && (
-        <RoleStep selected={role} onSelect={setRole} onNext={() => setStep("form")} />
+        <RoleStep selected={role} onSelect={setRole} onNext={() => setStep("form")} t={t} />
       )}
       {step === "form" && (
         <FormStep
@@ -56,21 +64,26 @@ export function SignupForm({
           onBack={() => setStep("role")}
           onSignedIn={() => router.push(redirectTo ?? "/dashboard")}
           onNeedConfirm={() => setStep("check_email")}
+          locale={locale}
         />
       )}
-      {step === "check_email" && <CheckEmailStep />}
+      {step === "check_email" && <CheckEmailStep t={t} />}
     </div>
   );
 }
+
+type T = (typeof authDict)["ko"]["signup"];
 
 function RoleStep({
   selected,
   onSelect,
   onNext,
+  t,
 }: {
   selected: Role;
   onSelect: (r: Role) => void;
   onNext: () => void;
+  t: T;
 }) {
   return (
     <div className="space-y-4">
@@ -78,21 +91,21 @@ function RoleStep({
         active={selected === "advertiser"}
         onClick={() => onSelect("advertiser")}
         icon={<Building2 className="size-5" />}
-        label="광고주 (브랜드)"
-        desc="제품·매장을 알리고 인플루언서를 모집합니다."
+        label={t.roleAdvertiser}
+        desc={t.roleAdvertiserDesc}
       />
       <RoleCard
         active={selected === "influencer"}
         onClick={() => onSelect("influencer")}
         icon={<Sparkles className="size-5" />}
-        label="인플루언서 (크리에이터)"
-        desc="원하는 캠페인에 응모하고 체험 후 콘텐츠를 발행합니다."
+        label={t.roleInfluencer}
+        desc={t.roleInfluencerDesc}
       />
       <button
         onClick={onNext}
         className="mt-2 w-full rounded-full bg-foreground px-6 py-3.5 text-sm font-medium text-background"
       >
-        다음으로
+        {t.next}
       </button>
     </div>
   );
@@ -147,6 +160,7 @@ function FormStep({
   onBack,
   onSignedIn,
   onNeedConfirm,
+  locale,
 }: {
   role: Role;
   refId?: string | null;
@@ -156,7 +170,9 @@ function FormStep({
   onBack: () => void;
   onSignedIn: () => void;
   onNeedConfirm: () => void;
+  locale: Locale;
 }) {
+  const t = authDict[locale].signup;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -183,7 +199,7 @@ function FormStep({
     if (role === "advertiser") {
       const digits = businessNumber.replace(/-/g, "");
       if (!/^\d{10}$/.test(digits)) {
-        setError("사업자등록번호는 숫자 10자리로 입력해주세요. (예: 123-45-67890)");
+        setError(t.errBusinessNumber);
         return;
       }
     }
@@ -195,7 +211,7 @@ function FormStep({
       const slug = channelTypes.find((c) => c.id === channelTypeId)?.slug ?? "";
       normalizedChannelUrl = normalizeChannelUrl(channelUrl, slug);
       if (!normalizedChannelUrl) {
-        setError("대표 채널의 URL 또는 @아이디를 입력해주세요. 검수와 승인에 꼭 필요해요.");
+        setError(t.errChannelUrl);
         return;
       }
     }
@@ -209,6 +225,7 @@ function FormStep({
       role,
       name,
       phone,
+      locale, // profiles.locale — 알림·이메일 언어의 기준
     };
     if (refId) metadata.referred_by = refId;
     const source = readAttribution();
@@ -230,13 +247,13 @@ function FormStep({
       email,
       password,
       // 인증 링크를 누르면 로그인 페이지로 (verified=1 이면 완료 배너 표시)
-      options: { data: metadata, emailRedirectTo: `${window.location.origin}/login?verified=1` },
+      options: { data: metadata, emailRedirectTo: `${window.location.origin}/login?verified=1${locale === "ko" ? "" : `&lang=${locale}`}` },
     });
 
     setLoading(false);
 
     if (error) {
-      setError(authErrorMessage(error, "가입에 실패했어요. 입력값을 확인하고 다시 시도해 주세요."));
+      setError(authErrorMessage(error, t.errFailed, locale));
       return;
     }
 
@@ -244,7 +261,7 @@ function FormStep({
     // — 이때 user.identities 가 빈 배열이다. 인증 대기 화면으로 보내면 오지 않을 메일을 기다리게 된다.
     if (data.user && (data.user.identities?.length ?? 0) === 0) {
       setAlreadyRegistered(true);
-      setError("이미 가입된 이메일이에요. 아래에서 로그인하거나 비밀번호를 재설정해주세요.");
+      setError(t.errAlready);
       return;
     }
 
@@ -266,14 +283,14 @@ function FormStep({
           onClick={onBack}
           className="-ml-2 rounded-full px-2 py-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
         >
-          ← 역할 변경
+          {t.changeRole}
         </button>
         <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium">
-          {role === "advertiser" ? "광고주" : "인플루언서"}
+          {role === "advertiser" ? t.badgeAdvertiser : t.badgeInfluencer}
         </span>
       </div>
 
-      <Field label="이메일" type="email" value={email} onChange={setEmail} required />
+      <Field label={t.email} type="email" value={email} onChange={setEmail} required />
       {(() => {
         // 오타 주소로 가입하면 인증 메일이 영영 닿지 않는다 — 제출은 막지 않고 제안만.
         // 도메인을 치는 중에는 자동완성 칩("@g" → gmail.com), 다 쳤는데 오타면 교정 힌트.
@@ -301,12 +318,12 @@ function FormStep({
             onClick={() => setEmail(fixed)}
             className="-mt-3 block text-left text-xs text-accent-ink underline underline-offset-2"
           >
-            혹시 <b>{fixed}</b> 아닌가요? 눌러서 바꾸기
+            {t.suggestBefore}<b>{fixed}</b>{t.suggestAfter}
           </button>
         ) : null;
       })()}
       <Field
-        label="비밀번호 (8자 이상)"
+        label={t.password}
         type="password"
         value={password}
         onChange={setPassword}
@@ -314,20 +331,20 @@ function FormStep({
         minLength={8}
       />
       <Field
-        label={role === "advertiser" ? "담당자 이름" : "이름·닉네임"}
+        label={role === "advertiser" ? t.nameAdvertiser : t.nameInfluencer}
         type="text"
         value={name}
         onChange={setName}
         required
       />
-      <Field label="연락처 (선택)" type="tel" value={phone} onChange={setPhone} />
+      <Field label={t.phone} type="tel" value={phone} onChange={setPhone} />
 
       {role === "advertiser" ? (
         <>
           <div>
-            <label className="text-xs font-medium text-muted-foreground">광고주 유형</label>
+            <label className="text-xs font-medium text-muted-foreground">{t.advertiserKind}</label>
             <div className="mt-2 grid grid-cols-2 gap-2">
-              {ADVERTISER_KINDS.map((k) => {
+              {advertiserKindsFor(locale).map((k) => {
                 const on = advertiserKind === k.value;
                 return (
                   <button
@@ -351,19 +368,19 @@ function FormStep({
             </div>
             {advertiserKind === "agency" && (
               <p className="mt-2 text-xs text-muted-foreground">
-                대행사는 캠페인을 만들 때마다 클라이언트 상호를 따로 입력할 수 있어요. 아래에는 대행사 정보를 적어주세요.
+                {t.agencyHint}
               </p>
             )}
           </div>
           <Field
-            label={advertiserKind === "agency" ? "대행사명" : "회사·상호명"}
+            label={advertiserKind === "agency" ? t.agencyName : t.companyName}
             type="text"
             value={companyName}
             onChange={setCompanyName}
             required
           />
           <Field
-            label="사업자등록번호"
+            label={t.businessNumber}
             type="text"
             value={businessNumber}
             onChange={setBusinessNumber}
@@ -374,29 +391,29 @@ function FormStep({
       ) : (
         <>
           <SelectField
-            label="활동 지역"
+            label={t.region}
             value={regionId}
             onChange={setRegionId}
-            options={regions.map((r) => ({ value: r.id, label: `${r.flag} ${r.name}` }))}
+            options={regions.map((r) => ({ value: r.id, label: `${r.flag} ${regionLabel(r, locale)}` }))}
           />
           <SelectField
-            label="대표 SNS 채널"
+            label={t.channel}
             value={channelTypeId}
             onChange={setChannelTypeId}
             options={channelTypes.map((c) => ({ value: c.id, label: c.name }))}
           />
           <Field
-            label="채널 URL 또는 @아이디"
+            label={t.channelUrl}
             type="text"
             value={channelUrl}
             onChange={setChannelUrl}
             required
-            placeholder={channelPlaceholder(channelTypes.find((c) => c.id === channelTypeId)?.slug)}
-            hint="@아이디만 적어도 돼요 · 운영자가 채널을 확인하고 승인하는 데 꼭 필요합니다"
+            placeholder={channelPlaceholder(channelTypes.find((c) => c.id === channelTypeId)?.slug, t)}
+            hint={t.channelUrlHint}
           />
           <div>
             <label className="text-xs font-medium text-muted-foreground">
-              전문 분야 (최대 3개) · {categoryIds.length}/3
+              {t.categories(categoryIds.length)}
             </label>
             <div className="mt-2 flex flex-wrap gap-2">
               {categories.map((c) => {
@@ -421,13 +438,13 @@ function FormStep({
                         : "border-border bg-background text-muted-foreground hover:bg-muted"
                     }`}
                   >
-                    {c.emoji} {c.name}
+                    {c.emoji} {categoryLabel(c, locale)}
                   </button>
                 );
               })}
             </div>
             <p className="mt-1.5 text-[11px] text-muted-foreground">
-              광고주 검색·AI 매칭에 사용돼요. 나중에 설정에서 바꿀 수 있어요.
+              {t.categoriesHint}
             </p>
           </div>
         </>
@@ -438,8 +455,8 @@ function FormStep({
           {error}
           {alreadyRegistered && (
             <div className="mt-2 flex flex-wrap gap-3 text-sm font-medium">
-              <a href="/login" className="underline underline-offset-2">로그인하러 가기</a>
-              <a href="/forgot-password" className="underline underline-offset-2">비밀번호 재설정</a>
+              <a href={locale === "ko" ? "/login" : `/login?lang=${locale}`} className="underline underline-offset-2">{t.goLogin}</a>
+              <a href={locale === "ko" ? "/forgot-password" : `/forgot-password?lang=${locale}`} className="underline underline-offset-2">{t.resetPw}</a>
             </div>
           )}
         </div>
@@ -451,45 +468,43 @@ function FormStep({
         className="btn-neon flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-bold disabled:opacity-60"
       >
         {loading && <Loader2 className="size-4 animate-spin" />}
-        가입하고 시작하기
+        {t.submit}
       </button>
 
       {role === "influencer" && (
         <p className="text-xs text-muted-foreground">
-          * 인플루언서 계정은 운영자 검수를 거쳐 승인됩니다 (평균 24시간 이내).
+          {t.influencerNote}
         </p>
       )}
     </form>
   );
 }
 
-function CheckEmailStep() {
+function CheckEmailStep({ t }: { t: T }) {
   return (
     <div className="rounded-3xl border border-border bg-muted/40 p-8 text-center">
       <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-accent-soft text-accent-ink">
         <MailCheck className="size-6" />
       </div>
-      <h3 className="mt-5 text-lg font-semibold">메일함을 확인해주세요</h3>
-      <p className="mt-2 text-sm text-muted-foreground">
-        가입 확인 메일을 발송했어요. 메일 안의 링크를 눌러 인증을 완료하면 로그인할 수 있습니다.
-      </p>
+      <h3 className="mt-5 text-lg font-semibold">{t.checkEmailTitle}</h3>
+      <p className="mt-2 text-sm text-muted-foreground">{t.checkEmailBody}</p>
     </div>
   );
 }
 
 /** 플랫폼별 입력 예시 — 아이디만 적어도 된다는 걸 placeholder 로 보여준다 */
-function channelPlaceholder(slug?: string) {
+function channelPlaceholder(slug: string | undefined, t: T) {
   switch (slug) {
     case "youtube":
-      return "@채널아이디 또는 https://youtube.com/@...";
+      return t.placeholder.youtube;
     case "tiktok":
-      return "@아이디 또는 https://tiktok.com/@...";
+      return t.placeholder.tiktok;
     case "blog":
-      return "블로그 아이디 또는 https://blog.naver.com/...";
+      return t.placeholder.blog;
     case "xiaohongshu":
-      return "小红书号 또는 프로필 URL";
+      return t.placeholder.xiaohongshu;
     default:
-      return "@아이디 또는 https://instagram.com/...";
+      return t.placeholder.default;
   }
 }
 

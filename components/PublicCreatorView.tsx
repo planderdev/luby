@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { LreChrome, LreChromeFooter } from "@/components/landing-re/LreChrome";
 import "@/app/lre-chrome.css";
+import { withLang } from "@/lib/i18n/app-locale-shared";
 
 import { unstable_cache } from "next/cache";
 import { notFound } from "next/navigation";
@@ -111,7 +112,7 @@ export async function PublicCreatorView({ id, locale = "ko", ownerPreview = fals
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {!ownerPreview && <ViewBeacon kind="creator" id={c.id} lang={locale} />}
       <div className="print:hidden">
-        <LreChrome locale={locale} langHrefs={{ ko: `/p/${c.id}`, en: `/en/p/${c.id}`, zh: `/zh/p/${c.id}` }} dashboardLabel={t.dashboard} />
+        <LreChrome locale={locale} langHrefs={{ ko: `/p/${c.id}`, en: `/en/p/${c.id}`, zh: `/zh/p/${c.id}` }} loginHref={withLang("/login", locale)} joinHref={withLang("/signup?role=influencer", locale)} dashboardLabel={t.dashboard} />
       </div>
 
       <div className="mx-auto w-full max-w-4xl px-5 py-8 lg:py-12">

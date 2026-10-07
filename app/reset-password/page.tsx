@@ -2,19 +2,26 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AuthShell } from "@/components/AuthShell";
 import { ResetForm } from "./ResetForm";
+import { getAppLocale } from "@/lib/i18n/app-locale";
+import { authDict } from "@/lib/i18n/app/auth";
 
-export const metadata: Metadata = {
-  title: "새 비밀번호 설정",
-  description: "루비AI 계정의 새 비밀번호를 설정합니다.",
-  alternates: { canonical: "/reset-password" },
-  robots: { index: false, follow: false },
-};
+type Params = { lang?: string };
 
-export default function ResetPasswordPage() {
+export async function generateMetadata({ searchParams }: { searchParams: Promise<Params> }): Promise<Metadata> {
+  const { lang } = await searchParams;
+  const locale = await getAppLocale({ param: lang });
+  const t = authDict[locale].reset;
+  return { title: locale === "ko" ? t.metaTitle : { absolute: `${t.metaTitle} — Luby AI` }, description: t.metaDesc, alternates: { canonical: "/reset-password" }, robots: { index: false, follow: false } };
+}
+
+export default async function ResetPasswordPage({ searchParams }: { searchParams: Promise<Params> }) {
+  const { lang } = await searchParams;
+  const locale = await getAppLocale({ param: lang });
+  const t = authDict[locale].reset;
   return (
-    <AuthShell title="새 비밀번호 설정" subtitle="사용할 새 비밀번호를 입력해주세요.">
+    <AuthShell title={t.title} subtitle={t.subtitle} locale={locale} pathname="/reset-password">
       <Suspense fallback={<div className="h-72" />}>
-        <ResetForm />
+        <ResetForm locale={locale} />
       </Suspense>
     </AuthShell>
   );

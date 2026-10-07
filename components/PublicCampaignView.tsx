@@ -14,6 +14,7 @@ import type { Locale } from "@/lib/i18n/config";
 import { CampaignCta, CampaignShareButton } from "@/components/public/CampaignCta";
 import { ViewBeacon } from "@/components/ViewBeacon";
 import { getTranslationMap, translateCards, translateCampaignView } from "@/lib/i18n/campaign-translations";
+import { withLang } from "@/lib/i18n/app-locale-shared";
 
 // 공개 캠페인 페이지 — 로그인 없이 볼 수 있는 공유·SEO용. 데이터는 get_public_campaign() (민감정보 제외).
 
@@ -138,7 +139,7 @@ export async function PublicCampaignView({ id, locale }: { id: string; locale: L
   const isOpen = c.status === "open" && (c.always_open || new Date(c.recruit_end).getTime() > Date.now());
   const daysLeft = Math.ceil((new Date(c.recruit_end).getTime() - Date.now()) / 864e5);
   const dashboardHref = `/dashboard/campaigns/${c.id}`;
-  const loginHref = `/login?redirect=${encodeURIComponent(dashboardHref)}`;
+  const loginHref = withLang(`/login?redirect=${encodeURIComponent(dashboardHref)}`, locale);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -163,7 +164,7 @@ export async function PublicCampaignView({ id, locale }: { id: string; locale: L
         locale={locale}
         langHrefs={{ ko: `/c/${c.id}`, en: `/en/c/${c.id}`, zh: `/zh/c/${c.id}` }}
         loginHref={loginHref}
-        joinHref={`/signup?role=influencer&redirect=${encodeURIComponent(dashboardHref)}`}
+        joinHref={withLang(`/signup?role=influencer&redirect=${encodeURIComponent(dashboardHref)}`, locale)}
         dashboardLabel={t.dashboard}
       />
 
@@ -254,9 +255,10 @@ export async function PublicCampaignView({ id, locale }: { id: string; locale: L
                   loginHref={loginHref}
                   showHint
                   labels={{ signup: t.ctaSignup, apply: t.ctaApply, dashboard: t.ctaDashboard, haveAccount: t.haveAccount, login: t.login }}
+                  locale={locale}
                 />
               ) : (
-                <Link href="/signup?role=influencer" className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-3 text-sm font-medium hover:bg-muted">
+                <Link href={withLang("/signup?role=influencer", locale)} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-3 text-sm font-medium hover:bg-muted">
                   {t.ctaOthers} <ArrowRight className="size-4" />
                 </Link>
               )}

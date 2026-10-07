@@ -6,10 +6,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { authDict } from "@/lib/i18n/app/auth";
+import type { Locale } from "@/lib/i18n/config";
 
 type Phase = "checking" | "ready" | "no-session" | "done";
 
-export function ResetForm() {
+export function ResetForm({ locale = "ko" }: { locale?: Locale }) {
+  const t = authDict[locale].reset;
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>("checking");
   const [password, setPassword] = useState("");
@@ -73,11 +76,11 @@ export function ResetForm() {
     setError(null);
 
     if (password.length < 8) {
-      setError("비밀번호는 8자 이상이어야 합니다.");
+      setError(t.tooShort);
       return;
     }
     if (password !== confirm) {
-      setError("비밀번호가 서로 일치하지 않습니다.");
+      setError(t.mismatch);
       return;
     }
 
@@ -87,7 +90,7 @@ export function ResetForm() {
     setLoading(false);
 
     if (error) {
-      setError(authErrorMessage(error, "비밀번호 변경에 실패했습니다. 링크가 만료되었을 수 있어요."));
+      setError(authErrorMessage(error, t.failed, locale));
       return;
     }
     setPhase("done");
@@ -104,17 +107,17 @@ export function ResetForm() {
   if (phase === "no-session") {
     return (
       <div className="rounded-3xl glass-card p-8 text-center">
-        <h2 className="text-lg font-semibold">링크가 유효하지 않아요</h2>
+        <h2 className="text-lg font-semibold">{t.invalidTitle}</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          재설정 링크가 만료되었거나 이미 사용되었습니다.
+          {t.invalidBody1}
           <br />
-          다시 요청해주세요.
+          {t.invalidBody2}
         </p>
         <Link
-          href="/forgot-password"
+          href={locale === "ko" ? "/forgot-password" : `/forgot-password?lang=${locale}`}
           className="mt-6 inline-flex rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background"
         >
-          재설정 링크 다시 받기
+          {t.getNewLink}
         </Link>
       </div>
     );
@@ -126,10 +129,8 @@ export function ResetForm() {
         <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-accent-soft">
           <CheckCircle2 className="size-7 text-accent-ink" />
         </div>
-        <h2 className="mt-4 text-lg font-semibold">비밀번호가 변경되었어요</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          새 비밀번호로 로그인된 상태입니다.
-        </p>
+        <h2 className="mt-4 text-lg font-semibold">{t.doneTitle}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">{t.doneBody}</p>
         <button
           type="button"
           onClick={() => {
@@ -138,7 +139,7 @@ export function ResetForm() {
           }}
           className="mt-6 inline-flex rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background"
         >
-          대시보드로 가기
+          {t.toDashboard}
         </button>
       </div>
     );
@@ -148,7 +149,7 @@ export function ResetForm() {
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
         <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-          새 비밀번호
+          {t.newPw}
         </label>
         <input
           type="password"
@@ -157,13 +158,13 @@ export function ResetForm() {
           autoComplete="new-password"
           required
           minLength={8}
-          placeholder="8자 이상"
+          placeholder={t.phMin}
           className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none transition-colors focus:border-foreground"
         />
       </div>
       <div>
         <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-          새 비밀번호 확인
+          {t.confirmPw}
         </label>
         <input
           type="password"
@@ -172,7 +173,7 @@ export function ResetForm() {
           autoComplete="new-password"
           required
           minLength={8}
-          placeholder="한 번 더 입력"
+          placeholder={t.phAgain}
           className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none transition-colors focus:border-foreground"
         />
       </div>
@@ -187,7 +188,7 @@ export function ResetForm() {
         className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-6 py-3.5 text-sm font-medium text-background transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60"
       >
         {loading && <Loader2 className="size-4 animate-spin" />}
-        비밀번호 변경
+        {t.submit}
       </button>
     </form>
   );

@@ -5,6 +5,8 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { OAuthProvider } from "@/lib/auth-providers";
+import { authDict } from "@/lib/i18n/app/auth";
+import type { Locale } from "@/lib/i18n/config";
 
 /**
  * 소셜 로그인 버튼 — Supabase OAuth. 콜백(/auth/callback)이 세션 교환 후 온보딩/next 로 라우팅.
@@ -15,14 +17,18 @@ export function OAuthButtons({
   next = "/dashboard",
   role,
   refId,
-  label = "또는",
+  label,
+  locale = "ko",
 }: {
   providers: OAuthProvider[];
   next?: string;
   role?: "advertiser" | "influencer" | null;
   refId?: string | null;
   label?: string;
+  locale?: Locale;
 }) {
+  const t = authDict[locale].oauth;
+  const divider = label ?? t.or;
   const [pending, setPending] = useState<OAuthProvider | null>(null);
   const [error, setError] = useState<string | null>(null);
   if (providers.length === 0) return null;
@@ -39,7 +45,7 @@ export function OAuthButtons({
       options: { redirectTo: `${window.location.origin}/auth/callback?${q.toString()}` },
     });
     if (error) {
-      setError(authErrorMessage(error, "소셜 로그인에 실패했어요. 다시 시도해 주세요."));
+      setError(authErrorMessage(error, t.failed, locale));
       setPending(null);
     }
   }
@@ -48,7 +54,7 @@ export function OAuthButtons({
     <div className="space-y-3">
       <div className="flex items-center gap-3 text-xs text-muted-foreground">
         <span className="h-px flex-1 bg-border" />
-        {label}
+        {divider}
         <span className="h-px flex-1 bg-border" />
       </div>
       <div className="grid gap-2">
@@ -60,7 +66,7 @@ export function OAuthButtons({
             className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-background px-4 py-3 text-sm font-medium hover:bg-muted disabled:opacity-60"
           >
             {pending === "google" ? <Loader2 className="size-4 animate-spin" /> : <GoogleIcon />}
-            Google로 계속하기
+            {t.google}
           </button>
         )}
         {providers.includes("kakao") && (
@@ -72,7 +78,7 @@ export function OAuthButtons({
             style={{ background: "#FEE500" }}
           >
             {pending === "kakao" ? <Loader2 className="size-4 animate-spin" /> : <KakaoIcon />}
-            카카오로 계속하기
+            {t.kakao}
           </button>
         )}
       </div>

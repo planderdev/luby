@@ -5,51 +5,44 @@ import { SignupForm } from "./SignupForm";
 import { OAuthButtons } from "@/components/OAuthButtons";
 import { enabledProviders } from "@/lib/auth-providers";
 import { createClient } from "@/lib/supabase/server";
+import { getAppLocale } from "@/lib/i18n/app-locale";
+import { withLang } from "@/lib/i18n/app-locale-shared";
+import { authDict } from "@/lib/i18n/app/auth";
 
-export const metadata: Metadata = {
-  title: "회원가입",
-  description:
-    "루비AI 무료로 시작하기. 광고주는 캠페인 등록, 인플루언서는 채널 등록 후 응모 가능.",
-  alternates: { canonical: "/signup" },
-  openGraph: {
-    title: "회원가입 — 루비AI",
-    description: "30초 만에 가입하고 글로벌 체험단 마케팅을 시작하세요.",
-    url: "/signup",
-  },
-};
+type Params = { role?: string; redirect?: string; ref?: string; lang?: string };
 
-export default async function SignupPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ role?: string; redirect?: string; ref?: string }>;
-}) {
-  const { role, redirect: redirectTo, ref } = await searchParams;
-  const initialRole =
-    role === "advertiser" || role === "influencer" ? role : null;
+export async function generateMetadata({ searchParams }: { searchParams: Promise<Params> }): Promise<Metadata> {
+  const { lang } = await searchParams;
+  const locale = await getAppLocale({ param: lang });
+  const t = authDict[locale].signup;
+  return {
+    title: locale === "ko" ? t.metaTitle : { absolute: `${t.metaTitle} — Luby AI` },
+    description: t.metaDesc,
+    alternates: { canonical: "/signup" },
+    openGraph: { title: `${t.metaTitle} — Luby AI`, description: t.ogDesc, url: "/signup" },
+  };
+}
+
+export default async function SignupPage({ searchParams }: { searchParams: Promise<Params> }) {
+  const { role, redirect: redirectTo, ref, lang } = await searchParams;
+  const locale = await getAppLocale({ param: lang });
+  const t = authDict[locale].signup;
+  const initialRole = role === "advertiser" || role === "influencer" ? role : null;
+  const safeRedirect = redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//") ? redirectTo : null;
+  const safeRef = ref && /^[0-9a-f-]{36}$/.test(ref) ? ref : null;
 
   const supabase = await createClient();
-
   const [{ data: regions }, { data: channelTypes }, { data: categories }] = await Promise.all([
     supabase.from("regions").select("id, code, name, flag").eq("active", true).order("sort_order"),
-    supabase
-      .from("channel_types")
-      .select("id, slug, name")
-      .eq("active", true)
-      .order("sort_order"),
-    supabase.from("categories").select("id, name, emoji").eq("active", true).order("sort_order"),
+    supabase.from("channel_types").select("id, slug, name").eq("active", true).order("sort_order"),
+    supabase.from("categories").select("id, slug, name, emoji").eq("active", true).order("sort_order"),
   ]);
 
   return (
-    <AuthShell title="루비AI에 합류하세요" subtitle="역할을 선택하고 30초 안에 가입을 마쳐요.">
+    <AuthShell title={t.title} subtitle={t.subtitle} locale={locale} pathname="/signup" query={{ role, redirect: redirectTo, ref }}>
       {enabledProviders().length > 0 && (
         <div className="mb-6">
-          <OAuthButtons
-            providers={enabledProviders()}
-            next={redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//") ? redirectTo : "/dashboard"}
-            role={initialRole}
-            refId={ref && /^[0-9a-f-]{36}$/.test(ref) ? ref : null}
-            label="소셜 계정으로 빠르게"
-          />
+          <OAuthButtons providers={enabledProviders()} next={safeRedirect ?? "/dashboard"} role={initialRole} refId={safeRef} label={authDict[locale].oauth.quick} locale={locale} />
         </div>
       )}
       <SignupForm
@@ -57,13 +50,14 @@ export default async function SignupPage({
         channelTypes={channelTypes ?? []}
         categories={categories ?? []}
         initialRole={initialRole}
-        redirectTo={redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//") ? redirectTo : null}
-        refId={ref && /^[0-9a-f-]{36}$/.test(ref) ? ref : null}
+        redirectTo={safeRedirect}
+        refId={safeRef}
+        locale={locale}
       />
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        이미 계정이 있으신가요?{" "}
-        <Link href="/login" className="font-medium text-foreground hover:text-accent-ink">
-          로그인
+        {t.haveAccount}{" "}
+        <Link href={withLang(safeRedirect ? `/login?redirect=${encodeURIComponent(safeRedirect)}` : "/login", locale)} className="font-medium text-foreground hover:text-accent-ink">
+          {t.login}
         </Link>
       </p>
     </AuthShell>

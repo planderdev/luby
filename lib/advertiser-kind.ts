@@ -24,3 +24,12 @@ export const ADVERTISER_KINDS: {
 export function advertiserKindLabel(kind: string | null | undefined): string {
   return ADVERTISER_KINDS.find((k) => k.value === kind)?.short ?? "브랜드";
 }
+
+import { authDict } from "@/lib/i18n/app/auth";
+import type { Locale } from "@/lib/i18n/config";
+
+/** 가입·온보딩 화면용 — 언어별 라벨 (대시보드 등 한국어 화면은 ADVERTISER_KINDS 그대로) */
+export function advertiserKindsFor(locale: Locale): { value: AdvertiserKind; label: string; short: string; desc: string }[] {
+  const d = authDict[locale].advertiserKinds;
+  return (["brand", "agency"] as AdvertiserKind[]).map((value) => ({ value, ...d[value] }));
+}

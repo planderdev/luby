@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { LreChrome, LreChromeFooter } from "@/components/landing-re/LreChrome";
 import { getTranslationMap, translateCards } from "@/lib/i18n/campaign-translations";
+import { withLang } from "@/lib/i18n/app-locale-shared";
 import "@/app/lre-chrome.css";
 
 import { unstable_cache } from "next/cache";
@@ -107,14 +108,14 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
   const chip = (active: boolean) =>
     `rounded-full border px-3 py-1.5 text-xs transition-colors ${active ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:bg-muted"}`;
 
-  const signupHref = `/signup?role=influencer&redirect=${encodeURIComponent("/dashboard/campaigns")}`;
+  const signupHref = withLang(`/signup?role=influencer&redirect=${encodeURIComponent("/dashboard/campaigns")}`, locale);
 
   return (
     <main lang={locale === "zh" ? "zh-CN" : locale} className="lre-offset min-h-dvh bg-canvas">
       <LreChrome
         locale={locale}
         langHrefs={{ ko: "/c", en: "/en/c", zh: "/zh/c" }}
-        loginHref="/login?redirect=/dashboard/campaigns"
+        loginHref={withLang("/login?redirect=/dashboard/campaigns", locale)}
         joinHref={signupHref}
         dashboardLabel={t.dashboard}
       />
