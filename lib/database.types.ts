@@ -1583,6 +1583,14 @@ export type Database = {
         Args: Record<string, never>
         Returns: { reviewable: number; no_channel: number; unconfirmed: number }[]
       }
+      operator_open_campaign_nudge_preview: {
+        Args: Record<string, never>
+        Returns: { targets: number; sample_names: string[] | null; sample_body: string | null }[]
+      }
+      send_open_campaign_nudges: {
+        Args: { p_dry_run?: boolean; p_cooldown_days?: number }
+        Returns: { rule: string; targets: number }[]
+      }
       is_demo_account: {
         Args: { p_profile: string }
         Returns: boolean

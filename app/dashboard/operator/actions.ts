@@ -273,6 +273,30 @@ export async function resendConfirmationBulk(profileIds: string[]): Promise<
   return { ok: true, sent, failed, stopped };
 }
 
+/**
+ * 인플루언서 탭 — 승인 크리에이터 중 내 채널·분야·지역에 맞는 모집 중 캠페인이 있는데 응모하지 않은 사람에게
+ * '모집 중 캠페인 안내'(nudge_open_campaigns, reminders 카테고리)를 보낸다. 발송은 DB 함수(service_role)가 하고
+ * 이메일·푸시는 알림 웹훅이 이어받는다. 같은 사람에게는 14일 안에 다시 보내지 않는다. (2026-10-07, 운영자 클릭 발송)
+ */
+export async function sendOpenCampaignNudges(): Promise<{ ok: true; sent: number } | { ok: false; error: string }> {
+  const guard = await ensureOperator();
+  if (!guard.ok) return { ok: false, error: guard.error };
+  const { getAdminSupabase } = await import("@/lib/supabase/admin");
+  const admin = getAdminSupabase();
+  const { data, error } = await admin.rpc("send_open_campaign_nudges", { p_dry_run: false, p_cooldown_days: 14 });
+  if (error) return { ok: false, error: `발송에 실패했어요: ${error.message}` };
+  const sent = Number((data as { rule: string; targets: number }[] | null)?.[0]?.targets ?? 0);
+  await guard.supabase.rpc("push_notification_self_safe", {
+    p_user: guard.user.id,
+    p_type: "operator_notice",
+    p_title: `모집 중 캠페인 안내 ${sent}명 발송`,
+    p_body: sent > 0 ? "앱 알림·푸시·이메일(리마인더 수신 설정)로 나갑니다. 같은 사람에게는 14일 뒤부터 다시 보낼 수 있어요." : "지금은 안내할 대상이 없어요(모두 응모했거나 14일 안에 이미 받았어요).",
+    p_link: "/dashboard/operator/users?filter=influencer",
+  });
+  revalidatePath("/dashboard/operator/users");
+  return { ok: true, sent };
+}
+
 export async function resendInviteBulk(profileIds: string[]): Promise<
   { ok: true; sent: number; failed: { name: string; error: string }[]; stopped: boolean } | { ok: false; error: string }
 > {

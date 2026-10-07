@@ -47,6 +47,10 @@ const TITLE: Record<string, Rule[]> = {
     { re: /^내 분야 캠페인 (\d+)개가 곧 마감돼요$/, en: (m) => `${m[1]} campaigns in your field close soon`, zh: (m) => `您领域的 ${m[1]} 个活动即将截止` },
   ],
   nudge_submit_content: [{ re: /^콘텐츠 제출을 잊지 않으셨죠\?$/, en: () => "Don't forget to submit your content", zh: () => "别忘了提交内容" }],
+  nudge_open_campaigns: [
+    { re: /^내 채널에 맞는 모집 중 캠페인이 있어요$/, en: () => "A recruiting campaign fits your channel", zh: () => "有一个适合您频道的活动正在招募" },
+    { re: /^내 채널에 맞는 모집 중 캠페인 (\d+)개$/, en: (m) => `${m[1]} recruiting campaigns fit your channel`, zh: (m) => `有 ${m[1]} 个适合您频道的活动正在招募` },
+  ],
   confirm_email_reminder: [{ re: /^이메일 인증을 마치면 바로 시작할 수 있어요$/, en: () => "Confirm your email to get started", zh: () => "完成邮箱验证即可开始" }],
   creator_weekly_digest: [
     { re: /^지난주 승인 (\d+)건 · \+(\d+)P 적립$/, en: (m) => `${m[1]} approved last week · +${m[2]}P earned`, zh: (m) => `上周通过 ${m[1]} 条 · 获得 +${m[2]}P` },
@@ -94,6 +98,7 @@ const BODY: Record<string, Rule[]> = {
   referral_reward: [{ re: /^내가 초대한 (.+)님이 첫 체험\((.*)\)을 완료했어요\. 포인트 내역에서 확인하세요\.$/, en: (m) => `${m[1]}, whom you invited, completed their first campaign (${m[2]}). See your point history.`, zh: (m) => `您邀请的 ${m[1]} 完成了首次体验（${m[2]}）。请在积分明细中查看。` }],
   new_campaign_for_you: [{ re: /^"(.*)" · (.+) · (\d+)P · (\d+)명 모집 — 먼저 응모할수록 선정에 유리해요\.$/, en: (m) => `"${m[1]}" · ${m[2]} · ${m[3]}P · recruiting ${m[4]} — the earlier you apply, the better your odds.`, zh: (m) => `"${m[1]}" · ${m[2]} · ${m[3]}P · 招募 ${m[4]} 人 — 越早报名越有机会入选。` }],
   closing_soon_for_you: [{ re: /^"(.*)"( 외 (\d+)개)? — 48시간 안에 모집이 끝나요\. 놓치기 전에 응모해 보세요\.$/, en: (m) => `"${m[1]}"${m[3] ? ` and ${m[3]} more` : ""} — recruiting ends within 48 hours. Apply before it closes.`, zh: (m) => `"${m[1]}"${m[3] ? ` 等 ${Number(m[3]) + 1} 个` : ""} — 48 小时内截止招募，别错过报名。` }],
+  nudge_open_campaigns: [{ re: /^"(.*)"( 외 (\d+)개)? — 아직 응모 전이에요\. 먼저 응모할수록 선정에 유리해요\.$/, en: (m) => `"${m[1]}"${m[3] ? ` and ${m[3]} more` : ""} — you haven't applied yet. The earlier you apply, the better your odds.`, zh: (m) => `"${m[1]}"${m[3] ? ` 等 ${Number(m[3]) + 1} 个` : ""} — 您还没有报名。越早报名越有机会入选。` }],
   nudge_submit_content: [{ re: /^"(.*)" 캠페인에 선정되셨어요\. 콘텐츠 URL을 제출하면 검수 후 (\d+)P가 지급됩니다\.$/, en: (m) => `You were selected for "${m[1]}". Submit your content URL and ${m[2]}P is paid after review.`, zh: (m) => `您已入选「${m[1]}」。提交内容链接，审核后发放 ${m[2]}P。` }],
   confirm_email_reminder: [{ re: /^가입 때 받은 메일의 인증 링크를 눌러 주세요\. 인증 메일을 다시 보내 드렸어요\.$/, en: () => "Click the confirmation link in the email you received at signup. We've sent it again.", zh: () => "请点击注册时收到邮件中的验证链接。我们已重新发送验证邮件。" }],
 };

@@ -8,6 +8,7 @@ import { InviteMemberPanel } from "./InviteMemberPanel";
 import { BulkImportPanel } from "./BulkImportPanel";
 import { BulkInvitePanel } from "./BulkInvitePanel";
 import { BulkConfirmPanel } from "./BulkConfirmPanel";
+import { OpenCampaignNudgePanel } from "./OpenCampaignNudgePanel";
 
 export const metadata = { title: "회원 관리 — 루비AI" };
 
@@ -74,6 +75,8 @@ export default async function OperatorUsersPage({
     supabase.rpc("operator_unconfirmed_ids", { p_ids: all.map((p) => p.id) }),
   ]);
   const unconfirmed = new Set((unconfirmedRows ?? []) as string[]);
+  // 인플루언서 탭: 모집 중 캠페인 안내 발송 미리보기 (운영자 전용 RPC, 발송하지 않음)
+  const nudgePreview = filter === "influencer" ? ((await supabase.rpc("operator_open_campaign_nudge_preview")).data?.[0] ?? null) : null;
   // 데모 계정(@ruby-ai.kr)은 재초대 대상이 아니다 — 포함하면 400명이 넘어 숫자가 무의미해지고,
   // 일괄 재발송이 실존하지 않는 주소로 나가 발신 평판을 깎을 수 있다
   const demoIds = new Set(all.filter((p) => (p.email ?? "").endsWith("@ruby-ai.kr")).map((p) => p.id));
@@ -188,6 +191,10 @@ export default async function OperatorUsersPage({
           profileIds={members.filter((p) => !unconfirmed.has(p.id)).map((p) => p.id)}
           names={members.filter((p) => !unconfirmed.has(p.id)).slice(0, 3).map((p) => p.name)}
         />
+      )}
+
+      {filter === "influencer" && nudgePreview && (
+        <OpenCampaignNudgePanel targets={nudgePreview.targets} sampleNames={nudgePreview.sample_names ?? []} sampleBody={nudgePreview.sample_body} />
       )}
 
       {(() => {
