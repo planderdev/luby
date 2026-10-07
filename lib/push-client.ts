@@ -55,12 +55,19 @@ export async function unsubscribeFromPush(): Promise<string | null> {
 }
 
 /** 브라우저 푸시 오류 → 한국어 (NotAllowedError 등 영문 노출 방지) */
-export function pushErrorMessage(e: unknown, fallback = "푸시를 켜지 못했습니다."): string {
+const PUSH_ERR = {
+  ko: { denied: "브라우저에서 알림이 차단돼 있어요. 주소창 자물쇠 → 알림 허용 후 다시 시도해 주세요.", service: "브라우저 푸시 서비스에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.", unsupported: "이 브라우저는 푸시를 지원하지 않아요.", state: "설정을 적용하지 못했어요. 페이지를 새로고침한 뒤 다시 시도해 주세요." },
+  en: { denied: "Notifications are blocked in your browser. Open the address-bar lock icon → allow notifications, then try again.", service: "Could not reach the browser push service. Please try again shortly.", unsupported: "This browser does not support push notifications.", state: "Could not apply the setting. Reload the page and try again." },
+  zh: { denied: "浏览器已拦截通知。请点击地址栏锁形图标 → 允许通知后重试。", service: "无法连接浏览器推送服务，请稍后重试。", unsupported: "此浏览器不支持推送通知。", state: "设置未能生效，请刷新页面后重试。" },
+} as const;
+
+export function pushErrorMessage(e: unknown, fallback = "푸시를 켜지 못했습니다.", locale: "ko" | "en" | "zh" = "ko"): string {
   const raw = (e instanceof Error ? e.message : String(e ?? "")).trim();
-  if (/[가-힣]/.test(raw)) return raw;
-  if (/NotAllowed|denied|permission/i.test(raw)) return "브라우저에서 알림이 차단돼 있어요. 주소창 자물쇠 → 알림 허용 후 다시 시도해 주세요.";
-  if (/AbortError|push service error|registration failed/i.test(raw)) return "브라우저 푸시 서비스에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.";
-  if (/NotSupported|unsupported/i.test(raw)) return "이 브라우저는 푸시를 지원하지 않아요.";
-  if (/InvalidState|SecurityError/i.test(raw)) return "설정을 적용하지 못했어요. 페이지를 새로고침한 뒤 다시 시도해 주세요.";
+  if (locale === "ko" && /[가-힣]/.test(raw)) return raw;
+  const M = PUSH_ERR[locale];
+  if (/NotAllowed|denied|permission/i.test(raw)) return M.denied;
+  if (/AbortError|push service error|registration failed/i.test(raw)) return M.service;
+  if (/NotSupported|unsupported/i.test(raw)) return M.unsupported;
+  if (/InvalidState|SecurityError/i.test(raw)) return M.state;
   return fallback;
 }

@@ -11,8 +11,15 @@ import { CompletenessCard } from "@/components/dashboard/CompletenessCard";
 import { creatorCompleteness, advertiserCompleteness } from "@/lib/profile-completeness";
 import { ChannelManager, type ChannelRow } from "./ChannelManager";
 import { CategoryPicker } from "./CategoryPicker";
+import { getAppLocale } from "@/lib/i18n/app-locale";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import type { Locale } from "@/lib/i18n/config";
 
-export const metadata = { title: "설정 — 루비AI" };
+export async function generateMetadata() {
+  const locale = await getAppLocale();
+  const t = dashboardDict[locale].settings.metaTitle;
+  return { title: locale === "ko" ? t : { absolute: `${t} — Luby AI` } };
+}
 
 export default async function SettingsPage() {
   const profile = await getCurrentProfile();
@@ -21,6 +28,10 @@ export default async function SettingsPage() {
   const supabase = await createClient();
   const isInfluencer = profile.role === "influencer";
   const isAdvertiser = profile.role === "advertiser";
+  // 크리에이터 화면만 다국어 — 광고주·운영자 설정은 한국어 고정
+  const locale: Locale = isInfluencer ? await getAppLocale({ profileLocale: profile.locale }) : "ko";
+  const t = dashboardDict[locale].settings;
+  const tc = dashboardDict[locale].overview.completeness;
 
   // Pull role-specific extra info + channels + categories in parallel
   const [extraRes, regionsRes, channelsRes, channelTypesRes, categoriesRes, myCatsRes] =
@@ -60,7 +71,7 @@ export default async function SettingsPage() {
     isInfluencer || isAdvertiser
       ? supabase
           .from("categories")
-          .select("id, name, emoji")
+          .select("id, slug, name, emoji")
           .eq("active", true)
           .order("sort_order")
       : Promise.resolve({ data: [] }),
@@ -99,17 +110,17 @@ export default async function SettingsPage() {
 
   return (
     <div>
-      <h1 className="display text-3xl font-semibold lg:text-4xl">설정</h1>
+      <h1 className="display text-3xl font-semibold lg:text-4xl">{t.title}</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         {isInfluencer
-          ? "프로필 정보와 SNS 채널을 관리합니다."
+          ? t.subtitle
           : isAdvertiser
             ? "담당자 정보와 크리에이터에게 보여질 회사 프로필을 관리합니다."
             : "프로필 정보와 사진을 관리합니다."}
       </p>
 
       <div className="mt-8 space-y-4">
-        {completeness && <CompletenessCard {...completeness} />}
+        {completeness && <CompletenessCard {...completeness} title={tc.title} doneText={tc.doneText} todoText={tc.todoText} nextText={tc.next} itemLabels={tc.items} itemHints={t.completenessHints} />}
         {advCompleteness && (
           <CompletenessCard {...advCompleteness} title="회사 프로필 완성도" doneText="완성! 크리에이터가 브랜드를 신뢰하고 응모해요" todoText="채울수록 응모율·선정 품질이 올라가요" />
         )}
@@ -124,12 +135,14 @@ export default async function SettingsPage() {
           extra={extra}
           regions={regionsRes.data ?? []}
           categories={categoriesRes.data ?? []}
+          locale={locale}
         />
 
         {isInfluencer && (
           <CategoryPicker
             categories={categoriesRes.data ?? []}
             selected={(myCatsRes.data ?? []).map((c) => c.category_id)}
+            locale={locale}
           />
         )}
 
@@ -137,6 +150,7 @@ export default async function SettingsPage() {
           <ChannelManager
             channels={(channelsRes.data ?? []) as ChannelRow[]}
             channelTypes={channelTypesRes.data ?? []}
+            locale={locale}
           />
         )}
 
@@ -145,11 +159,12 @@ export default async function SettingsPage() {
             userId={profile.id}
             initial={!!(extra as { public_profile?: boolean }).public_profile}
             approved={profile.approved}
+            locale={locale}
           />
         )}
 
-        <PushToggle subscriptionCount={pushCount} />
-        <EmailPrefsForm initial={emailPrefs} showDigest />
+        <PushToggle subscriptionCount={pushCount} locale={locale} />
+        <EmailPrefsForm initial={emailPrefs} showDigest locale={locale} />
       </div>
     </div>
   );

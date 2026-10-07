@@ -1,6 +1,10 @@
 "use server";
 import { channelHint, urlMatchesChannel } from "@/lib/channel-hints";
 import { dbErrorMessage, dbErrorWith } from "@/lib/db-errors";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import type { Locale } from "@/lib/i18n/config";
+
+const E = (l: Locale) => dashboardDict[l].settings.errors;
 
 import { revalidatePath } from "next/cache";
 import { revalidatePublicCreator } from "@/lib/cache/public-revalidate";
@@ -25,12 +29,12 @@ export type SettingsPayload = {
 
 export async function updateProfile(
   payload: SettingsPayload
-): Promise<{ ok: true } | { ok: false; error: string }> {
+, locale: Locale = "ko"): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+  if (!user) return { ok: false, error: E(locale).needLogin };
 
   // Update profiles.name + avatar_url
   const { error: profileError } = await supabase
@@ -41,7 +45,7 @@ export async function updateProfile(
     })
     .eq("id", user.id);
 
-  if (profileError) return { ok: false, error: dbErrorWith("프로필 저장 실패", profileError) };
+  if (profileError) return { ok: false, error: locale === "ko" ? dbErrorWith("프로필 저장 실패", profileError) : E(locale).saveFailed };
 
   // If influencer, also update influencers row
   const { data: profile } = await supabase
@@ -58,7 +62,7 @@ export async function updateProfile(
         region_id: payload.region_id || null,
       })
       .eq("profile_id", user.id);
-    if (infError) return { ok: false, error: dbErrorWith("인플루언서 정보 저장 실패", infError) };
+    if (infError) return { ok: false, error: locale === "ko" ? dbErrorWith("인플루언서 정보 저장 실패", infError) : E(locale).saveFailed };
   }
 
   if (profile?.role === "advertiser") {
@@ -105,22 +109,22 @@ export type ChannelPayload = {
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
-export async function addChannel(payload: ChannelPayload): Promise<ActionResult> {
+export async function addChannel(payload: ChannelPayload, locale: Locale = "ko"): Promise<ActionResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+  if (!user) return { ok: false, error: E(locale).needLogin };
 
   const url = payload.url.trim();
-  if (!url) return { ok: false, error: "채널 URL을 입력해주세요." };
-  if (!payload.channel_type_id) return { ok: false, error: "채널 종류를 선택해주세요." };
-  if (!/^https?:\/\//i.test(url)) return { ok: false, error: "URL은 https:// 로 시작해야 해요." };
+  if (!url) return { ok: false, error: E(locale).urlRequired };
+  if (!payload.channel_type_id) return { ok: false, error: E(locale).typeRequired };
+  if (!/^https?:\/\//i.test(url)) return { ok: false, error: E(locale).https };
   const { data: ct } = await supabase.from("channel_types").select("slug, name").eq("id", payload.channel_type_id).maybeSingle();
-  if (!ct) return { ok: false, error: "채널 종류가 올바르지 않습니다." };
+  if (!ct) return { ok: false, error: E(locale).typeInvalid };
   if (!urlMatchesChannel(url, ct.slug)) {
     const h = channelHint(ct.slug);
-    return { ok: false, error: `${ct.name} 채널 주소가 아닌 것 같아요. 예: ${h.urlPlaceholder}` };
+    return { ok: false, error: E(locale).domain(ct.name, h.urlPlaceholder) };
   }
 
   const { error } = await supabase.from("influencer_channels").insert({
@@ -130,19 +134,19 @@ export async function addChannel(payload: ChannelPayload): Promise<ActionResult>
     handle: payload.handle?.trim() || null,
     followers: Math.max(0, payload.followers || 0),
   });
-  if (error) return { ok: false, error: dbErrorWith("채널 추가 실패", error) };
+  if (error) return { ok: false, error: locale === "ko" ? dbErrorWith("채널 추가 실패", error) : E(locale).addFailed };
 
   revalidatePath("/dashboard/settings");
   revalidatePublicCreator(user.id);
   return { ok: true };
 }
 
-export async function deleteChannel(channelId: string): Promise<ActionResult> {
+export async function deleteChannel(channelId: string, locale: Locale = "ko"): Promise<ActionResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+  if (!user) return { ok: false, error: E(locale).needLogin };
 
   // RLS(influencer_channels_self_write)가 본인 채널만 삭제되도록 보장하지만
   // 명시적으로도 influencer_id를 걸어 방어.
@@ -151,7 +155,7 @@ export async function deleteChannel(channelId: string): Promise<ActionResult> {
     .delete()
     .eq("id", channelId)
     .eq("influencer_id", user.id);
-  if (error) return { ok: false, error: dbErrorWith("채널 삭제 실패", error) };
+  if (error) return { ok: false, error: locale === "ko" ? dbErrorWith("채널 삭제 실패", error) : E(locale).deleteFailed };
 
   revalidatePath("/dashboard/settings");
   revalidatePublicCreator(user.id);
@@ -181,16 +185,16 @@ export async function updateChannelFollowers(
 }
 
 /** 크리에이터 전문 분야 저장 (최대 3개, 전체 교체) */
-export async function setMyCategories(categoryIds: string[]): Promise<ActionResult> {
+export async function setMyCategories(categoryIds: string[], locale: Locale = "ko"): Promise<ActionResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+  if (!user) return { ok: false, error: E(locale).needLogin };
 
   const ids = [...new Set(categoryIds)].slice(0, 3);
   const { error } = await supabase.rpc("set_my_categories", { p_category_ids: ids });
-  if (error) return { ok: false, error: dbErrorMessage(error) };
+  if (error) return { ok: false, error: locale === "ko" ? dbErrorMessage(error) : E(locale).saveFailed };
   revalidatePath("/dashboard/settings");
   revalidatePublicCreator(user.id);
   return { ok: true };
@@ -201,28 +205,28 @@ export async function updateEmailPrefs(prefs: {
   transactional: boolean;
   reminders: boolean;
   digest: boolean;
-}): Promise<ActionResult> {
+}, locale: Locale = "ko"): Promise<ActionResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+  if (!user) return { ok: false, error: E(locale).needLogin };
   const clean = { transactional: !!prefs.transactional, reminders: !!prefs.reminders, digest: !!prefs.digest };
   const { error } = await supabase.from("profiles").update({ email_prefs: clean }).eq("id", user.id);
-  if (error) return { ok: false, error: dbErrorWith("저장 실패", error) };
+  if (error) return { ok: false, error: locale === "ko" ? dbErrorWith("저장 실패", error) : E(locale).saveFailed };
   revalidatePath("/dashboard/settings");
   return { ok: true };
 }
 
 /** 크리에이터: 공개 프로필 켜기/끄기 (옵트인) */
-export async function setPublicProfile(enabled: boolean): Promise<ActionResult> {
+export async function setPublicProfile(enabled: boolean, locale: Locale = "ko"): Promise<ActionResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+  if (!user) return { ok: false, error: E(locale).needLogin };
   const { error } = await supabase.from("influencers").update({ public_profile: !!enabled }).eq("profile_id", user.id);
-  if (error) return { ok: false, error: dbErrorWith("저장 실패", error) };
+  if (error) return { ok: false, error: locale === "ko" ? dbErrorWith("저장 실패", error) : E(locale).saveFailed };
   revalidatePath("/dashboard/settings");
   revalidatePublicCreator(user.id); // 껐다면 공개 프로필이 즉시 닫혀야 한다
   return { ok: true };

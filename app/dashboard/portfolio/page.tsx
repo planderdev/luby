@@ -6,8 +6,14 @@ import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { PublicCreatorView } from "@/components/PublicCreatorView";
 import { getSiteUrl } from "@/lib/seo/site";
+import { getAppLocale } from "@/lib/i18n/app-locale";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
 
-export const metadata = { title: "내 포트폴리오 — 루비AI" };
+export async function generateMetadata() {
+  const locale = await getAppLocale();
+  const t = dashboardDict[locale].portfolio.metaTitle;
+  return { title: locale === "ko" ? t : { absolute: `${t} — Luby AI` } };
+}
 
 /**
  * 크리에이터 본인 포트폴리오 미리보기 — 공개 프로필이 꺼져 있어도 본인은 볼 수 있고, 인쇄/PDF 저장 가능.
@@ -18,6 +24,8 @@ export default async function PortfolioPage() {
   if (!profile) redirect("/login?redirect=/dashboard/portfolio");
   if (profile.role !== "influencer") redirect("/dashboard");
   const supabase = await createClient();
+  const locale = await getAppLocale({ profileLocale: profile.locale });
+  const t = dashboardDict[locale].portfolio;
   const [{ data: inf }, { data: viewsRaw }] = await Promise.all([
     supabase.from("influencers").select("public_profile").eq("profile_id", profile.id).maybeSingle(),
     supabase.rpc("creator_view_stats", { p_creator: profile.id }),
@@ -25,7 +33,7 @@ export default async function PortfolioPage() {
   const isPublic = !!inf?.public_profile;
   const shareUrl = `${getSiteUrl()}/p/${profile.id}`;
   const views = (viewsRaw as { total: number; uniques: number; last7: number; last30: number; by_source: Record<string, number> } | null) ?? null;
-  const sourceRows = viewSourceRows(views?.by_source, CREATOR_VIEW_SOURCE_LABEL);
+  const sourceRows = viewSourceRows(views?.by_source, locale === "ko" ? CREATOR_VIEW_SOURCE_LABEL : t.sources);
 
   return (
     <div>
@@ -34,39 +42,39 @@ export default async function PortfolioPage() {
           {isPublic ? <Eye className="size-4 text-success" /> : <EyeOff className="size-4 text-muted-foreground" />}
           {isPublic ? (
             <span>
-              공개 프로필이 <b>켜져</b> 있어요. 링크를 브랜드에 보내면 로그인 없이 볼 수 있습니다:{" "}
+              {t.onBefore}<b>{t.onBold}</b>{t.onAfter}
               <a href={`${shareUrl}?src=link`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium underline underline-offset-2"><Link2 className="size-3.5" />{shareUrl.replace(/^https?:\/\//, "")}</a>
             </span>
           ) : (
             <span>
-              지금은 <b>본인만</b> 볼 수 있어요. PDF로 저장해 브랜드에 직접 보내거나, <Link href="/dashboard/settings#public" className="font-medium underline underline-offset-2">공개 프로필을 켜면</Link> 링크로 공유할 수 있습니다.
+              {t.offBefore}<b>{t.offBold}</b>{t.offMid}<Link href="/dashboard/settings#public" className="font-medium underline underline-offset-2">{t.offLink}</Link>{t.offAfter}
             </span>
           )}
         </div>
         <div className="flex items-center gap-3">
-          {!profile.approved && <span className="text-xs text-warning">승인 전에는 공개 프로필을 켤 수 없어요</span>}
+          {!profile.approved && <span className="text-xs text-warning">{t.notApproved}</span>}
           <Link href="/dashboard/portfolio/card" className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3.5 py-1.5 text-xs font-medium hover:bg-muted">
-            <QrCode className="size-3.5" /> QR 명함 A4 인쇄
+            <QrCode className="size-3.5" /> {t.qrCard}
           </Link>
         </div>
       </div>
       {isPublic && (
         <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl border border-border bg-background px-5 py-3 text-xs text-muted-foreground print:hidden">
-          <span className="inline-flex items-center gap-1.5 font-medium text-foreground"><BarChart3 className="size-3.5" /> 내 프로필 조회</span>
+          <span className="inline-flex items-center gap-1.5 font-medium text-foreground"><BarChart3 className="size-3.5" /> {t.viewsTitle}</span>
           {views && views.total > 0 ? (
             <>
-              <span>총 <b className="text-foreground">{views.total.toLocaleString()}</b>회 · 순 방문 {views.uniques.toLocaleString()} · 최근 7일 {views.last7.toLocaleString()}</span>
+              <span>{t.viewsTotalBefore}<b className="text-foreground">{views.total.toLocaleString()}</b>{t.viewsTotalAfter}{t.viewsUnique(views.uniques.toLocaleString())}{t.viewsLast7(views.last7.toLocaleString())}</span>
               {sourceRows.map((r) => (
                 <span key={r.key}>{r.label} <b className="text-foreground">{r.views.toLocaleString()}</b></span>
               ))}
             </>
           ) : (
-            <span>아직 조회가 없어요. 링크를 보내거나 QR 명함을 건네면 여기서 유입 경로별로 집계돼요.</span>
+            <span>{t.viewsEmpty}</span>
           )}
         </div>
       )}
       <div className="-mx-5 overflow-hidden rounded-3xl border border-border md:-mx-8 lg:mx-0 print:m-0 print:rounded-none print:border-0">
-        <PublicCreatorView id={profile.id} ownerPreview />
+        <PublicCreatorView id={profile.id} ownerPreview locale={locale} />
       </div>
     </div>
   );

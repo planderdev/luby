@@ -2,21 +2,24 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getEntitlements } from "@/lib/plans/entitlements";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import type { Locale } from "@/lib/i18n/config";
 
 type SendResult =
   | { ok: true; id: string; createdAt: string }
   | { ok: false; error: string };
 
-export async function sendMessage(applicationId: string, body: string): Promise<SendResult> {
+export async function sendMessage(applicationId: string, body: string, locale: Locale = "ko"): Promise<SendResult> {
+  const t = dashboardDict[locale].messages;
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+  if (!user) return { ok: false, error: locale === "ko" ? "로그인이 필요합니다." : dashboardDict[locale].settings.errors.needLogin };
 
   const text = body.trim();
-  if (!text) return { ok: false, error: "메시지를 입력해주세요." };
-  if (text.length > 2000) return { ok: false, error: "메시지는 2,000자 이내로 입력해주세요." };
+  if (!text) return { ok: false, error: t.errEmpty };
+  if (text.length > 2000) return { ok: false, error: t.errLong };
 
   // 광고주 발신은 BUSINESS 이상 — RLS도 차단하지만, 친절한 안내를 위해 먼저 확인
   const { data: profile } = await supabase
@@ -37,7 +40,7 @@ export async function sendMessage(applicationId: string, body: string): Promise<
     .select("id, created_at")
     .single();
   if (error) {
-    return { ok: false, error: "메시지를 보낼 수 없습니다. 선정된 체험단과의 대화만 가능해요." };
+    return { ok: false, error: t.errSend };
   }
   return { ok: true, id: data.id, createdAt: data.created_at };
 }

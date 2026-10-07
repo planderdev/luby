@@ -4,15 +4,23 @@ import { MessageSquare, Sparkles } from "lucide-react";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { getEntitlements } from "@/lib/plans/entitlements";
+import { getAppLocale } from "@/lib/i18n/app-locale";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import { getTranslationMap, translateCards } from "@/lib/i18n/campaign-translations";
+import type { Locale } from "@/lib/i18n/config";
 
-export const metadata = { title: "메시지 — 루비AI" };
+export async function generateMetadata() {
+  const locale = await getAppLocale();
+  const t = dashboardDict[locale].messages.metaTitle;
+  return { title: locale === "ko" ? t : { absolute: `${t} — Luby AI` } };
+}
 
-function fmtTime(iso: string) {
+function fmtTime(iso: string, timeLocale = "ko-KR") {
   const d = new Date(iso);
   const now = new Date();
   const sameDay = d.toDateString() === now.toDateString();
   if (sameDay) {
-    return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+    return d.toLocaleTimeString(timeLocale, { hour: "2-digit", minute: "2-digit" });
   }
   return `${d.getMonth() + 1}/${d.getDate()}`;
 }
@@ -23,6 +31,9 @@ export default async function MessagesPage() {
   if (profile.role === "operator") redirect("/dashboard");
 
   const supabase = await createClient();
+  // 크리에이터 화면만 다국어 — 광고주는 한국어 고정
+  const locale: Locale = profile.role === "influencer" ? await getAppLocale({ profileLocale: profile.locale }) : "ko";
+  const M = dashboardDict[locale].messages;
 
   // 스레드 = 선정/완료 상태의 응모 건
   let appsQuery = supabase
@@ -41,6 +52,10 @@ export default async function MessagesPage() {
   const { data: apps } = await appsQuery;
   const threads = apps ?? [];
   const threadIds = threads.map((t) => t.id);
+  // /en·/zh 는 캠페인 제목·상호를 번역본으로
+  type Camp = { id: string; title: string; business_name: string };
+  const camps = threads.map((t) => t.campaigns as unknown as Camp);
+  const campById = new Map(locale === "ko" ? camps.map((c) => [c.id, c] as const) : translateCards(camps, await getTranslationMap(camps.map((c) => c.id), locale)).map((c) => [c.id, c] as const));
 
   // 각 스레드의 메시지 (최근 메시지 + 안읽음 수 계산)
   const { data: msgs } = threadIds.length
@@ -85,11 +100,9 @@ export default async function MessagesPage() {
 
   return (
     <div>
-      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">메시지</p>
-      <h1 className="display mt-2 text-3xl font-semibold lg:text-4xl">대화</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        선정된 체험단과 일정·콘텐츠를 조율해보세요.
-      </p>
+      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{M.eyebrow}</p>
+      <h1 className="display mt-2 text-3xl font-semibold lg:text-4xl">{M.title}</h1>
+      <p className="mt-2 text-sm text-muted-foreground">{M.subtitle}</p>
 
       {ent?.tier === "free" && (
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-accent/30 bg-accent-soft/50 px-5 py-4 text-sm">
@@ -109,11 +122,8 @@ export default async function MessagesPage() {
 
       <div className="mt-8 flex flex-col gap-3">
         {sorted.map((t) => {
-          const campaign = t.campaigns as unknown as {
-            id: string;
-            title: string;
-            business_name: string;
-          };
+          const rawCampaign = t.campaigns as unknown as Camp;
+          const campaign = campById.get(rawCampaign.id) ?? rawCampaign;
           const counterpart =
             profile.role === "advertiser"
               ? namesById.get(t.influencer_id) ?? "크리에이터"
@@ -134,13 +144,13 @@ export default async function MessagesPage() {
                   <span className="truncate text-sm font-semibold">{counterpart}</span>
                   {last && (
                     <span className="shrink-0 text-[11px] text-muted-foreground">
-                      {fmtTime(last.created_at)}
+                      {fmtTime(last.created_at, M.timeLocale)}
                     </span>
                   )}
                 </div>
                 <p className="mt-0.5 truncate text-xs text-muted-foreground">{campaign.title}</p>
                 <p className="mt-1 truncate text-sm text-muted-foreground">
-                  {last ? last.body : "아직 메시지가 없어요. 첫 인사를 건네보세요!"}
+                  {last ? last.body : M.noMessages}
                 </p>
               </div>
               {unread > 0 && (
@@ -156,7 +166,7 @@ export default async function MessagesPage() {
           <div className="rounded-3xl border border-dashed border-border bg-background p-10 text-center text-sm text-muted-foreground">
             {profile.role === "advertiser"
               ? "크리에이터를 선정하면 여기서 대화를 시작할 수 있어요."
-              : "체험단에 선정되면 광고주와의 대화가 여기에 열려요."}
+              : M.empty}
           </div>
         )}
       </div>

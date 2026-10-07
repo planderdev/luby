@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { Check, Loader2, X } from "lucide-react";
 import { respondInvitation } from "../creators/actions";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import type { Locale } from "@/lib/i18n/config";
 
 export function InvitationCard({
   id,
@@ -15,6 +17,7 @@ export function InvitationCard({
   pointAmount,
   recruitEnd,
   status,
+  locale = "ko",
 }: {
   id: string;
   campaignId: string;
@@ -25,7 +28,9 @@ export function InvitationCard({
   pointAmount: number;
   recruitEnd: string;
   status: string;
+  locale?: Locale;
 }) {
+  const t = dashboardDict[locale].invitations;
   const [current, setCurrent] = useState(status);
   const [pending, setPending] = useState<"accept" | "decline" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +38,7 @@ export function InvitationCard({
   async function respond(accept: boolean) {
     setPending(accept ? "accept" : "decline");
     setError(null);
-    const r = await respondInvitation(id, accept);
+    const r = await respondInvitation(id, accept, locale);
     if (r.ok) setCurrent(accept ? "accepted" : "declined");
     else setError(r.error);
     setPending(null);
@@ -56,11 +61,11 @@ export function InvitationCard({
             <Link
               href={`/dashboard/advertisers/${advertiserId}`}
               className="hover:text-foreground hover:underline underline-offset-2"
-              title="광고주 프로필 보기"
+              title={t.advertiserProfile}
             >
               {businessName}
             </Link>{" "}
-            · {pointAmount.toLocaleString()}P · 모집 마감 {end.toLocaleDateString("ko-KR")}
+            · {pointAmount.toLocaleString()}P · {t.deadline(end.toLocaleDateString(t.dateLocale))}
           </div>
           {message && (
             <p className="mt-3 rounded-xl bg-muted/50 px-3 py-2 text-xs text-foreground">
@@ -77,14 +82,14 @@ export function InvitationCard({
                 : "bg-warning-soft text-warning"
           }`}
         >
-          {current === "accepted" ? "수락 · 응모 완료" : current === "declined" ? "거절" : "응답 대기"}
+          {current === "accepted" ? t.accepted : current === "declined" ? t.declined : t.pending}
         </span>
       </div>
 
       {current === "pending" && (
         <div className="mt-4 flex items-center justify-end gap-2">
           {closed && (
-            <span className="mr-auto text-[11px] text-muted-foreground">모집이 마감된 캠페인이에요</span>
+            <span className="mr-auto text-[11px] text-muted-foreground">{t.closed}</span>
           )}
           <button
             type="button"
@@ -93,7 +98,7 @@ export function InvitationCard({
             className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-4 py-2 text-xs font-medium hover:bg-muted disabled:opacity-50"
           >
             {pending === "decline" ? <Loader2 className="size-3.5 animate-spin" /> : <X className="size-3.5" />}
-            거절
+            {t.decline}
           </button>
           <button
             type="button"
@@ -102,7 +107,7 @@ export function InvitationCard({
             className="btn-neon inline-flex items-center gap-1 rounded-full px-4 py-2 text-xs font-bold disabled:opacity-50"
           >
             {pending === "accept" ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
-            수락하고 응모
+            {t.accept}
           </button>
         </div>
       )}

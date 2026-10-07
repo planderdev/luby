@@ -3,8 +3,11 @@
 import { useState, useTransition } from "react";
 import { Banknote, Loader2 } from "lucide-react";
 import { requestWithdrawal } from "./actions";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import type { Locale } from "@/lib/i18n/config";
 
-export function WithdrawalForm({ balance }: { balance: number }) {
+export function WithdrawalForm({ balance, locale = "ko" }: { balance: number; locale?: Locale }) {
+  const t = dashboardDict[locale].points.form;
   const [amount, setAmount] = useState("");
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
@@ -29,7 +32,7 @@ export function WithdrawalForm({ balance }: { balance: number }) {
           bankName,
           accountNumber,
           accountHolder,
-        });
+        }, locale);
         if (result.ok) {
           setDone(true);
           setAmount("");
@@ -37,7 +40,7 @@ export function WithdrawalForm({ balance }: { balance: number }) {
           setError(result.error);
         }
       } catch {
-        setError("출금 신청 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+        setError(t.errGeneric);
       }
     });
   }
@@ -45,16 +48,16 @@ export function WithdrawalForm({ balance }: { balance: number }) {
   return (
     <div className="rounded-3xl glass-card p-6">
       <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-        출금 신청
+        {t.title}
       </h3>
       <p className="mt-1 text-xs text-muted-foreground">
-        최소 10,000P부터 출금할 수 있습니다. 1P = 1원, 영업일 기준 3일 이내 지급됩니다.
+        {t.desc}
       </p>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <div>
           <label className="block text-[11px] font-medium text-muted-foreground">
-            출금 금액 (P)
+            {t.amount}
           </label>
           <input
             type="number"
@@ -68,32 +71,32 @@ export function WithdrawalForm({ balance }: { balance: number }) {
           />
         </div>
         <div>
-          <label className="block text-[11px] font-medium text-muted-foreground">은행명</label>
+          <label className="block text-[11px] font-medium text-muted-foreground">{t.bank}</label>
           <input
             type="text"
             value={bankName}
             onChange={(e) => setBankName(e.target.value)}
-            placeholder="예: 국민은행"
+            placeholder={t.bankPh}
             className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-foreground"
           />
         </div>
         <div>
-          <label className="block text-[11px] font-medium text-muted-foreground">계좌번호</label>
+          <label className="block text-[11px] font-medium text-muted-foreground">{t.account}</label>
           <input
             type="text"
             value={accountNumber}
             onChange={(e) => setAccountNumber(e.target.value)}
-            placeholder="숫자와 - 만 입력"
+            placeholder={t.accountPh}
             className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-foreground"
           />
         </div>
         <div>
-          <label className="block text-[11px] font-medium text-muted-foreground">예금주</label>
+          <label className="block text-[11px] font-medium text-muted-foreground">{t.holder}</label>
           <input
             type="text"
             value={accountHolder}
             onChange={(e) => setAccountHolder(e.target.value)}
-            placeholder="본인 명의 계좌만 가능"
+            placeholder={t.holderPh}
             className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-foreground"
           />
         </div>
@@ -106,7 +109,7 @@ export function WithdrawalForm({ balance }: { balance: number }) {
       )}
       {done && (
         <div className="mt-3 rounded-xl bg-accent-soft px-3 py-2 text-xs text-accent-ink">
-          출금 신청이 접수되었습니다. 신청 금액만큼 포인트가 차감되며, 반려 시 환불됩니다.
+          {t.done}
         </div>
       )}
 
@@ -117,7 +120,7 @@ export function WithdrawalForm({ balance }: { balance: number }) {
         className="mt-4 inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background hover:bg-foreground/90 disabled:opacity-50"
       >
         {pending ? <Loader2 className="size-4 animate-spin" /> : <Banknote className="size-4" />}
-        출금 신청하기
+        {t.submit}
       </button>
     </div>
   );

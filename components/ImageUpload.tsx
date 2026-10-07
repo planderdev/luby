@@ -8,10 +8,78 @@ import { createClient } from "@/lib/supabase/client";
 import { prepareImage, RESIZE_PRESET, fmtBytes } from "@/lib/image-resize";
 
 type Bucket = "campaign-thumbnails" | "profile-avatars" | "notice-images";
+type UploadLocale = "ko" | "en" | "zh";
+
+/** 업로드 UI 문구 — 설정(크리에이터)에서 locale 을 넘기면 영문·중문, 그 외 화면은 한국어 기본 */
+const UI: Record<UploadLocale, {
+  label: (formats: string, mb: number) => string;
+  unsupported: (label: string) => string;
+  tooBig: (mb: number) => string;
+  rawTooBig: (mb: number) => string;
+  needLogin: string;
+  uploadFailed: string;
+  optimized: string;
+  remove: string;
+  uploadAria: (label: string) => string;
+  uploading: string;
+  clickOrDrag: string;
+  fileAria: (label: string) => string;
+  change: string;
+  choose: string;
+}> = {
+  ko: {
+    label: (f, mb) => `${f} · 최대 ${mb}MB (자동 최적화)`,
+    unsupported: (l) => `지원하지 않는 형식입니다. (${l})`,
+    tooBig: (mb) => `파일이 너무 큽니다. (최대 ${mb}MB)`,
+    rawTooBig: (mb) => `이 형식은 압축되지 않아 최대 ${mb}MB 까지만 올릴 수 있어요.`,
+    needLogin: "로그인이 필요합니다.",
+    uploadFailed: "업로드에 실패했어요. 잠시 후 다시 시도해 주세요.",
+    optimized: "최적화됨",
+    remove: "이미지 제거",
+    uploadAria: (l) => `${l} 업로드`,
+    uploading: "업로드 중...",
+    clickOrDrag: "클릭 또는 드래그하여 업로드",
+    fileAria: (l) => `${l} 파일 선택`,
+    change: "사진 변경",
+    choose: "사진 선택",
+  },
+  en: {
+    label: (f, mb) => `${f} · up to ${mb}MB (auto-optimized)`,
+    unsupported: (l) => `Unsupported format. (${l})`,
+    tooBig: (mb) => `File is too large. (max ${mb}MB)`,
+    rawTooBig: (mb) => `This format is not compressed, so the limit is ${mb}MB.`,
+    needLogin: "Please log in.",
+    uploadFailed: "Upload failed. Please try again shortly.",
+    optimized: "Optimized",
+    remove: "Remove image",
+    uploadAria: (l) => `Upload ${l}`,
+    uploading: "Uploading...",
+    clickOrDrag: "Click or drag to upload",
+    fileAria: (l) => `Choose file (${l})`,
+    change: "Change photo",
+    choose: "Choose photo",
+  },
+  zh: {
+    label: (f, mb) => `${f} · 最大 ${mb}MB（自动优化）`,
+    unsupported: (l) => `不支持的格式。（${l}）`,
+    tooBig: (mb) => `文件过大。（最大 ${mb}MB）`,
+    rawTooBig: (mb) => `此格式不会被压缩，最多只能上传 ${mb}MB。`,
+    needLogin: "请先登录。",
+    uploadFailed: "上传失败，请稍后重试。",
+    optimized: "已优化",
+    remove: "删除图片",
+    uploadAria: (l) => `上传 ${l}`,
+    uploading: "上传中...",
+    clickOrDrag: "点击或拖拽上传",
+    fileAria: (l) => `选择文件（${l}）`,
+    change: "更换照片",
+    choose: "选择照片",
+  },
+};
 
 const BUCKET_CONFIG: Record<
   Bucket,
-  { maxSize: number; rawMaxSize: number; mimeTypes: string[]; label: string }
+  { maxSize: number; rawMaxSize: number; mimeTypes: string[]; formats: string }
 > = {
   // maxSize 는 원본 기준 — 정적 이미지는 업로드 전에 브라우저에서 리사이즈·WebP 압축되므로 스마트폰 원본도 허용.
   // GIF 는 압축하지 않으므로 버킷 한도(5MB)를 그대로 적용.
@@ -19,19 +87,19 @@ const BUCKET_CONFIG: Record<
     maxSize: 15 * 1024 * 1024,
     rawMaxSize: 5 * 1024 * 1024,
     mimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
-    label: "JPG, PNG, WEBP, GIF · 최대 15MB (자동 최적화)",
+    formats: "JPG, PNG, WEBP, GIF",
   },
   "profile-avatars": {
     maxSize: 10 * 1024 * 1024,
     rawMaxSize: 2 * 1024 * 1024,
     mimeTypes: ["image/jpeg", "image/png", "image/webp"],
-    label: "JPG, PNG, WEBP · 최대 10MB (자동 최적화)",
+    formats: "JPG, PNG, WEBP",
   },
   "notice-images": {
     maxSize: 15 * 1024 * 1024,
     rawMaxSize: 5 * 1024 * 1024,
     mimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
-    label: "JPG, PNG, WEBP, GIF · 최대 15MB (자동 최적화)",
+    formats: "JPG, PNG, WEBP, GIF",
   },
 };
 
@@ -42,6 +110,7 @@ export function ImageUpload({
   shape = "rect",
   className,
   hint,
+  locale = "ko",
 }: {
   bucket: Bucket;
   value: string;
@@ -50,6 +119,7 @@ export function ImageUpload({
   shape?: "rect" | "circle";
   className?: string;
   hint?: string;
+  locale?: UploadLocale;
 }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,17 +127,19 @@ export function ImageUpload({
   const [note, setNote] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const cfg = BUCKET_CONFIG[bucket];
+  const t = UI[locale];
+  const label = t.label(cfg.formats, Math.round(cfg.maxSize / 1024 / 1024));
 
   const upload = useCallback(
     async (file: File) => {
       setError(null);
 
       if (!cfg.mimeTypes.includes(file.type)) {
-        setError(`지원하지 않는 형식입니다. (${cfg.label})`);
+        setError(t.unsupported(label));
         return;
       }
       if (file.size > cfg.maxSize) {
-        setError(`파일이 너무 큽니다. (최대 ${(cfg.maxSize / 1024 / 1024).toFixed(0)}MB)`);
+        setError(t.tooBig(Math.round(cfg.maxSize / 1024 / 1024)));
         return;
       }
 
@@ -76,7 +148,7 @@ export function ImageUpload({
       // 업로드 전 리사이즈·압축 (GIF/SVG 는 원본 유지)
       const prepared = await prepareImage(file, RESIZE_PRESET[bucket]);
       if (!prepared.optimized && prepared.blob.size > cfg.rawMaxSize) {
-        setError(`이 형식은 압축되지 않아 최대 ${(cfg.rawMaxSize / 1024 / 1024).toFixed(0)}MB 까지만 올릴 수 있어요.`);
+        setError(t.rawTooBig(Math.round(cfg.rawMaxSize / 1024 / 1024)));
         setUploading(false);
         return;
       }
@@ -86,7 +158,7 @@ export function ImageUpload({
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        setError("로그인이 필요합니다.");
+        setError(t.needLogin);
         setUploading(false);
         return;
       }
@@ -102,17 +174,17 @@ export function ImageUpload({
         });
 
       if (uploadError) {
-        setError(dbErrorWith("업로드 실패", uploadError, "업로드에 실패했어요. 잠시 후 다시 시도해 주세요."));
+        setError(locale === "ko" ? dbErrorWith("업로드 실패", uploadError, t.uploadFailed) : t.uploadFailed);
         setUploading(false);
         return;
       }
 
       const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
       onChange(urlData.publicUrl);
-      if (prepared.optimized) setNote(`최적화됨 · ${fmtBytes(file.size)} → ${fmtBytes(prepared.blob.size)}${prepared.width ? ` · ${prepared.width}×${prepared.height}` : ""}`);
+      if (prepared.optimized) setNote(`${t.optimized} · ${fmtBytes(file.size)} → ${fmtBytes(prepared.blob.size)}${prepared.width ? ` · ${prepared.width}×${prepared.height}` : ""}`);
       setUploading(false);
     },
-    [bucket, cfg, onChange]
+    [bucket, cfg, onChange, t, label, locale]
   );
 
   function handleFile(file: File | undefined | null) {
@@ -166,7 +238,7 @@ export function ImageUpload({
               type="button"
               onClick={clear}
               className="absolute right-2 top-2 flex size-8 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80"
-              aria-label="이미지 제거"
+              aria-label={t.remove}
             >
               <X className="size-4" />
             </button>
@@ -176,13 +248,13 @@ export function ImageUpload({
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
-            aria-label={`${cfg.label} 업로드`}
+            aria-label={t.uploadAria(label)}
             className="flex size-full flex-col items-center justify-center gap-2 px-4 text-center"
           >
             {uploading ? (
               <>
                 <Loader2 className="size-6 animate-spin text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">업로드 중...</span>
+                <span className="text-xs text-muted-foreground">{t.uploading}</span>
               </>
             ) : (
               <>
@@ -195,10 +267,8 @@ export function ImageUpload({
                 </div>
                 {!isCircle && (
                   <>
-                    <span className="text-sm font-medium">
-                      클릭 또는 드래그하여 업로드
-                    </span>
-                    <span className="text-[11px] text-muted-foreground">{cfg.label}</span>
+                    <span className="text-sm font-medium">{t.clickOrDrag}</span>
+                    <span className="text-[11px] text-muted-foreground">{label}</span>
                   </>
                 )}
               </>
@@ -210,7 +280,7 @@ export function ImageUpload({
           ref={inputRef}
           type="file"
           accept={cfg.mimeTypes.join(",")}
-          aria-label={`${cfg.label} 파일 선택`}
+          aria-label={t.fileAria(label)}
           className="hidden"
           onChange={(e) => handleFile(e.target.files?.[0])}
         />
@@ -225,9 +295,9 @@ export function ImageUpload({
             disabled={uploading}
             className="rounded-full border border-border bg-background px-4 py-1.5 text-xs font-medium hover:bg-muted disabled:opacity-50"
           >
-            {uploading ? "업로드 중..." : value ? "사진 변경" : "사진 선택"}
+            {uploading ? t.uploading : value ? t.change : t.choose}
           </button>
-          <span className="text-[11px] text-muted-foreground">{cfg.label}</span>
+          <span className="text-[11px] text-muted-foreground">{label}</span>
         </div>
       )}
 

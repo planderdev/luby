@@ -5,6 +5,8 @@ import { Loader2, Send } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { sendMessage, markThreadRead } from "../actions";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import type { Locale } from "@/lib/i18n/config";
 
 type Message = {
   id: string;
@@ -16,13 +18,8 @@ type Message = {
 // Realtime 구독이 기본, 폴링은 연결 끊김 대비 느린 폴백
 const POLL_MS = 30000;
 
-function fmtTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
-}
-
-function fmtDay(iso: string) {
-  const d = new Date(iso);
-  return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
+function fmtTime(iso: string, timeLocale: string) {
+  return new Date(iso).toLocaleTimeString(timeLocale, { hour: "2-digit", minute: "2-digit" });
 }
 
 export function ChatThread({
@@ -31,13 +28,17 @@ export function ChatThread({
   initialMessages,
   canSend,
   sendBlockedReason,
+  locale = "ko",
 }: {
   applicationId: string;
   currentUserId: string;
   initialMessages: Message[];
   canSend: boolean;
   sendBlockedReason: string;
+  locale?: Locale;
 }) {
+  const t = dashboardDict[locale].messages;
+  const fmtDay = (iso: string) => t.day(new Date(iso));
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -96,7 +97,7 @@ export function ChatThread({
     if (!text || sending) return;
     setSending(true);
     setError(null);
-    const result = await sendMessage(applicationId, text);
+    const result = await sendMessage(applicationId, text, locale);
     if (result.ok) {
       setDraft("");
       setMessages((prev) => [
@@ -117,7 +118,7 @@ export function ChatThread({
       <div className="mt-4 flex-1 space-y-3 overflow-y-auto rounded-2xl glass-card p-5">
         {messages.length === 0 && (
           <p className="py-10 text-center text-sm text-muted-foreground">
-            아직 메시지가 없어요. 첫 인사를 건네보세요!
+            {t.noMessages}
           </p>
         )}
         {messages.map((m) => {
@@ -132,7 +133,7 @@ export function ChatThread({
               )}
               <div className={`flex items-end gap-2 ${mine ? "justify-end" : "justify-start"}`}>
                 {mine && (
-                  <span className="text-[10px] text-muted-foreground">{fmtTime(m.created_at)}</span>
+                  <span className="text-[10px] text-muted-foreground">{fmtTime(m.created_at, t.timeLocale)}</span>
                 )}
                 <div
                   className={`max-w-[75%] whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-sm ${
@@ -144,7 +145,7 @@ export function ChatThread({
                   {m.body}
                 </div>
                 {!mine && (
-                  <span className="text-[10px] text-muted-foreground">{fmtTime(m.created_at)}</span>
+                  <span className="text-[10px] text-muted-foreground">{fmtTime(m.created_at, t.timeLocale)}</span>
                 )}
               </div>
             </div>
@@ -174,13 +175,13 @@ export function ChatThread({
               }}
               rows={1}
               maxLength={2000}
-              placeholder="메시지를 입력하세요 (Enter 전송, Shift+Enter 줄바꿈)"
+              placeholder={t.placeholder}
               className="max-h-32 min-h-11 flex-1 resize-none rounded-2xl border border-border bg-background px-4 py-2.5 text-sm outline-none"
             />
             <button
               type="submit"
               disabled={sending || !draft.trim()}
-              aria-label="메시지 보내기"
+              aria-label={t.send}
               className="btn-neon inline-flex size-11 shrink-0 items-center justify-center rounded-full disabled:opacity-50"
             >
               {sending ? (

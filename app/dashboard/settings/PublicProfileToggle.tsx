@@ -3,8 +3,11 @@
 import { useState, useTransition } from "react";
 import { Globe, Link2, Check, Loader2, ExternalLink } from "lucide-react";
 import { setPublicProfile } from "./actions";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import type { Locale } from "@/lib/i18n/config";
 
-export function PublicProfileToggle({ userId, initial, approved }: { userId: string; initial: boolean; approved: boolean }) {
+export function PublicProfileToggle({ userId, initial, approved, locale = "ko" }: { userId: string; initial: boolean; approved: boolean; locale?: Locale }) {
+  const t = dashboardDict[locale].settings.publicProfile;
   const [on, setOn] = useState(initial);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,7 +21,7 @@ export function PublicProfileToggle({ userId, initial, approved }: { userId: str
     setOn(next);
     setError(null);
     startTransition(async () => {
-      const r = await setPublicProfile(next);
+      const r = await setPublicProfile(next, locale);
       if (!r.ok) {
         setOn(!next);
         setError(r.error);
@@ -35,16 +38,16 @@ export function PublicProfileToggle({ userId, initial, approved }: { userId: str
     <section id="public" className="scroll-mt-24 rounded-3xl glass-card p-6 lg:p-8">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="flex items-center gap-2 text-lg font-semibold"><Globe className="size-4" /> 공개 프로필</h2>
+          <h2 className="flex items-center gap-2 text-lg font-semibold"><Globe className="size-4" /> {t.title}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            켜면 로그인 없이 볼 수 있는 내 프로필 페이지가 생겨요. 이름·사진·소개·지역·분야·채널·완료한 협업만 표시되고, 이메일·연락처·정산 정보는 절대 공개되지 않습니다.
+            {t.desc}
           </p>
         </div>
         <button
           type="button"
           role="switch"
           aria-checked={on}
-          aria-label="공개 프로필"
+          aria-label={t.title}
           onClick={toggle}
           disabled={pending || !approved}
           className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${on ? "bg-accent" : "bg-muted"} disabled:opacity-50`}
@@ -52,18 +55,18 @@ export function PublicProfileToggle({ userId, initial, approved }: { userId: str
           <span className={`absolute top-0.5 size-5 rounded-full bg-background shadow transition-transform ${on ? "translate-x-5" : "translate-x-0.5"}`} />
         </button>
       </div>
-      {!approved && <p className="mt-3 text-xs text-muted-foreground">계정 승인 후 켤 수 있어요.</p>}
+      {!approved && <p className="mt-3 text-xs text-muted-foreground">{t.afterApproval}</p>}
       {on && (
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <code className="rounded-xl bg-muted px-3 py-2 text-xs">{url}</code>
           <button type="button" onClick={copy} className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs hover:bg-muted">
-            {copied ? <Check className="size-3.5 text-success" /> : <Link2 className="size-3.5" />} {copied ? "복사됨" : "링크 복사"}
+            {copied ? <Check className="size-3.5 text-success" /> : <Link2 className="size-3.5" />} {copied ? t.copied : t.copy}
           </button>
           <a href={`/p/${userId}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-            <ExternalLink className="size-3.5" /> 미리보기
+            <ExternalLink className="size-3.5" /> {t.preview}
           </a>
           <span className="text-[11px] text-muted-foreground">
-            해외용: <a href={`/en/p/${userId}`} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">EN</a> · <a href={`/zh/p/${userId}`} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">CN</a>
+            {t.abroad} <a href={`/en/p/${userId}`} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">EN</a> · <a href={`/zh/p/${userId}`} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">CN</a>
           </span>
         </div>
       )}

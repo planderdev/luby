@@ -8,8 +8,14 @@ import { getSiteUrl } from "@/lib/seo/site";
 import { PrintButton } from "@/app/r/[token]/PrintButton";
 import { CreatorCardSheet } from "@/components/CreatorCardSheet";
 import { fetchPublicCreator } from "@/components/PublicCreatorView";
+import { getAppLocale } from "@/lib/i18n/app-locale";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
 
-export const metadata = { title: "QR 명함 — 루비AI", robots: { index: false, follow: false } };
+export async function generateMetadata() {
+  const locale = await getAppLocale();
+  const t = dashboardDict[locale].portfolio.card.metaTitle;
+  return { title: locale === "ko" ? t : { absolute: `${t} — Luby AI` }, robots: { index: false, follow: false } };
+}
 
 /**
  * 크리에이터 QR 명함 — A4 한 장에 10장(90×55mm). QR → 공개 프로필(/p/[id]).
@@ -20,6 +26,8 @@ export default async function CreatorCardPage() {
   if (!profile) redirect("/login?redirect=/dashboard/portfolio/card");
   if (profile.role !== "influencer") redirect("/dashboard");
   const supabase = await createClient();
+  const locale = await getAppLocale({ profileLocale: profile.locale });
+  const t = dashboardDict[locale].portfolio.card;
   const [{ data: inf }, c] = await Promise.all([
     supabase.from("influencers").select("public_profile").eq("profile_id", profile.id).maybeSingle(),
     fetchPublicCreator(profile.id, { asOwner: true }),
@@ -33,18 +41,18 @@ export default async function CreatorCardPage() {
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <Link href="/dashboard/portfolio" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" /> 포트폴리오로</Link>
+        <Link href="/dashboard/portfolio" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" /> {t.back}</Link>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">A4 · 명함 10장(90×55mm) · 인쇄 여백 "없음" 권장</span>
-          <PrintButton />
+          <span className="text-xs text-muted-foreground">{t.hint}</span>
+          <PrintButton label={t.print} />
         </div>
       </div>
       {!isPublic && (
         <div className="mb-6 flex flex-wrap items-center gap-2.5 rounded-2xl border border-warning/40 bg-warning-soft/40 px-5 py-4 text-sm print:hidden">
           <EyeOff className="size-4 shrink-0 text-warning" />
           <span>
-            공개 프로필이 <b>꺼져</b> 있어 QR을 찍어도 남에게는 열리지 않아요.{" "}
-            <Link href="/dashboard/settings#public" className="font-medium underline underline-offset-2">설정에서 공개 프로필을 켜고</Link> 인쇄하세요.
+            {t.offBefore}<b>{t.offBold}</b>{t.offMid}
+            <Link href="/dashboard/settings#public" className="font-medium underline underline-offset-2">{t.offLink}</Link>{t.offAfter}
           </span>
         </div>
       )}

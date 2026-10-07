@@ -5,8 +5,16 @@ import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { getEntitlements } from "@/lib/plans/entitlements";
 import { ChatThread } from "./ChatThread";
+import { getAppLocale } from "@/lib/i18n/app-locale";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import { getTranslationMap } from "@/lib/i18n/campaign-translations";
+import type { Locale } from "@/lib/i18n/config";
 
-export const metadata = { title: "메시지 — 루비AI" };
+export async function generateMetadata() {
+  const locale = await getAppLocale();
+  const t = dashboardDict[locale].messages.metaTitle;
+  return { title: locale === "ko" ? t : { absolute: `${t} — Luby AI` } };
+}
 
 export default async function MessageThreadPage({
   params,
@@ -19,6 +27,8 @@ export default async function MessageThreadPage({
 
   const { applicationId } = await params;
   const supabase = await createClient();
+  const locale: Locale = profile.role === "influencer" ? await getAppLocale({ profileLocale: profile.locale }) : "ko";
+  const M = dashboardDict[locale].messages;
 
   // RLS로 본인 관련 응모 건만 보임 — 없으면 목록으로
   const { data: app } = await supabase
@@ -38,8 +48,11 @@ export default async function MessageThreadPage({
     advertiser_id: string;
   };
 
+  // /en·/zh 크리에이터: 캠페인 제목·상호 번역본
+  const tr = locale === "ko" ? undefined : (await getTranslationMap([campaign.id], locale)).get(campaign.id);
+  const campaignTitle = tr?.title ?? campaign.title;
   // 상대방 표시 이름
-  let counterpart = campaign.business_name;
+  let counterpart = tr?.business_name ?? campaign.business_name;
   if (profile.role === "advertiser") {
     const { data: influencer } = await supabase
       .from("profiles")
@@ -71,7 +84,7 @@ export default async function MessageThreadPage({
       <div className="flex items-center gap-3">
         <Link
           href="/dashboard/messages"
-          aria-label="메시지 목록으로"
+          aria-label={M.back}
           className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-background transition-colors hover:bg-muted"
         >
           <ArrowLeft className="size-4" />
@@ -89,7 +102,7 @@ export default async function MessageThreadPage({
             <Link
               href={`/dashboard/advertisers/${campaign.advertiser_id}`}
               className="block truncate text-lg font-semibold tracking-tight hover:underline underline-offset-2"
-              title="광고주 프로필 보기"
+              title={M.advertiserProfile}
             >
               {counterpart}
             </Link>
@@ -98,7 +111,7 @@ export default async function MessageThreadPage({
             href={`/dashboard/campaigns/${campaign.id}`}
             className="block truncate text-xs text-muted-foreground hover:text-foreground"
           >
-            {campaign.title}
+            {campaignTitle}
           </Link>
         </div>
       </div>
@@ -109,6 +122,7 @@ export default async function MessageThreadPage({
         initialMessages={messages ?? []}
         canSend={canSend}
         sendBlockedReason={sendBlockedReason}
+        locale={locale}
       />
     </div>
   );

@@ -1,5 +1,7 @@
 "use server";
 
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import type { Locale } from "@/lib/i18n/config";
 import { createClient } from "@/lib/supabase/server";
 import { dbErrorMessage } from "@/lib/db-errors";
 import { getEntitlements } from "@/lib/plans/entitlements";
@@ -41,17 +43,17 @@ export async function inviteCreator(
 }
 
 /** 크리에이터 → 초대 수락/거절 (수락 시 응모 자동 생성) */
-export async function respondInvitation(invitationId: string, accept: boolean): Promise<Result> {
+export async function respondInvitation(invitationId: string, accept: boolean, locale: Locale = "ko"): Promise<Result> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+  if (!user) return { ok: false, error: locale === "ko" ? "로그인이 필요합니다." : dashboardDict[locale].settings.errors.needLogin };
 
   const { error } = await supabase.rpc("respond_campaign_invitation", {
     p_invitation_id: invitationId,
     p_accept: accept,
   });
-  if (error) return { ok: false, error: dbErrorMessage(error) };
+  if (error) return { ok: false, error: locale === "ko" ? dbErrorMessage(error) : dashboardDict[locale].invitations.errRespond };
   return { ok: true };
 }

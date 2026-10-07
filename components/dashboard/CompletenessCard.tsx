@@ -12,6 +12,7 @@ export function CompletenessCard({
   todoText = "완성할수록 추천·초대가 늘어요",
   nextText = "다음:",
   itemLabels,
+  itemHints,
 }: {
   percent: number;
   items: CompletenessItem[];
@@ -23,8 +24,10 @@ export function CompletenessCard({
   nextText?: string;
   /** 항목 key → 화면 언어 라벨 (없으면 한국어 label) */
   itemLabels?: Record<string, string>;
+  itemHints?: Record<string, string>;
 }) {
   const labelOf = (it: CompletenessItem) => itemLabels?.[it.key] ?? it.label;
+  const hintOf = (it: CompletenessItem) => itemHints?.[it.key] ?? it.hint;
   const done = percent >= 100;
   return (
     <section className={`rounded-3xl ${done ? "glass-card" : "border border-accent/30 bg-accent-soft/40"} p-6 lg:p-8`}>
@@ -63,7 +66,7 @@ export function CompletenessCard({
               </span>
               <span className={it.done ? "text-muted-foreground line-through" : ""}>
                 {labelOf(it)}
-                {!it.done && <span className="ml-1 text-xs text-muted-foreground">· {it.hint}</span>}
+                {!it.done && <span className="ml-1 text-xs text-muted-foreground">· {hintOf(it)}</span>}
               </span>
             </li>
           ))}

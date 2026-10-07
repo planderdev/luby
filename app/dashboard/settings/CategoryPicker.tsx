@@ -3,8 +3,11 @@
 import { useState, useTransition } from "react";
 import { Check, Loader2 } from "lucide-react";
 import { setMyCategories } from "./actions";
+import { categoryLabel } from "@/lib/i18n/app/catalog";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import type { Locale } from "@/lib/i18n/config";
 
-export type CategoryOption = { id: string; name: string; emoji: string | null };
+export type CategoryOption = { id: string; slug?: string | null; name: string; emoji: string | null };
 
 const MAX = 3;
 
@@ -15,10 +18,13 @@ const MAX = 3;
 export function CategoryPicker({
   categories,
   selected,
+  locale = "ko",
 }: {
   categories: CategoryOption[];
   selected: string[];
+  locale?: Locale;
 }) {
+  const t = dashboardDict[locale].settings.categories;
   const [current, setCurrent] = useState<string[]>(selected);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -31,7 +37,7 @@ export function CategoryPicker({
         ? current
         : [...current, id];
     if (next === current) {
-      setError(`전문 분야는 최대 ${MAX}개까지 선택할 수 있어요.`);
+      setError(t.max(MAX));
       return;
     }
     const prev = current;
@@ -39,7 +45,7 @@ export function CategoryPicker({
     setError(null);
     setSaved(false);
     startTransition(async () => {
-      const r = await setMyCategories(next);
+      const r = await setMyCategories(next, locale);
       if (r.ok) {
         setSaved(true);
         setTimeout(() => setSaved(false), 1500);
@@ -54,22 +60,22 @@ export function CategoryPicker({
     <section id="categories" className="scroll-mt-24 rounded-3xl glass-card p-6 lg:p-8">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
-          <h2 className="text-lg font-semibold tracking-tight">전문 분야</h2>
+          <h2 className="text-lg font-semibold tracking-tight">{t.title}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            최대 {MAX}개. 광고주가 크리에이터를 검색하거나 AI가 캠페인을 매칭할 때 사용돼요.
+            {t.desc(MAX)}
           </p>
         </div>
         <span className="text-xs text-muted-foreground">
           {pending ? (
             <span className="inline-flex items-center gap-1">
-              <Loader2 className="size-3 animate-spin" /> 저장 중
+              <Loader2 className="size-3 animate-spin" /> {dashboardDict[locale].settings.saving}
             </span>
           ) : saved ? (
             <span className="inline-flex items-center gap-1 text-success">
-              <Check className="size-3" /> 저장됨
+              <Check className="size-3" /> {dashboardDict[locale].settings.saved}
             </span>
           ) : (
-            `${current.length}/${MAX} 선택`
+            t.count(current.length, MAX)
           )}
         </span>
       </div>
@@ -91,7 +97,7 @@ export function CategoryPicker({
               }`}
             >
               {c.emoji && <span>{c.emoji}</span>}
-              {c.name}
+              {categoryLabel(c, locale)}
               {on && <Check className="size-3.5" />}
             </button>
           );
@@ -101,7 +107,7 @@ export function CategoryPicker({
       {error && <p className="mt-3 text-xs text-danger">{error}</p>}
       {current.length === 0 && !error && (
         <p className="mt-3 text-xs text-warning">
-          분야를 선택하지 않으면 광고주 검색에 잘 노출되지 않아요.
+          {t.none}
         </p>
       )}
     </section>

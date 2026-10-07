@@ -4,6 +4,8 @@ import { useState, useTransition } from "react";
 import { Plus, Trash2, Loader2, ExternalLink } from "lucide-react";
 import { addChannel, deleteChannel } from "./actions";
 import { channelHint } from "@/lib/channel-hints";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import type { Locale } from "@/lib/i18n/config";
 
 export type ChannelRow = {
   id: string;
@@ -19,10 +21,13 @@ type ChannelType = { id: string; slug: string; name: string };
 export function ChannelManager({
   channels,
   channelTypes,
+  locale = "ko",
 }: {
   channels: ChannelRow[];
   channelTypes: ChannelType[];
+  locale?: Locale;
 }) {
+  const t = dashboardDict[locale].settings.channels;
   const [showForm, setShowForm] = useState(false);
   const [typeId, setTypeId] = useState(channelTypes[0]?.id ?? "");
   const [url, setUrl] = useState("");
@@ -43,7 +48,7 @@ export function ChannelManager({
         url,
         handle: handle || null,
         followers,
-      });
+      }, locale);
       if (r.ok) {
         setShowForm(false);
         setUrl("");
@@ -58,7 +63,7 @@ export function ChannelManager({
   function remove(id: string) {
     setError(null);
     startTransition(async () => {
-      const r = await deleteChannel(id);
+      const r = await deleteChannel(id, locale);
       if (!r.ok) setError(r.error);
     });
   }
@@ -68,10 +73,10 @@ export function ChannelManager({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            SNS 채널
+            {t.title}
           </h3>
           <p className="mt-1 text-xs text-muted-foreground">
-            등록된 채널이 많고 정확할수록 캠페인 매칭 확률이 올라가요.
+            {t.desc}
           </p>
         </div>
         {!showForm && (
@@ -81,7 +86,7 @@ export function ChannelManager({
             className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-4 py-2 text-xs font-medium hover:bg-muted"
           >
             <Plus className="size-3.5" />
-            채널 추가
+            {t.add}
           </button>
         )}
       </div>
@@ -90,7 +95,7 @@ export function ChannelManager({
       <div className="mt-5 space-y-2">
         {channels.length === 0 && !showForm && (
           <div className="rounded-2xl border border-dashed border-border px-5 py-8 text-center text-sm text-muted-foreground">
-            아직 등록된 채널이 없어요. 첫 채널을 추가해보세요.
+            {t.empty}
           </div>
         )}
         {channels.map((ch) => (
@@ -109,14 +114,14 @@ export function ChannelManager({
                   target="_blank"
                   rel="noopener noreferrer"
                   className="shrink-0 text-muted-foreground hover:text-foreground"
-                  aria-label="채널 열기"
+                  aria-label={t.open}
                 >
                   <ExternalLink className="size-3.5" />
                 </a>
               </div>
               <div className="text-xs text-muted-foreground">
-                팔로워 {ch.followers.toLocaleString()}명
-                {ch.verified && <span className="ml-2 text-accent-ink">✓ 인증됨</span>}
+                {t.followers(ch.followers.toLocaleString())}
+                {ch.verified && <span className="ml-2 text-accent-ink">{t.verified}</span>}
               </div>
             </div>
             <button
@@ -124,7 +129,7 @@ export function ChannelManager({
               onClick={() => remove(ch.id)}
               disabled={pending}
               className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
-              aria-label="채널 삭제"
+              aria-label={t.remove}
             >
               {pending ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
             </button>
@@ -138,7 +143,7 @@ export function ChannelManager({
           <div className="grid gap-3 md:grid-cols-2">
             <div>
               <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                채널 종류
+                {t.type}
               </label>
               <select
                 value={typeId}
@@ -154,13 +159,13 @@ export function ChannelManager({
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                핸들 <span className="text-muted-foreground/70">— 선택</span>
+                {t.handle} <span className="text-muted-foreground/70">{t.optional}</span>
               </label>
               <input
                 type="text"
                 value={handle}
                 onChange={(e) => setHandle(e.target.value)}
-                placeholder={hint.handlePlaceholder}
+                placeholder={t.handlePh[selectedSlug ?? ""] ?? hint.handlePlaceholder}
                 className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none focus:border-foreground"
               />
             </div>
@@ -168,7 +173,7 @@ export function ChannelManager({
           <div className="mt-3 grid gap-3 md:grid-cols-[2fr_1fr]">
             <div>
               <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                채널 URL
+                {t.url}
               </label>
               <input
                 type="url"
@@ -180,7 +185,7 @@ export function ChannelManager({
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                팔로워 수
+                {t.followersLabel}
               </label>
               <input
                 type="number"
@@ -192,8 +197,8 @@ export function ChannelManager({
               />
             </div>
           </div>
-          {hint.tip && (
-            <p className="mt-2 text-xs text-muted-foreground">💡 {hint.tip}</p>
+          {(t.tips[selectedSlug ?? ""] ?? hint.tip) && (
+            <p className="mt-2 text-xs text-muted-foreground">💡 {t.tips[selectedSlug ?? ""] ?? hint.tip}</p>
           )}
           {error && (
             <div className="mt-3 rounded-xl border border-accent/30 bg-accent-soft px-3 py-2 text-xs text-accent-ink">
@@ -210,7 +215,7 @@ export function ChannelManager({
               disabled={pending}
               className="rounded-full border border-border bg-background px-4 py-2 text-xs font-medium hover:bg-muted"
             >
-              취소
+              {t.cancel}
             </button>
             <button
               type="button"
@@ -219,7 +224,7 @@ export function ChannelManager({
               className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-5 py-2 text-xs font-medium text-background disabled:opacity-50"
             >
               {pending && <Loader2 className="size-3.5 animate-spin" />}
-              추가하기
+              {t.submit}
             </button>
           </div>
         </div>
