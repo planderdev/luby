@@ -1523,6 +1523,14 @@ export type Database = {
         Args: Record<string, never>
         Returns: number
       }
+      operator_unconfirmed_ids: {
+        Args: { p_ids?: string[] | null }
+        Returns: string[]
+      }
+      send_confirm_email_reminders: {
+        Args: { p_dry_run?: boolean }
+        Returns: { rule: string; targets: number }[]
+      }
       pending_creator_counts: {
         Args: Record<string, never>
         Returns: { reviewable: number; no_channel: number }[]

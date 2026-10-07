@@ -47,6 +47,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ skipped: true, reason: "recipient not found" });
   }
 
+  // 이메일 인증 리마인더(2026-10-07): 알림 메일 대신 Supabase 의 가입 인증 메일(확인 링크 포함)을 다시 보낸다.
+  // 미인증 계정은 어차피 로그인할 수 없으니 인앱 알림·푸시는 의미가 없다 — 인증 메일만.
+  if (payload.type === "confirm_email_reminder") {
+    const { error } = await admin.auth.resend({ type: "signup", email: profile.email });
+    if (error) {
+      console.error("[confirm_email_reminder] resend failed", payload.user_id, error.message);
+      return NextResponse.json({ email: { skipped: true, reason: error.message } });
+    }
+    return NextResponse.json({ email: { sent: true, kind: "confirmation" } });
+  }
+
   // 수신 설정(카테고리)은 이메일·푸시에 동일 적용 (인앱 알림은 이미 생성됨)
   const category = categoryOf(payload.type);
   const prefs = normalizePrefs(profile.email_prefs);

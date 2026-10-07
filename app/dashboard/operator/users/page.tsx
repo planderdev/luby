@@ -7,6 +7,7 @@ import { BulkApproveList } from "./BulkApproveList";
 import { InviteMemberPanel } from "./InviteMemberPanel";
 import { BulkImportPanel } from "./BulkImportPanel";
 import { BulkInvitePanel } from "./BulkInvitePanel";
+import { BulkConfirmPanel } from "./BulkConfirmPanel";
 
 export const metadata = { title: "회원 관리 — 루비AI" };
 
@@ -67,7 +68,12 @@ export default async function OperatorUsersPage({
 
   const all = (profilesRes.data ?? []).filter((p) => p.role !== "operator");
   // 가입 후 한 번도 로그인하지 않은 계정 (일괄 등록 후 방치 파악)
-  const { data: neverRows } = await supabase.rpc("operator_never_signed_in", { p_ids: all.map((p) => p.id) });
+  const [{ data: neverRows }, { data: unconfirmedRows }] = await Promise.all([
+    supabase.rpc("operator_never_signed_in", { p_ids: all.map((p) => p.id) }),
+    // 직접 가입했지만 이메일 인증을 안 누른 회원 — 초대(비밀번호 설정) 메일이 아니라 인증 메일을 다시 보내야 한다
+    supabase.rpc("operator_unconfirmed_ids", { p_ids: all.map((p) => p.id) }),
+  ]);
+  const unconfirmed = new Set((unconfirmedRows ?? []) as string[]);
   // 데모 계정(@ruby-ai.kr)은 재초대 대상이 아니다 — 포함하면 400명이 넘어 숫자가 무의미해지고,
   // 일괄 재발송이 실존하지 않는 주소로 나가 발신 평판을 깎을 수 있다
   const demoIds = new Set(all.filter((p) => (p.email ?? "").endsWith("@ruby-ai.kr")).map((p) => p.id));
@@ -171,8 +177,17 @@ export default async function OperatorUsersPage({
         ))}
       </div>
 
-      {filter === "never" && members.length > 0 && (
-        <BulkInvitePanel profileIds={members.map((p) => p.id)} names={members.slice(0, 3).map((p) => p.name)} />
+      {filter === "never" && members.some((p) => unconfirmed.has(p.id)) && (
+        <BulkConfirmPanel
+          profileIds={members.filter((p) => unconfirmed.has(p.id)).map((p) => p.id)}
+          names={members.filter((p) => unconfirmed.has(p.id)).slice(0, 3).map((p) => p.name)}
+        />
+      )}
+      {filter === "never" && members.some((p) => !unconfirmed.has(p.id)) && (
+        <BulkInvitePanel
+          profileIds={members.filter((p) => !unconfirmed.has(p.id)).map((p) => p.id)}
+          names={members.filter((p) => !unconfirmed.has(p.id)).slice(0, 3).map((p) => p.name)}
+        />
       )}
 
       {(() => {
