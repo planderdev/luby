@@ -3,6 +3,8 @@ import { getAdminSupabase } from "@/lib/supabase/admin";
 import { categoryOf, normalizePrefs } from "@/lib/notification-categories";
 import { renderNotificationEmail } from "@/lib/notifications/email-template";
 import { sendPushToUser } from "@/lib/notifications/push";
+import { localizeNotification } from "@/lib/notifications/localize";
+import { parseAppLocale } from "@/lib/i18n/app-locale-shared";
 
 // 429 재시도가 최대 ~15초까지 기다릴 수 있어 여유를 둔다 (다이제스트 20명 버스트 = 초당 2건 제한에서 ~10초 소요)
 export const maxDuration = 30;
@@ -39,7 +41,7 @@ export async function POST(request: Request) {
   const admin = getAdminSupabase();
   const { data: profile } = await admin
     .from("profiles")
-    .select("email, name, email_prefs")
+    .select("email, name, email_prefs, locale")
     .eq("id", payload.user_id)
     .maybeSingle();
 
@@ -65,8 +67,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ skipped: true, reason: `pref off: ${category}` });
   }
 
+  // 수신자 언어(2026-10-07 다국어 5단계): DB 가 만든 한국어 제목·본문을 알려진 type 이면 en/zh 로 바꾼다 (모르면 원문)
+  const locale = parseAppLocale(profile.locale) ?? "ko";
+  const loc = localizeNotification({ type: payload.type, title: payload.title, body: payload.body }, locale);
+
   // 1) 웹 푸시 — 구독한 기기가 있으면 발송 (도메인 제외 규칙과 무관)
-  const push = await sendPushToUser(payload.user_id, { title: payload.title, body: payload.body, link: payload.link, tag: payload.type ?? undefined });
+  const push = await sendPushToUser(payload.user_id, { title: loc.title, body: loc.body, link: payload.link, tag: payload.type ?? undefined });
 
   // 운영 내부 알림은 이메일을 보내지 않는다(인앱·푸시로 충분).
   // 가입 1명당 운영자 3명에게 메일이 나가 Resend 하루 한도(100통)의 6할을 태웠다 — 2026-08-29 유입 급증 때
@@ -91,10 +97,11 @@ export async function POST(request: Request) {
 
   const { subject, html } = renderNotificationEmail({
     userId: payload.user_id,
-    title: payload.title,
-    body: payload.body,
+    title: loc.title,
+    body: loc.body,
     link: payload.link,
     category,
+    locale,
   });
 
   // Resend API 는 초당 2건 제한 — 일괄 승인처럼 알림이 한꺼번에 만들어지면 웹훅이 동시에 몰려 429 가 난다.

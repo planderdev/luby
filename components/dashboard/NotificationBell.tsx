@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { NotificationBellClient } from "./NotificationBellClient";
+import type { Locale } from "@/lib/i18n/config";
 
 /** 서버: 초기 미읽음 카운트만 조회 → 클라이언트가 Realtime 으로 이어받음 */
-export async function NotificationBell({ userId }: { userId: string }) {
+export async function NotificationBell({ userId, locale = "ko" }: { userId: string; locale?: Locale }) {
   const supabase = await createClient();
   const { count } = await supabase
     .from("notifications")
@@ -10,5 +11,5 @@ export async function NotificationBell({ userId }: { userId: string }) {
     .eq("user_id", userId)
     .is("read_at", null);
 
-  return <NotificationBellClient userId={userId} initialUnread={count ?? 0} />;
+  return <NotificationBellClient userId={userId} initialUnread={count ?? 0} locale={locale} />;
 }

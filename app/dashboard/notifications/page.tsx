@@ -4,19 +4,27 @@ import { Bell } from "lucide-react";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { MarkAllReadButton } from "./MarkAllReadButton";
+import { getAppLocale } from "@/lib/i18n/app-locale";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import { localizeNotification } from "@/lib/notifications/localize";
 
-export const metadata = { title: "알림 — 루비AI" };
+export async function generateMetadata() {
+  const locale = await getAppLocale();
+  const t = dashboardDict[locale].notifications.metaTitle;
+  return { title: locale === "ko" ? t : { absolute: `${t} — Luby AI` } };
+}
 
-function timeAgo(iso: string): string {
+type T = (typeof dashboardDict)["ko"]["notifications"];
+function timeAgo(iso: string, t: T): string {
   const diff = Date.now() - new Date(iso).getTime();
   const min = Math.floor(diff / 60000);
-  if (min < 1) return "방금 전";
-  if (min < 60) return `${min}분 전`;
+  if (min < 1) return t.justNow;
+  if (min < 60) return t.minutesAgo(min);
   const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr}시간 전`;
+  if (hr < 24) return t.hoursAgo(hr);
   const day = Math.floor(hr / 24);
-  if (day < 7) return `${day}일 전`;
-  return new Date(iso).toLocaleDateString("ko-KR");
+  if (day < 7) return t.daysAgo(day);
+  return new Date(iso).toLocaleDateString(t.dateLocale);
 }
 
 export default async function NotificationsPage() {
@@ -24,6 +32,9 @@ export default async function NotificationsPage() {
   if (!profile) redirect("/login");
 
   const supabase = await createClient();
+  // 크리에이터는 화면 언어로(알림 문구도 localizeNotification 으로 변환), 광고주·운영자는 한국어
+  const locale = profile.role === "influencer" ? await getAppLocale({ profileLocale: profile.locale }) : "ko";
+  const t = dashboardDict[locale].notifications;
   const { data: notifications } = await supabase
     .from("notifications")
     .select("id, type, title, body, link, read_at, created_at")
@@ -37,24 +48,25 @@ export default async function NotificationsPage() {
     <div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="display text-3xl font-semibold lg:text-4xl">알림</h1>
+          <h1 className="display text-3xl font-semibold lg:text-4xl">{t.title}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            {unreadCount > 0 ? `읽지 않은 알림 ${unreadCount}개` : "모든 알림을 확인했습니다."}
+            {unreadCount > 0 ? t.unread(unreadCount) : t.allRead}
           </p>
         </div>
-        {unreadCount > 0 && <MarkAllReadButton />}
+        {unreadCount > 0 && <MarkAllReadButton label={t.markAll} />}
       </div>
 
       {!notifications || notifications.length === 0 ? (
         <div className="mt-8 rounded-3xl border border-dashed border-border bg-background p-10 text-center">
           <Bell className="mx-auto size-8 text-muted-foreground" />
           <p className="mt-3 text-sm text-muted-foreground">
-            아직 알림이 없습니다. 활동이 생기면 여기에 표시됩니다.
+            {t.empty}
           </p>
         </div>
       ) : (
         <div className="mt-8 space-y-2">
-          {notifications.map((n) => {
+          {notifications.map((raw) => {
+            const n = localizeNotification(raw, locale);
             const inner = (
               <div
                 className={`flex items-start gap-3 rounded-2xl border p-4 transition-colors ${
@@ -68,7 +80,7 @@ export default async function NotificationsPage() {
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <span className="text-sm font-semibold">{n.title}</span>
                     <span className="text-[11px] text-muted-foreground">
-                      {timeAgo(n.created_at)}
+                      {timeAgo(n.created_at, t)}
                     </span>
                   </div>
                   {n.body && (

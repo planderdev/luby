@@ -390,6 +390,22 @@ const ko = {
       print: "PDF로 저장 · 인쇄",
     },
   },
+  notifications: {
+    metaTitle: "알림",
+    title: "알림",
+    unread: (n: number) => `읽지 않은 알림 ${n}개`,
+    allRead: "모든 알림을 확인했습니다.",
+    empty: "아직 알림이 없습니다. 활동이 생기면 여기에 표시됩니다.",
+    markAll: "모두 읽음",
+    justNow: "방금 전",
+    minutesAgo: (n: number) => `${n}분 전`,
+    hoursAgo: (n: number) => `${n}시간 전`,
+    daysAgo: (n: number) => `${n}일 전`,
+    dateLocale: "ko-KR",
+    bellAria: (n: number) => `알림 ${n}개`,
+    open: "바로 보기 →",
+    close: "닫기",
+  },
 };
 
 export type DashboardDict = typeof ko;
@@ -793,6 +809,22 @@ const en: DashboardDict = {
       print: "Save as PDF · Print",
     },
   },
+  notifications: {
+    metaTitle: "Notifications",
+    title: "Notifications",
+    unread: (n: number) => `${n} unread`,
+    allRead: "You're all caught up.",
+    empty: "No notifications yet. Activity will show up here.",
+    markAll: "Mark all read",
+    justNow: "just now",
+    minutesAgo: (n: number) => `${n} min ago`,
+    hoursAgo: (n: number) => `${n} h ago`,
+    daysAgo: (n: number) => `${n} d ago`,
+    dateLocale: "en-US",
+    bellAria: (n: number) => `${n} notifications`,
+    open: "Open →",
+    close: "Close",
+  },
 };
 
 const zh: DashboardDict = {
@@ -1193,6 +1225,22 @@ const zh: DashboardDict = {
       offAfter: "再打印。",
       print: "保存为 PDF · 打印",
     },
+  },
+  notifications: {
+    metaTitle: "通知",
+    title: "通知",
+    unread: (n: number) => `${n} 条未读通知`,
+    allRead: "所有通知均已查看。",
+    empty: "暂无通知。有新动态时会显示在这里。",
+    markAll: "全部标为已读",
+    justNow: "刚刚",
+    minutesAgo: (n: number) => `${n} 分钟前`,
+    hoursAgo: (n: number) => `${n} 小时前`,
+    daysAgo: (n: number) => `${n} 天前`,
+    dateLocale: "zh-CN",
+    bellAria: (n: number) => `${n} 条通知`,
+    open: "立即查看 →",
+    close: "关闭",
   },
 };
 

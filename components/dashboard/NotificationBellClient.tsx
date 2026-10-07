@@ -5,6 +5,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Bell, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import { localizeNotification } from "@/lib/notifications/localize";
+import type { Locale } from "@/lib/i18n/config";
 
 type Toast = { id: string; title: string; body: string | null; link: string | null };
 
@@ -16,7 +19,8 @@ const MAX_TOASTS = 3;
  * 배지를 즉시 갱신하고, 새 알림은 우하단 토스트로 띄운다.
  * 초기 카운트는 서버 컴포넌트(NotificationBell)가 넘긴다.
  */
-export function NotificationBellClient({ userId, initialUnread }: { userId: string; initialUnread: number }) {
+export function NotificationBellClient({ userId, initialUnread, locale = "ko" }: { userId: string; initialUnread: number; locale?: Locale }) {
+  const t = dashboardDict[locale].notifications;
   const [unread, setUnread] = useState(initialUnread);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const pathname = usePathname();
@@ -60,9 +64,10 @@ export function NotificationBellClient({ userId, initialUnread }: { userId: stri
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
         (payload) => {
-          const n = payload.new as { id: string; title: string; body: string | null; link: string | null; read_at: string | null };
+          const raw = payload.new as { id: string; type: string | null; title: string; body: string | null; link: string | null; read_at: string | null };
+          const n = localizeNotification(raw, locale);
           if (!n.read_at) setUnread((u) => u + 1);
-          setToasts((t) => [{ id: n.id, title: n.title, body: n.body, link: n.link }, ...t].slice(0, MAX_TOASTS));
+          setToasts((list) => [{ id: n.id, title: n.title, body: n.body, link: n.link }, ...list].slice(0, MAX_TOASTS));
           timers.current.set(n.id, setTimeout(() => dismiss(n.id), TOAST_MS));
           // 알림 목록을 보고 있으면 서버 목록도 갱신
           if (pathnameRef.current === "/dashboard/notifications") router.refresh();
@@ -81,13 +86,13 @@ export function NotificationBellClient({ userId, initialUnread }: { userId: stri
       timerMap.forEach((t) => clearTimeout(t));
       timerMap.clear();
     };
-  }, [userId, instanceId, router, refetchCount, dismiss]);
+  }, [userId, instanceId, router, refetchCount, dismiss, locale]);
 
   return (
     <>
       <Link
         href="/dashboard/notifications"
-        aria-label={`알림 ${unread}개`}
+        aria-label={t.bellAria(unread)}
         className="relative inline-flex size-10 items-center justify-center rounded-full border border-border bg-background transition-colors hover:bg-muted"
       >
         <Bell className="size-4.5" />
@@ -100,24 +105,24 @@ export function NotificationBellClient({ userId, initialUnread }: { userId: stri
 
       {toasts.length > 0 && (
         <div className="pointer-events-none fixed bottom-20 right-4 z-50 flex w-[min(360px,calc(100vw-2rem))] flex-col gap-2 lg:bottom-6 lg:right-6" aria-live="polite">
-          {toasts.map((t) => (
+          {toasts.map((x) => (
             <div
-              key={t.id}
+              key={x.id}
               className="pointer-events-auto flex items-start gap-3 rounded-2xl border border-border bg-background p-4 shadow-[0_12px_40px_-12px_rgba(21,18,23,0.25)] animate-fade-up"
             >
               <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent-ink">
                 <Bell className="size-3.5" />
               </span>
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-semibold">{t.title}</div>
-                {t.body && <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{t.body}</p>}
-                {t.link && (
-                  <Link href={t.link} onClick={() => dismiss(t.id)} className="mt-1.5 inline-block text-xs font-medium underline underline-offset-2">
-                    바로 보기 →
+                <div className="truncate text-sm font-semibold">{x.title}</div>
+                {x.body && <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{x.body}</p>}
+                {x.link && (
+                  <Link href={x.link} onClick={() => dismiss(x.id)} className="mt-1.5 inline-block text-xs font-medium underline underline-offset-2">
+                    {t.open}
                   </Link>
                 )}
               </div>
-              <button type="button" onClick={() => dismiss(t.id)} aria-label="닫기" className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground">
+              <button type="button" onClick={() => dismiss(x.id)} aria-label={t.close} className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground">
                 <X className="size-3.5" />
               </button>
             </div>

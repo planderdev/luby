@@ -16,7 +16,8 @@ export function verifyUnsubscribe(userId: string, category: EmailCategory | "all
   const a = Buffer.from(expected), b = Buffer.from(token ?? "");
   return a.length === b.length && timingSafeEqual(a, b);
 }
-export function unsubscribeUrl(siteUrl: string, userId: string, category: EmailCategory | "all"): string {
+export function unsubscribeUrl(siteUrl: string, userId: string, category: EmailCategory | "all", locale: "ko" | "en" | "zh" = "ko"): string {
   const t = signUnsubscribe(userId, category);
-  return `${siteUrl}/api/notifications/unsubscribe?u=${encodeURIComponent(userId)}&c=${category}&t=${t}`;
+  // lang 은 안내 페이지 언어만 정한다 (토큰 서명 범위 밖)
+  return `${siteUrl}/api/notifications/unsubscribe?u=${encodeURIComponent(userId)}&c=${category}&t=${t}${locale !== "ko" ? `&lang=${locale}` : ""}`;
 }

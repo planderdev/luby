@@ -45,7 +45,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <>
               <GuideButton role={profile.role} />
               <RefreshButton />
-              <NotificationBell userId={profile.id} />
+              <NotificationBell userId={profile.id} locale={locale} />
             </>
           }
         />
@@ -55,7 +55,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <div className="flex items-center justify-end gap-2">
             <GuideButton role={profile.role} />
             <RefreshButton />
-            <NotificationBell userId={profile.id} />
+            <NotificationBell userId={profile.id} locale={locale} />
           </div>
         </div>
 
