@@ -51,7 +51,7 @@ export type CreatorLandingDict = typeof ko;
 
 const en: CreatorLandingDict = {
   metaTitle: "Become a creator — try products, get paid in points",
-  metaDesc: "All you need is an Instagram, YouTube, TikTok, blog or Xiaohongshu channel. Apply to Korean and global brand campaigns, get selected, create content, and cash out from 10,000P.",
+  metaDesc: "All you need is an Instagram, YouTube, TikTok, blog or Xiaohongshu channel. Apply to Korean and global brand campaigns, get selected, create content, and cash out from 10,000P to a Korean bank account.",
   eyebrow: "Creators wanted",
   title: "Experience brands with your channel,\nget paid in points",
   sub: "Content matters more than follower count. Register one channel and apply to Korean and global brand campaigns right away.",
@@ -67,7 +67,7 @@ const en: CreatorLandingDict = {
     { t: "Register a channel", d: "Instagram, YouTube, TikTok, blog, Xiaohongshu and more — our team usually approves within 24 hours." },
     { t: "Apply", d: "Get campaigns matched to your niche and region, see your selection odds, and apply with an AI-drafted message." },
     { t: "Experience & create", d: "Once selected, schedule with the brand over chat, experience the product, and submit your content URL." },
-    { t: "Get paid", d: "Points are credited on approval; cash out to your bank from 10,000P." },
+    { t: "Get paid", d: "Points are credited on approval; cash out from 10,000P to a Korean bank account (overseas payout is not available yet)." },
   ],
   showcaseTitle: "Top-paying campaigns right now",
   showcaseSub: "No login needed to browse · sign up to apply",
@@ -88,7 +88,7 @@ const en: CreatorLandingDict = {
   faq: [
     { q: "Do I need many followers?", a: "No. Brands look at content style and niche fit, not just reach. Many campaigns prefer smaller channels." },
     { q: "Does it cost anything?", a: "It's free for creators. You receive the product/experience plus points." },
-    { q: "How do I get paid?", a: "Points are credited when your content is approved; from 10,000P you can request a bank payout in the dashboard." },
+    { q: "How do I get paid?", a: "Points are credited when your content is approved; from 10,000P you can request a payout to a Korean bank account in the dashboard. Overseas bank payout is not available yet, so most overseas creators join for the product or experience itself." },
   ],
   finalTitle: "Sign up today, apply this week",
   finalSub: "3-minute signup · channel approval usually within 24h",
@@ -98,7 +98,7 @@ const en: CreatorLandingDict = {
 
 const zh: CreatorLandingDict = {
   metaTitle: "成为体验官 — 体验品牌，积分结算",
-  metaDesc: "只要有 Instagram、YouTube、TikTok、博客或小红书频道，就能报名韩国与全球品牌的体验活动。入选 → 体验 → 内容 → 审核后积分，满 10,000P 可提现。",
+  metaDesc: "只要有 Instagram、YouTube、TikTok、博客或小红书频道，就能报名韩国与全球品牌的体验活动。入选 → 体验 → 内容 → 审核后积分，满 10,000P 可提现到韩国银行账户。",
   eyebrow: "招募体验官",
   title: "用你的频道体验品牌，\n以积分结算",
   sub: "内容比粉丝数更重要。登记一个频道，即可报名韩国与全球品牌的体验活动。",
@@ -114,7 +114,7 @@ const zh: CreatorLandingDict = {
     { t: "登记频道", d: "Instagram、YouTube、TikTok、博客、小红书等 8 个频道，运营团队通常 24 小时内审核。" },
     { t: "报名", d: "获得与你领域·地区匹配的活动推荐，查看入选可能性提示，用 AI 草稿快速报名。" },
     { t: "体验与内容", d: "入选后与广告主在聊天中约定时间，体验后提交内容链接。" },
-    { t: "积分结算", d: "审核通过即发放积分，满 10,000P 可申请提现到银行账户。" },
+    { t: "积分结算", d: "审核通过即发放积分，满 10,000P 可提现到韩国银行账户（暂不支持海外账户）。" },
   ],
   showcaseTitle: "当前积分最高的活动",
   showcaseSub: "无需登录即可浏览 · 注册后即可报名",
@@ -135,7 +135,7 @@ const zh: CreatorLandingDict = {
   faq: [
     { q: "粉丝少也可以吗？", a: "可以。广告主看重内容风格与领域匹配，而不只是粉丝数。许多活动更偏好小型频道。" },
     { q: "需要付费吗？", a: "创作者完全免费，你会获得体验产品和积分。" },
-    { q: "积分如何领取？", a: "内容审核通过后发放，满 10,000P 可在控制台申请提现。" },
+    { q: "积分如何领取？", a: "内容审核通过后发放，满 10,000P 可在控制台申请提现到韩国银行账户。暂不支持海外账户提现，海外体验官主要以免费体验和产品为回报。" },
   ],
   finalTitle: "今天注册，本周完成首次报名",
   finalSub: "注册 3 分钟 · 频道审核通常 24 小时内",
