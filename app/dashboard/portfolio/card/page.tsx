@@ -6,7 +6,9 @@ import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { getSiteUrl } from "@/lib/seo/site";
 import { PrintButton } from "@/app/r/[token]/PrintButton";
-import { CreatorCardSheet } from "@/components/CreatorCardSheet";
+import { CreatorCardSheet, CARD_LABELS } from "@/components/CreatorCardSheet";
+import { fetchUICatalog } from "@/lib/cache/ui-catalog";
+import { categoryLabel, regionLabel } from "@/lib/i18n/app/catalog";
 import { fetchPublicCreator } from "@/components/PublicCreatorView";
 import { getAppLocale } from "@/lib/i18n/app-locale";
 import { dashboardDict } from "@/lib/i18n/app/dashboard";
@@ -28,10 +30,14 @@ export default async function CreatorCardPage() {
   const supabase = await createClient();
   const locale = await getAppLocale({ profileLocale: profile.locale });
   const t = dashboardDict[locale].portfolio.card;
-  const [{ data: inf }, c] = await Promise.all([
+  const [{ data: inf }, c, catalog] = await Promise.all([
     supabase.from("influencers").select("public_profile").eq("profile_id", profile.id).maybeSingle(),
     fetchPublicCreator(profile.id, { asOwner: true }),
+    fetchUICatalog(),
   ]);
+  // 분야·지역 이름은 한국어(RPC) → 화면 언어로 (카탈로그 이름 매칭)
+  const catName = (name: string) => { const k = catalog.categories.find((x) => x.name === name); return k ? categoryLabel(k, locale) : name; };
+  const regName = (name: string) => { const r = catalog.regions.find((x) => x.name === name); return r ? regionLabel(r, locale) : name; };
   if (!c) redirect("/dashboard/portfolio");
   const isPublic = !!inf?.public_profile;
   const url = `${getSiteUrl()}/p/${profile.id}`;
@@ -60,12 +66,13 @@ export default async function CreatorCardPage() {
         d={{
           name: c.name,
           avatarUrl: c.avatar_url,
-          categories: c.categories.map((k) => `${k.emoji} ${k.name}`),
-          region: c.region ? `${c.region.flag} ${c.region.name}` : null,
+          categories: c.categories.map((k) => `${k.emoji} ${catName(k.name)}`),
+          region: c.region ? `${c.region.flag} ${regName(c.region.name)}` : null,
           channels,
           url,
           qrSvg: qr,
         }}
+        labels={CARD_LABELS[locale]}
       />
     </div>
   );

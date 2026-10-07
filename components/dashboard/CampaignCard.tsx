@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Calendar, Coins, Users, Inbox, CheckCircle2, Sparkles, Eye } from "lucide-react";
 import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import { withLang } from "@/lib/i18n/app-locale-shared";
 import type { Locale } from "@/lib/i18n/config";
 
 const STATUS_TONE: Record<string, "success" | "warning" | "danger" | "muted" | "ink"> = {
@@ -78,7 +79,7 @@ export function CampaignCard({
         {thumbnail || ["open", "closed", "completed"].includes(status) ? (
           // 썸네일 없으면 공개 상태에 한해 브랜드 OG 카드로 폴백 (공개 페이지·디렉터리와 동일)
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={thumbnail ?? `/api/og/campaign/${id}`} alt={title} loading="lazy" className={`size-full object-cover ${thumbnail ? "" : "object-left"}`} />
+          <img src={thumbnail ?? withLang(`/api/og/campaign/${id}`, locale)} alt={title} loading="lazy" className={`size-full object-cover ${thumbnail ? "" : "object-left"}`} />
         ) : (
           <div className="flex size-full items-center justify-center">
             <span className="text-3xl opacity-40">{categoryEmoji || "🎯"}</span>

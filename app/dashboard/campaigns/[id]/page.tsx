@@ -19,7 +19,7 @@ import type { ReportSummary } from "@/lib/ai/report-summary";
 import { Skeleton } from "@/components/dashboard/Skeleton";
 import { getAppLocale } from "@/lib/i18n/app-locale";
 import { dashboardDict } from "@/lib/i18n/app/dashboard";
-import { categoryLabel, regionLabel } from "@/lib/i18n/app/catalog";
+import { categoryLabel, regionLabel, promotionTypeLabel } from "@/lib/i18n/app/catalog";
 import { getTranslationMap } from "@/lib/i18n/campaign-translations";
 
 const STATUS_TONE: Record<string, string> = {
@@ -292,8 +292,8 @@ export default async function CampaignDetailPage({
         {/* Left main */}
         <div className="space-y-4 lg:col-span-2">
           <Section title={tc.promotion}>
-            <p className="text-sm font-medium">{promotion.data?.name}</p>
-            {promotion.data?.description && (
+            <p className="text-sm font-medium">{promotion.data ? promotionTypeLabel(promotion.data, locale) : ""}</p>
+            {promotion.data?.description && locale === "ko" && (
               <p className="mt-1 text-xs text-muted-foreground">{promotion.data.description}</p>
             )}
           </Section>

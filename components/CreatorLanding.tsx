@@ -111,7 +111,7 @@ export async function CreatorLanding({ locale }: { locale: Locale }) {
               <li key={c.id}>
                 <Link href={`${pfx}/c/${c.id}?src=dir`} className="group flex h-full flex-col overflow-hidden rounded-3xl glass-card transition-transform hover:-translate-y-0.5">
                   <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
-                    <Image src={c.thumbnail_url ?? `/api/og/campaign/${c.id}`} alt={c.title} fill sizes="(min-width: 640px) 33vw, 100vw" className={`object-cover ${c.thumbnail_url ? "" : "object-left"}`} />
+                    <Image src={c.thumbnail_url ?? withLang(`/api/og/campaign/${c.id}`, locale)} alt={c.title} fill sizes="(min-width: 640px) 33vw, 100vw" className={`object-cover ${c.thumbnail_url ? "" : "object-left"}`} />
                     {c.applied < c.recruit_count && <span className="absolute right-3 top-3 rounded-full bg-accent-strong px-2.5 py-1 text-[11px] font-semibold text-white shadow-pink-sm">{t.spotsLeft(c.recruit_count - c.applied)}</span>}
                   </div>
                   <div className="flex flex-1 flex-col p-4">

@@ -10,10 +10,18 @@ export type CreatorCardData = {
   qrSvg: string;
 };
 
-const fmtN = (n: number) => (n >= 10000 ? `${(n / 10000).toFixed(1).replace(/\.0$/, "")}만` : n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, "")}천` : n.toLocaleString());
+export type CardLabels = { fallback: string; scan: string; fmtN: (n: number) => string };
+const fmtKo = (n: number) => (n >= 10000 ? `${(n / 10000).toFixed(1).replace(/\.0$/, "")}만` : n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, "")}천` : n.toLocaleString());
+/** 명함 라벨 — 기본 한국어, 크리에이터 화면 언어(en/zh)는 card 페이지가 넘긴다 */
+export const CARD_LABELS: Record<"ko" | "en" | "zh", CardLabels> = {
+  ko: { fallback: "크리에이터", scan: "스캔 → 포트폴리오", fmtN: fmtKo },
+  en: { fallback: "Creator", scan: "Scan → portfolio", fmtN: (n) => (n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}M` : n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, "")}K` : n.toLocaleString("en-US")) },
+  zh: { fallback: "体验官", scan: "扫码 → 作品集", fmtN: (n) => (n >= 10000 ? `${(n / 10000).toFixed(1).replace(/\.0$/, "")}万` : n.toLocaleString("zh-CN")) },
+};
 
 /** 명함 1장 (90×55mm 비율). 화면·인쇄 공통, 흰 종이 고정색 */
-function Card({ d }: { d: CreatorCardData }) {
+function Card({ d, L }: { d: CreatorCardData; L: CardLabels }) {
+  const fmtN = L.fmtN;
   const channels = d.channels.slice(0, 3);
   return (
     <div className="flex h-full w-full items-stretch justify-between gap-3 bg-white p-[4mm] text-[#151217]">
@@ -28,7 +36,7 @@ function Card({ d }: { d: CreatorCardData }) {
           <div className="min-w-0">
             <div className="truncate text-[13px] font-semibold leading-tight">{d.name}</div>
             <div className="truncate text-[8.5px] text-[#6b6472]">
-              {[d.categories.slice(0, 2).join(" · "), d.region].filter(Boolean).join(" · ") || "크리에이터"}
+              {[d.categories.slice(0, 2).join(" · "), d.region].filter(Boolean).join(" · ") || L.fallback}
             </div>
           </div>
         </div>
@@ -49,20 +57,20 @@ function Card({ d }: { d: CreatorCardData }) {
       </div>
       <div className="flex shrink-0 flex-col items-center justify-center">
         <div className="size-[19mm] rounded-md border border-[#e3dde7] p-[1mm]" dangerouslySetInnerHTML={{ __html: d.qrSvg }} />
-        <div className="mt-[2px] text-[6.5px] text-[#9a93a0]">스캔 → 포트폴리오</div>
+        <div className="mt-[2px] text-[6.5px] text-[#9a93a0]">{L.scan}</div>
       </div>
     </div>
   );
 }
 
 /** A4 세로 한 장에 명함 10장(2×5, 90×55mm). 절취선은 연한 점선 */
-export function CreatorCardSheet({ d }: { d: CreatorCardData }) {
+export function CreatorCardSheet({ d, labels = CARD_LABELS.ko }: { d: CreatorCardData; labels?: CardLabels }) {
   return (
     <div className="mx-auto w-full max-w-[640px] overflow-hidden rounded-3xl border border-border bg-white shadow-sm print:m-0 print:h-[297mm] print:w-[210mm] print:max-w-none print:rounded-none print:border-0 print:shadow-none">
       <div className="grid aspect-[210/297] w-full grid-cols-2 grid-rows-5 content-center justify-center gap-0 px-[6%] py-[3.5%] print:aspect-auto print:h-full print:px-[15mm] print:py-[11mm]">
         {Array.from({ length: 10 }).map((_, i) => (
           <div key={i} className="aspect-[90/55] border border-dashed border-[#d9d3de] print:aspect-auto print:h-[55mm] print:w-[90mm]">
-            <Card d={d} />
+            <Card d={d} L={labels} />
           </div>
         ))}
       </div>

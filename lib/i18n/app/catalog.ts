@@ -29,6 +29,19 @@ const REGION: Record<string, { en: string; zh: string }> = {
   CN: { en: "China", zh: "中国" },
 };
 
+/** 진행 방식(promotion_types) — slug 또는 한국어 이름으로 */
+const PROMOTION: Record<string, { ko: string; en: string; zh: string }> = {
+  visit: { ko: "방문형", en: "In-store visit", zh: "到店体验" },
+  delivery: { ko: "배송형", en: "Delivery", zh: "寄送体验" },
+  service: { ko: "구매형", en: "Purchase", zh: "购买体验" },
+  event: { ko: "이벤트형", en: "Event", zh: "活动参与" },
+};
+export function promotionTypeLabel(p: { slug?: string | null; name: string }, locale: Locale): string {
+  if (locale === "ko") return p.name;
+  const hit = (p.slug && PROMOTION[p.slug]) || Object.values(PROMOTION).find((x) => x.ko === p.name);
+  return hit?.[locale] ?? p.name;
+}
+
 export function categoryLabel(c: { slug?: string | null; name: string }, locale: Locale): string {
   if (locale === "ko" || !c.slug) return c.name;
   return CATEGORY[c.slug]?.[locale] ?? c.name;

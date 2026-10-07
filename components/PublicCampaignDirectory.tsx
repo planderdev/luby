@@ -173,7 +173,7 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
                   <Link href={`${pfx}/c/${c.id}?src=dir`} className="group flex h-full flex-col overflow-hidden rounded-3xl glass-card transition-transform hover:-translate-y-0.5">
                     <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
                       <Image
-                        src={c.thumbnail_url ?? `/api/og/campaign/${c.id}`}
+                        src={c.thumbnail_url ?? withLang(`/api/og/campaign/${c.id}`, locale)}
                         alt={c.title}
                         fill
                         sizes="(min-width: 1024px) 380px, (min-width: 640px) 50vw, 100vw"

@@ -18,6 +18,7 @@ import { CompletenessCard } from "@/components/dashboard/CompletenessCard";
 import { ReferralCard } from "@/components/dashboard/ReferralCard";
 import type { CompletenessItem } from "@/lib/profile-completeness";
 import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import { withLang } from "@/lib/i18n/app-locale-shared";
 import type { Locale } from "@/lib/i18n/config";
 
 export type RecommendedCampaign = {
@@ -237,7 +238,7 @@ export function InfluencerOverview({
               >
                 <div className="relative aspect-[16/9] w-full bg-muted">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={c.thumbnail_url ?? `/api/og/campaign/${c.id}`} alt={c.title} loading="lazy" className={`size-full object-cover ${c.thumbnail_url ? "" : "object-left"}`} />
+                  <img src={c.thumbnail_url ?? withLang(`/api/og/campaign/${c.id}`, locale)} alt={c.title} loading="lazy" className={`size-full object-cover ${c.thumbnail_url ? "" : "object-left"}`} />
                   {c.badges.length > 0 && (
                     <div className="absolute right-2 top-2 flex gap-1">
                       {c.badges.map((b) => (

@@ -15,6 +15,8 @@ import { CampaignCta, CampaignShareButton } from "@/components/public/CampaignCt
 import { ViewBeacon } from "@/components/ViewBeacon";
 import { getTranslationMap, translateCards, translateCampaignView } from "@/lib/i18n/campaign-translations";
 import { withLang } from "@/lib/i18n/app-locale-shared";
+import { fetchUICatalog } from "@/lib/cache/ui-catalog";
+import { categoryLabel, regionLabel, promotionTypeLabel } from "@/lib/i18n/app/catalog";
 
 // 공개 캠페인 페이지 — 로그인 없이 볼 수 있는 공유·SEO용. 데이터는 get_public_campaign() (민감정보 제외).
 
@@ -102,9 +104,9 @@ export async function buildPublicCampaignMetadata(id: string, locale: Locale): P
       url,
       type: "article",
       siteName: SITE.name,
-      images: [{ url: `${base}/api/og/campaign/${c.id}`, width: 1200, height: 630, alt: c.title }],
+      images: [{ url: `${base}${withLang(`/api/og/campaign/${c.id}`, locale)}`, width: 1200, height: 630, alt: c.title }],
     },
-    twitter: { card: "summary_large_image", title: c.title, description: desc, images: [`${base}/api/og/campaign/${c.id}`] },
+    twitter: { card: "summary_large_image", title: c.title, description: desc, images: [`${base}${withLang(`/api/og/campaign/${c.id}`, locale)}`] },
   };
 }
 
@@ -132,6 +134,10 @@ export async function PublicCampaignView({ id, locale }: { id: string; locale: L
   const t = publicCampaignDict[locale];
   const fmt = fmtFor(locale);
   const pfx = localePrefix(locale);
+  // /en·/zh: 지역·분야·진행 방식 이름은 공개 RPC 가 한국어로만 주므로 카탈로그(code/slug)로 라벨링 (2026-10-07)
+  const catalog = locale === "ko" ? null : await fetchUICatalog();
+  const regionName = (name: string | undefined) => { if (!name || !catalog) return name ?? ""; const r = catalog.regions.find((x) => x.name === name); return r ? regionLabel(r, locale) : name; };
+  const categoryName = (name: string | undefined) => { if (!name || !catalog) return name ?? ""; const k = catalog.categories.find((x) => x.name === name); return k ? categoryLabel(k, locale) : name; };
 
   // 로그인 여부에 따라 달라지는 부분은 클라이언트에서 판단한다(서버에서 쿠키를 읽으면 CDN 캐시가 꺼짐)
   // 마감 시각이 지난 캠페인은 상태가 아직 open 이어도 마감으로 본다
@@ -174,14 +180,14 @@ export async function PublicCampaignView({ id, locale }: { id: string; locale: L
           <article>
             <div className="relative aspect-[16/9] w-full overflow-hidden rounded-3xl bg-muted">
               {/* 썸네일 원본(최대 4.6MB PNG)을 그대로 내리면 모바일 LCP 13초 — next/image 로 AVIF·크기 최적화 (2026-10-06) */}
-              <Image src={c.thumbnail_url ?? `/api/og/campaign/${c.id}`} alt={c.title} fill priority sizes="(min-width: 1024px) 620px, 100vw" className={`object-cover ${c.thumbnail_url ? "" : "object-left"}`} />
+              <Image src={c.thumbnail_url ?? withLang(`/api/og/campaign/${c.id}`, locale)} alt={c.title} fill priority sizes="(min-width: 1024px) 620px, 100vw" className={`object-cover ${c.thumbnail_url ? "" : "object-left"}`} />
               <span className={`absolute left-4 top-4 rounded-full px-3 py-1 text-xs font-medium ${isOpen ? "bg-success-soft text-success" : "bg-muted text-muted-foreground"}`}>
                 {isOpen ? (c.always_open ? t.statusAlways : daysLeft > 0 ? t.dLeft(daysLeft) : t.statusOpen) : c.status === "closed" ? t.statusClosed : t.statusCompleted}
               </span>
             </div>
 
             <div className="mt-6 text-[11px] uppercase tracking-wider text-muted-foreground">
-              {c.region?.flag} {c.region?.name} · {c.category?.emoji} {c.category?.name}{c.promotion_type ? ` · ${c.promotion_type}` : ""}
+              {c.region?.flag} {regionName(c.region?.name)} · {c.category?.emoji} {categoryName(c.category?.name)}{c.promotion_type ? ` · ${promotionTypeLabel({ name: c.promotion_type }, locale)}` : ""}
             </div>
             <h1 className="display-lre-title mt-2 break-keep">{c.title}</h1>
             <div className="mt-2 flex flex-wrap items-center gap-3">
@@ -319,14 +325,14 @@ export async function PublicCampaignView({ id, locale }: { id: string; locale: L
                   <Link key={r.id} href={`${pfx}/c/${r.id}?src=dir`} className="group flex flex-col overflow-hidden rounded-3xl glass-card transition-transform hover:-translate-y-0.5">
                     <div className="relative aspect-[16/9] w-full bg-muted">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <Image src={r.thumbnail_url ?? `/api/og/campaign/${r.id}`} alt={r.title} fill sizes="(min-width: 1024px) 300px, 100vw" className={`object-cover ${r.thumbnail_url ? "" : "object-left"}`} />
+                      <Image src={r.thumbnail_url ?? withLang(`/api/og/campaign/${r.id}`, locale)} alt={r.title} fill sizes="(min-width: 1024px) 300px, 100vw" className={`object-cover ${r.thumbnail_url ? "" : "object-left"}`} />
                       {!r.always_open && d > 0 && d <= 7 && (
                         <span className="absolute right-2 top-2 rounded-full bg-accent-strong px-2 py-0.5 text-[10px] font-semibold text-white">{t.closesIn(d)}</span>
                       )}
                     </div>
                     <div className="flex flex-1 flex-col p-4">
                       <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                        {r.region?.flag} {r.region?.name} · {r.category?.emoji} {r.category?.name}
+                        {r.region?.flag} {regionName(r.region?.name)} · {r.category?.emoji} {categoryName(r.category?.name)}
                       </div>
                       <h3 className="mt-1.5 line-clamp-2 text-sm font-semibold break-keep group-hover:underline underline-offset-2">{r.title}</h3>
                       <p className="mt-1 text-xs text-muted-foreground">{r.business_name}</p>
