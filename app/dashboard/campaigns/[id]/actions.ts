@@ -2,18 +2,21 @@
 
 import { revalidatePath } from "next/cache";
 import { revalidatePublicCampaign } from "@/lib/cache/public-revalidate";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import type { Locale } from "@/lib/i18n/config";
 import { dbErrorMessage } from "@/lib/db-errors";
 import { createClient } from "@/lib/supabase/server";
 
 export async function applyToCampaign(
   campaignId: string,
-  message: string
+  message: string,
+  locale: Locale = "ko"
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+  if (!user) return { ok: false, error: dashboardDict[locale].apply.errNeedLogin };
 
   const { error } = await supabase.from("applications").insert({
     campaign_id: campaignId,
@@ -24,9 +27,9 @@ export async function applyToCampaign(
 
   if (error) {
     if (error.code === "23505") {
-      return { ok: false, error: "이미 응모하셨습니다." };
+      return { ok: false, error: dashboardDict[locale].apply.errAlready };
     }
-    return { ok: false, error: dbErrorMessage(error) };
+    return { ok: false, error: locale === "ko" ? dbErrorMessage(error) : dashboardDict[locale].apply.errGeneric };
   }
 
   revalidatePath(`/dashboard/campaigns/${campaignId}`);
@@ -34,13 +37,14 @@ export async function applyToCampaign(
 }
 
 export async function cancelApplication(
-  campaignId: string
+  campaignId: string,
+  locale: Locale = "ko"
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+  if (!user) return { ok: false, error: dashboardDict[locale].apply.errNeedLogin };
 
   const { error } = await supabase
     .from("applications")
@@ -48,7 +52,7 @@ export async function cancelApplication(
     .eq("campaign_id", campaignId)
     .eq("influencer_id", user.id);
 
-  if (error) return { ok: false, error: dbErrorMessage(error) };
+  if (error) return { ok: false, error: locale === "ko" ? dbErrorMessage(error) : dashboardDict[locale].apply.errGeneric };
 
   revalidatePath(`/dashboard/campaigns/${campaignId}`);
   return { ok: true };

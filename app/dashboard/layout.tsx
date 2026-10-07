@@ -9,6 +9,8 @@ import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { SubscriptionBanner } from "@/components/dashboard/SubscriptionBanner";
 import { PushNudgeBanner } from "@/components/dashboard/PushNudgeBanner";
 import { countPushSubscriptions } from "@/app/dashboard/settings/actions";
+import { getAppLocale } from "@/lib/i18n/app-locale";
+import { LangSync } from "@/components/LangSync";
 
 // Dashboard is private — exclude from search engines
 export const metadata: Metadata = {
@@ -25,16 +27,20 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect("/onboarding");
   }
   const pushCount = await countPushSubscriptions();
+  // 앱 언어(2026-10-07 다국어 2단계): 쿠키 → 프로필 locale → ko. 셸 내비·크리에이터 화면이 쓴다
+  const locale = await getAppLocale({ profileLocale: profile.locale });
 
   return (
     <div className="flex min-h-dvh">
-      <Sidebar role={profile.role} name={profile.name} avatarUrl={profile.avatar_url} />
+      <LangSync locale={locale} />
+      <Sidebar role={profile.role} name={profile.name} avatarUrl={profile.avatar_url} locale={locale} />
       <div className="flex-1 min-w-0">
         {/* 모바일: 상단 헤더 + 하단 탭바 + 드로어 (lg 미만에서만 렌더) */}
         <MobileNav
           role={profile.role}
           name={profile.name}
           avatarUrl={profile.avatar_url}
+          locale={locale}
           bell={
             <>
               <GuideButton role={profile.role} />

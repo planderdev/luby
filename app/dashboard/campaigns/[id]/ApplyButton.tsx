@@ -5,24 +5,29 @@ import { useState, useTransition } from "react";
 import { Loader2, Check, X, Sparkles } from "lucide-react";
 import { applyToCampaign, cancelApplication } from "./actions";
 import { suggestApplicationMessage } from "./ai-apply-actions";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import type { Locale } from "@/lib/i18n/config";
 
-const STATUS_LABEL: Record<string, { label: string; tone: string }> = {
-  pending: { label: "응모 대기", tone: "bg-muted text-foreground" },
-  selected: { label: "선정됨", tone: "bg-accent-soft text-accent-ink" },
-  rejected: { label: "미선정", tone: "bg-muted text-muted-foreground" },
-  cancelled: { label: "응모 취소됨", tone: "bg-muted text-muted-foreground" },
-  completed: { label: "체험 완료", tone: "bg-foreground text-background" },
+const STATUS_TONE: Record<string, string> = {
+  pending: "bg-muted text-foreground",
+  selected: "bg-accent-soft text-accent-ink",
+  rejected: "bg-muted text-muted-foreground",
+  cancelled: "bg-muted text-muted-foreground",
+  completed: "bg-foreground text-background",
 };
 
 export function ApplyButton({
   campaignId,
   disabled,
   initialStatus,
+  locale = "ko",
 }: {
   campaignId: string;
   disabled?: boolean;
   initialStatus: string | null;
+  locale?: Locale;
 }) {
+  const t = dashboardDict[locale].apply;
   const [status, setStatus] = useState<string | null>(initialStatus);
   const [showForm, setShowForm] = useState(false);
   const [message, setMessage] = useState("");
@@ -33,7 +38,7 @@ export function ApplyButton({
   async function draftWithAI() {
     setError(null);
     setDrafting(true);
-    const r = await suggestApplicationMessage(campaignId);
+    const r = await suggestApplicationMessage(campaignId, locale);
     setDrafting(false);
     if (r.ok) setMessage(r.message);
     else setError(r.error);
@@ -42,7 +47,7 @@ export function ApplyButton({
   function submit() {
     setError(null);
     startTransition(async () => {
-      const result = await applyToCampaign(campaignId, message);
+      const result = await applyToCampaign(campaignId, message, locale);
       if (result.ok) {
         trackClient("application_sent");
         setStatus("pending");
@@ -57,7 +62,7 @@ export function ApplyButton({
   function cancel() {
     setError(null);
     startTransition(async () => {
-      const result = await cancelApplication(campaignId);
+      const result = await cancelApplication(campaignId, locale);
       if (result.ok) {
         setStatus("cancelled");
       } else {
@@ -69,17 +74,17 @@ export function ApplyButton({
   if (disabled) {
     return (
       <span className="rounded-full border border-border bg-muted px-4 py-2 text-xs text-muted-foreground">
-        승인 후 응모 가능
+        {t.approvalRequired}
       </span>
     );
   }
 
   if (status && status !== "cancelled") {
-    const info = STATUS_LABEL[status] ?? STATUS_LABEL.pending;
+    const tone = STATUS_TONE[status] ?? STATUS_TONE.pending;
     return (
       <div className="flex items-center gap-2">
-        <span className={`rounded-full px-4 py-2 text-xs font-medium ${info.tone}`}>
-          {info.label}
+        <span className={`rounded-full px-4 py-2 text-xs font-medium ${tone}`}>
+          {t.status[status] ?? t.status.pending}
         </span>
         {status === "pending" && (
           <button
@@ -87,7 +92,7 @@ export function ApplyButton({
             disabled={pending}
             className="rounded-full border border-border bg-background px-4 py-2 text-xs text-muted-foreground hover:text-foreground"
           >
-            응모 취소
+            {t.cancel}
           </button>
         )}
       </div>
@@ -98,22 +103,22 @@ export function ApplyButton({
     return (
       <div className="w-full max-w-md rounded-3xl glass-card p-5">
         <div className="flex items-center justify-between gap-2">
-          <h4 className="text-sm font-semibold">응모 메시지 (선택)</h4>
+          <h4 className="text-sm font-semibold">{t.msgTitle}</h4>
           <button
             type="button"
             onClick={draftWithAI}
             disabled={drafting || pending}
             className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1.5 text-xs font-medium text-accent-ink hover:bg-accent/20 disabled:opacity-60"
-            title="캠페인 미션과 내 프로필을 바탕으로 초안을 만들어요"
+            title={t.aiTitle}
           >
             {drafting ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
-            {drafting ? "작성 중…" : "AI 초안"}
+            {drafting ? t.drafting : t.aiDraft}
           </button>
         </div>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="광고주에게 어필할 내용이 있으면 작성해주세요. 'AI 초안'을 누르면 캠페인 미션에 맞춰 시작 문장을 만들어드려요."
+          placeholder={t.placeholder}
           rows={4}
           className="mt-3 w-full resize-none rounded-2xl glass-card px-4 py-3 text-sm outline-none focus:border-foreground"
         />
@@ -136,7 +141,7 @@ export function ApplyButton({
             className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2 text-xs font-medium text-background"
           >
             {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
-            응모하기
+            {t.submit}
           </button>
         </div>
       </div>
@@ -148,7 +153,7 @@ export function ApplyButton({
       onClick={() => setShowForm(true)}
       className="rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background"
     >
-      이 캠페인에 응모하기
+      {t.cta}
     </button>
   );
 }

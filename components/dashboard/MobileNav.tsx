@@ -6,7 +6,9 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu, X, LogOut } from "lucide-react";
 import type { UserRole } from "@/lib/supabase/queries";
-import { dashboardNav, isNavActive, roleLabel } from "@/lib/dashboard-nav";
+import { navItemsFor, isNavActive, roleLabelFor } from "@/lib/dashboard-nav";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import type { Locale } from "@/lib/i18n/config";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 /**
@@ -20,16 +22,19 @@ export function MobileNav({
   name,
   avatarUrl,
   bell,
+  locale = "ko",
 }: {
   role: UserRole;
   name: string;
   avatarUrl?: string | null;
   /** 서버 컴포넌트인 NotificationBell을 슬롯으로 받음 */
   bell: ReactNode;
+  locale?: Locale;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const items = dashboardNav[role];
+  const items = navItemsFor(role, locale);
+  const t = dashboardDict[locale].nav;
   const primary = items.filter((i) => i.primary).slice(0, 5);
 
   // 경로가 바뀌면 드로어 닫기
@@ -53,10 +58,10 @@ export function MobileNav({
     <>
       {/* 상단 헤더 */}
       <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur lg:hidden">
-        <Link href="/" aria-label="루비AI 홈" className="flex items-center">
+        <Link href="/" aria-label={t.homeAria} className="flex items-center">
           <Image
             src="/logo.png"
-            alt="루비AI"
+            alt={t.logoAlt}
             width={1298}
             height={410}
             className="h-5 w-auto invert dark:invert-0"
@@ -67,7 +72,7 @@ export function MobileNav({
           <button
             type="button"
             onClick={() => setOpen(true)}
-            aria-label="메뉴 열기"
+            aria-label={t.openMenu}
             aria-expanded={open}
             className="inline-flex size-10 items-center justify-center rounded-full border border-border bg-background hover:bg-muted"
           >
@@ -78,7 +83,7 @@ export function MobileNav({
 
       {/* 하단 탭바 */}
       <nav
-        aria-label="주요 메뉴"
+        aria-label={t.primaryMenu}
         className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur lg:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
@@ -112,22 +117,22 @@ export function MobileNav({
 
       {/* 드로어 */}
       {open && (
-        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="전체 메뉴">
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label={t.allMenu}>
           <button
             type="button"
-            aria-label="메뉴 닫기"
+            aria-label={t.closeMenu}
             onClick={() => setOpen(false)}
             className="absolute inset-0 bg-black/60"
           />
           <div className="absolute inset-y-0 right-0 flex w-[82%] max-w-sm flex-col border-l border-border bg-background shadow-2xl">
             <div className="flex h-14 items-center justify-between border-b border-border px-4">
-              <span className="text-sm font-semibold">메뉴</span>
+              <span className="text-sm font-semibold">{t.menu}</span>
               <div className="flex items-center gap-2">
                 <ThemeToggle />
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  aria-label="닫기"
+                  aria-label={t.close}
                   className="inline-flex size-9 items-center justify-center rounded-full border border-border hover:bg-muted"
                 >
                   <X className="size-4" />
@@ -168,7 +173,7 @@ export function MobileNav({
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium">{name}</div>
                   <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                    {roleLabel[role]}
+                    {roleLabelFor(role, locale)}
                   </div>
                 </div>
               </div>
@@ -177,7 +182,7 @@ export function MobileNav({
                   type="submit"
                   className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-4 py-2.5 text-xs font-medium text-muted-foreground hover:text-foreground"
                 >
-                  <LogOut className="size-3.5" /> 로그아웃
+                  <LogOut className="size-3.5" /> {t.logout}
                 </button>
               </form>
             </div>

@@ -19,6 +19,8 @@ import {
   BarChart3,
  ScrollText } from "lucide-react";
 import type { UserRole } from "@/lib/supabase/queries";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import type { Locale } from "@/lib/i18n/config";
 
 export type NavItem = {
   href: string;
@@ -80,4 +82,14 @@ export const roleLabel: Record<UserRole, string> = {
 export function isNavActive(href: string, pathname: string) {
   if (href === "/dashboard") return pathname === "/dashboard";
   return pathname === href || pathname.startsWith(href + "/");
+}
+
+/** 역할별 메뉴를 화면 언어로 — 사전에 없는 항목(운영자 메뉴 등)은 한국어 그대로 */
+export function navItemsFor(role: UserRole, locale: Locale): NavItem[] {
+  if (locale === "ko") return dashboardNav[role];
+  const d = dashboardDict[locale].nav.labels;
+  return dashboardNav[role].map((it) => (d[it.href] ? { ...it, label: d[it.href].label, short: d[it.href].short } : it));
+}
+export function roleLabelFor(role: UserRole, locale: Locale): string {
+  return dashboardDict[locale].nav.role[role];
 }

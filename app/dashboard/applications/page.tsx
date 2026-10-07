@@ -3,8 +3,15 @@ import Link from "next/link";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { SubmissionCard } from "./SubmissionCard";
+import { getAppLocale } from "@/lib/i18n/app-locale";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import { getTranslationMap, translateCards } from "@/lib/i18n/campaign-translations";
 
-export const metadata = { title: "응모 — 루비AI" };
+export async function generateMetadata() {
+  const locale = await getAppLocale();
+  const t = dashboardDict[locale].applications.metaTitle;
+  return { title: locale === "ko" ? t : { absolute: `${t} — Luby AI` } };
+}
 
 const STATUS_LABEL: Record<string, { label: string; tone: string }> = {
   pending: { label: "응모 대기", tone: "bg-muted text-foreground" },
@@ -80,6 +87,8 @@ export default async function ApplicationsPage() {
   }
 
   if (profile.role === "influencer") {
+    const locale = await getAppLocale({ profileLocale: profile.locale });
+    const t = dashboardDict[locale].applications;
     const { data: apps } = await supabase
       .from("applications")
       .select("id, campaign_id, status, message, created_at")
@@ -88,12 +97,7 @@ export default async function ApplicationsPage() {
 
     if (!apps || apps.length === 0) {
       return (
-        <Empty
-          title="내 응모"
-          desc="아직 응모한 캠페인이 없어요. 마음에 드는 캠페인을 찾아 응모해보세요."
-          ctaLabel="캠페인 둘러보기"
-          ctaHref="/dashboard/campaigns"
-        />
+        <Empty title={t.emptyTitle} desc={t.emptyDesc} ctaLabel={t.browse} ctaHref="/dashboard/campaigns" />
       );
     }
 
@@ -111,12 +115,13 @@ export default async function ApplicationsPage() {
           apps.map((a) => a.id)
         ),
     ]);
-    const campaignById = new Map((campaigns ?? []).map((c) => [c.id, c]));
+    // /en·/zh 는 캠페인 제목·상호를 번역본으로
+    const campaignById = new Map(translateCards(campaigns ?? [], await getTranslationMap(ids, locale)).map((c) => [c.id, c]));
     const submissionByApp = new Map((submissions ?? []).map((s) => [s.application_id, s]));
 
     return (
       <div>
-        <h1 className="display text-3xl font-semibold lg:text-4xl">내 응모</h1>
+        <h1 className="display text-3xl font-semibold lg:text-4xl">{t.title}</h1>
         <div className="mt-8 space-y-2">
           {apps.map((a) => {
             const c = campaignById.get(a.campaign_id);
@@ -130,6 +135,7 @@ export default async function ApplicationsPage() {
                 campaignTitle={c?.title ?? "—"}
                 businessName={c?.business_name ?? ""}
                 pointAmount={c?.point_amount ?? 0}
+                locale={locale}
                 submission={
                   s
                     ? {

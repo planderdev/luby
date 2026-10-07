@@ -1,5 +1,8 @@
 "use server";
 
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import type { Locale } from "@/lib/i18n/config";
+
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
@@ -22,16 +25,17 @@ function normalizeUrl(raw: string): string | null {
 export async function submitContent(
   applicationId: string,
   contentUrl: string,
-  note: string
+  note: string,
+  locale: Locale = "ko"
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+  if (!user) return { ok: false, error: dashboardDict[locale].applications.errNeedLogin };
 
   const url = normalizeUrl(contentUrl);
-  if (!url) return { ok: false, error: "올바른 콘텐츠 링크(URL)를 입력해주세요." };
+  if (!url) return { ok: false, error: dashboardDict[locale].applications.errUrl };
 
   const trimmedNote = note.trim().slice(0, 1000) || null;
 
@@ -43,7 +47,7 @@ export async function submitContent(
 
   if (existing) {
     if (existing.status !== "revision_requested") {
-      return { ok: false, error: "이미 제출된 콘텐츠입니다. 검수 결과를 기다려주세요." };
+      return { ok: false, error: dashboardDict[locale].applications.errAlreadySubmitted };
     }
     const { error } = await supabase
       .from("submissions")
@@ -54,7 +58,7 @@ export async function submitContent(
         submitted_at: new Date().toISOString(),
       })
       .eq("id", existing.id);
-    if (error) return { ok: false, error: "재제출에 실패했습니다. 잠시 후 다시 시도해주세요." };
+    if (error) return { ok: false, error: dashboardDict[locale].applications.errResubmit };
   } else {
     const { error } = await supabase.from("submissions").insert({
       application_id: applicationId,
@@ -63,9 +67,9 @@ export async function submitContent(
     });
     if (error) {
       if (error.code === "23505") {
-        return { ok: false, error: "이미 제출된 콘텐츠입니다." };
+        return { ok: false, error: dashboardDict[locale].applications.errAlready };
       }
-      return { ok: false, error: "제출에 실패했습니다. 선정된 응모인지 확인해주세요." };
+      return { ok: false, error: dashboardDict[locale].applications.errNotSelected };
     }
   }
 

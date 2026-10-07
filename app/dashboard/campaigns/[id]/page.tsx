@@ -17,15 +17,19 @@ import { OperatorForceMatch } from "./OperatorForceMatch";
 import { AdjustOpenCampaign } from "./AdjustOpenCampaign";
 import type { ReportSummary } from "@/lib/ai/report-summary";
 import { Skeleton } from "@/components/dashboard/Skeleton";
+import { getAppLocale } from "@/lib/i18n/app-locale";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import { categoryLabel, regionLabel } from "@/lib/i18n/app/catalog";
+import { getTranslationMap } from "@/lib/i18n/campaign-translations";
 
-const STATUS_LABEL: Record<string, { label: string; tone: string }> = {
-  draft: { label: "초안", tone: "bg-muted text-muted-foreground" },
-  pending_approval: { label: "검수중", tone: "bg-warning-soft text-warning" },
-  open: { label: "모집중", tone: "bg-success-soft text-success" },
-  closed: { label: "마감", tone: "bg-muted text-muted-foreground" },
-  completed: { label: "완료", tone: "bg-foreground text-background" },
-  rejected: { label: "반려 · 수정 필요", tone: "bg-danger-soft text-danger" },
-  cancelled: { label: "취소", tone: "bg-danger-soft text-danger" },
+const STATUS_TONE: Record<string, string> = {
+  draft: "bg-muted text-muted-foreground",
+  pending_approval: "bg-warning-soft text-warning",
+  open: "bg-success-soft text-success",
+  closed: "bg-muted text-muted-foreground",
+  completed: "bg-foreground text-background",
+  rejected: "bg-danger-soft text-danger",
+  cancelled: "bg-danger-soft text-danger",
 };
 
 function fmtDateTime(iso: string) {
@@ -50,6 +54,10 @@ export default async function CampaignDetailPage({
 
   const { id } = await params;
   const supabase = await createClient();
+  // 화면 언어(다국어 2단계) — 공용 라벨은 세 언어, 광고주·운영자 전용 섹션은 한국어
+  const locale = await getAppLocale({ profileLocale: profile.locale });
+  const tc = dashboardDict[locale].campaign;
+  const statusLabel = dashboardDict[locale].status;
 
   const { data: campaign } = await supabase
     .from("campaigns")
@@ -86,10 +94,10 @@ export default async function CampaignDetailPage({
 
   const [region, category, promotion, channelLinks, missions, keywords, offerings, schedules] =
     await Promise.all([
-      supabase.from("regions").select("flag, name").eq("id", campaign.region_id).maybeSingle(),
+      supabase.from("regions").select("code, flag, name").eq("id", campaign.region_id).maybeSingle(),
       supabase
         .from("categories")
-        .select("emoji, name")
+        .select("slug, emoji, name")
         .eq("id", campaign.category_id)
         .maybeSingle(),
       supabase
@@ -123,6 +131,14 @@ export default async function CampaignDetailPage({
       : { data: [] };
   const channelNameById = new Map((channelTypes ?? []).map((c) => [c.id, c.name]));
 
+  // /en·/zh 사용자는 공개 페이지와 같은 AI 번역본으로 본문을 본다(공개 상태 캠페인만 번역이 있다)
+  const tr = locale !== "ko" && isPublic ? (await getTranslationMap([id], locale)).get(id) : undefined;
+  const trMission = new Map((tr?.missions ?? []).map((m) => [m.source, m.description]));
+  const trOffer = new Map((tr?.offerings ?? []).map((o) => [o.source, o]));
+  const trKeyword = new Map((tr?.keywords ?? []).map((k) => k.split("\u001f") as [string, string]));
+  const shownTitle = tr?.title ?? campaign.title;
+  const shownBusiness = tr?.business_name ?? campaign.business_name;
+
   // Influencer existing application
   let myApplicationStatus: string | null = null;
   if (isInfluencer) {
@@ -153,26 +169,26 @@ export default async function CampaignDetailPage({
         className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="size-3.5" />
-        캠페인 목록
+        {tc.back}
       </Link>
 
       <header className="mt-3 flex flex-wrap items-end justify-between gap-4">
         <div>
           <span
             className={`rounded-full px-3 py-1 text-xs font-medium ${
-              STATUS_LABEL[campaign.status]?.tone ?? "bg-muted text-muted-foreground"
+              STATUS_TONE[campaign.status] ?? "bg-muted text-muted-foreground"
             }`}
           >
-            {STATUS_LABEL[campaign.status]?.label ?? campaign.status}
+            {statusLabel[campaign.status] ?? campaign.status}
           </span>
-          <h1 className="display mt-3 text-3xl font-semibold lg:text-4xl">{campaign.title}</h1>
+          <h1 className="display mt-3 text-3xl font-semibold lg:text-4xl">{shownTitle}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             <Link
               href={`/dashboard/advertisers/${campaign.advertiser_id}`}
               className="hover:text-foreground hover:underline underline-offset-2"
-              title="광고주 프로필 보기"
+              title={tc.advertiserProfile}
             >
-              {campaign.business_name}
+              {shownBusiness}
             </Link>
           </p>
         </div>
@@ -210,13 +226,14 @@ export default async function CampaignDetailPage({
           </Link>
         )}
         {isInfluencer && campaign.status === "open" && (
-          <ShareLinkButton campaignId={id} refId={profile.id} buttonLabel="친구에게 공유" />
+          <ShareLinkButton campaignId={id} refId={profile.id} buttonLabel={tc.shareFriends} />
         )}
         {isInfluencer && campaign.status === "open" && (
           <ApplyButton
             campaignId={id}
             disabled={!profile.approved}
             initialStatus={myApplicationStatus}
+            locale={locale}
           />
         )}
         {isInfluencer && myApplicationStatus === "selected" && (
@@ -224,7 +241,7 @@ export default async function CampaignDetailPage({
             href="/dashboard/applications"
             className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background hover:bg-foreground/90"
           >
-            콘텐츠 제출하러 가기 →
+            {tc.goSubmit}
           </Link>
         )}
       </header>
@@ -251,22 +268,22 @@ export default async function CampaignDetailPage({
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Stat
           icon={<MapPin className="size-4" />}
-          label="활동 지역"
-          value={`${region.data?.flag ?? ""} ${region.data?.name ?? ""}`}
+          label={tc.region}
+          value={`${region.data?.flag ?? ""} ${region.data ? regionLabel(region.data, locale) : ""}`}
         />
         <Stat
           icon={<Tag className="size-4" />}
-          label="카테고리"
-          value={`${category.data?.emoji ?? ""} ${category.data?.name ?? ""}`}
+          label={tc.category}
+          value={`${category.data?.emoji ?? ""} ${category.data ? categoryLabel(category.data, locale) : ""}`}
         />
         <Stat
           icon={<Users className="size-4" />}
-          label="모집 인원"
-          value={`${campaign.recruit_count}명`}
+          label={tc.recruitCount}
+          value={tc.recruitValue(campaign.recruit_count)}
         />
         <Stat
           icon={<Coins className="size-4" />}
-          label="포인트"
+          label={tc.points}
           value={campaign.point_amount.toLocaleString()}
         />
       </div>
@@ -274,46 +291,46 @@ export default async function CampaignDetailPage({
       <div className="mt-8 grid gap-4 lg:grid-cols-3">
         {/* Left main */}
         <div className="space-y-4 lg:col-span-2">
-          <Section title="홍보 유형">
+          <Section title={tc.promotion}>
             <p className="text-sm font-medium">{promotion.data?.name}</p>
             {promotion.data?.description && (
               <p className="mt-1 text-xs text-muted-foreground">{promotion.data.description}</p>
             )}
           </Section>
 
-          <Section title="채널별 미션">
+          <Section title={tc.missions}>
             {(missions.data ?? []).length === 0 ? (
-              <p className="text-sm text-muted-foreground">등록된 미션이 없습니다.</p>
+              <p className="text-sm text-muted-foreground">{tc.noMissions}</p>
             ) : (
               <div className="space-y-3">
                 {(missions.data ?? []).map((m, i) => (
                   <div key={i} className="rounded-2xl bg-muted/50 p-4">
                     <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      {channelNameById.get(m.channel_type_id) ?? "채널"}
+                      {channelNameById.get(m.channel_type_id) ?? tc.channel}
                     </div>
-                    <p className="mt-1 text-sm">{m.description}</p>
+                    <p className="mt-1 text-sm">{trMission.get(m.description) ?? m.description}</p>
                   </div>
                 ))}
               </div>
             )}
           </Section>
 
-          <Section title="제공 내역">
+          <Section title={tc.offerings}>
             {(offerings.data ?? []).length === 0 ? (
-              <p className="text-sm text-muted-foreground">등록된 제공 내역이 없습니다.</p>
+              <p className="text-sm text-muted-foreground">{tc.noOfferings}</p>
             ) : (
               <ul className="space-y-2">
                 {(offerings.data ?? []).map((o, i) => (
                   <li key={i} className="flex items-start justify-between gap-4 border-b border-border pb-2 last:border-0 last:pb-0">
                     <div>
-                      <div className="text-sm font-medium">{o.title}</div>
+                      <div className="text-sm font-medium">{trOffer.get(o.title)?.title ?? o.title}</div>
                       {o.description && (
-                        <div className="mt-0.5 text-xs text-muted-foreground">{o.description}</div>
+                        <div className="mt-0.5 text-xs text-muted-foreground">{trOffer.get(o.title)?.description ?? o.description}</div>
                       )}
                     </div>
                     {o.estimated_value && (
                       <div className="shrink-0 text-sm tabular-nums">
-                        {o.estimated_value.toLocaleString()}원
+                        {tc.won(o.estimated_value)}
                       </div>
                     )}
                   </li>
@@ -323,14 +340,14 @@ export default async function CampaignDetailPage({
           </Section>
 
           {keywords.data && keywords.data.length > 0 && (
-            <Section title="키워드">
+            <Section title={tc.keywords}>
               <div className="flex flex-wrap gap-2">
                 {keywords.data.map((k, i) => (
                   <span
                     key={i}
                     className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground"
                   >
-                    #{k.keyword}
+                    #{trKeyword.get(k.keyword) ?? k.keyword}
                   </span>
                 ))}
               </div>
@@ -341,9 +358,9 @@ export default async function CampaignDetailPage({
         {/* Right sidebar */}
         <div className="space-y-4">
           {isInfluencer && profile.approved && ["open", "closed"].includes(campaign.status) && (
-            <FitHint campaignId={id} applicationStatus={myApplicationStatus} />
+            <FitHint campaignId={id} applicationStatus={myApplicationStatus} locale={locale} />
           )}
-          <Section title="모집 기간">
+          <Section title={tc.recruitPeriod}>
             <div className="flex items-center gap-2 text-sm">
               <Calendar className="size-4 text-muted-foreground" />
               {fmtDateTime(campaign.recruit_start)}
@@ -354,7 +371,7 @@ export default async function CampaignDetailPage({
           </Section>
 
           {(campaign.experience_start || campaign.experience_end) && (
-            <Section title="체험 기간">
+            <Section title={tc.experiencePeriod}>
               {campaign.experience_start && (
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="size-4 text-muted-foreground" />
@@ -370,20 +387,20 @@ export default async function CampaignDetailPage({
           )}
 
           {(campaign.same_day_reservation || campaign.always_open) && (
-            <Section title="운영 옵션">
+            <Section title={tc.options}>
               <div className="space-y-1.5 text-sm">
-                {campaign.same_day_reservation && <div>✓ 당일 예약 가능</div>}
-                {campaign.always_open && <div>✓ 24시간 운영</div>}
+                {campaign.same_day_reservation && <div>{tc.sameDay}</div>}
+                {campaign.always_open && <div>{tc.alwaysOpen}</div>}
               </div>
             </Section>
           )}
 
           {!campaign.always_open && (schedules.data ?? []).length > 0 && (
-            <Section title="가능 요일·시간">
+            <Section title={tc.schedule}>
               <ul className="space-y-1 text-sm">
                 {(schedules.data ?? []).map((s, i) => (
                   <li key={i}>
-                    {["일", "월", "화", "수", "목", "금", "토"][s.day_of_week ?? 0]}요일{" "}
+                    {tc.weekdays[s.day_of_week ?? 0]}{tc.weekdaySuffix}{" "}
                     {s.start_time?.slice(0, 5) ?? ""} ~ {s.end_time?.slice(0, 5) ?? ""}
                   </li>
                 ))}

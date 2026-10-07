@@ -2,25 +2,30 @@ import Link from "next/link";
 import Image from "next/image";
 import type { UserRole } from "@/lib/supabase/queries";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { dashboardNav, roleLabel } from "@/lib/dashboard-nav";
+import { navItemsFor, roleLabelFor } from "@/lib/dashboard-nav";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import type { Locale } from "@/lib/i18n/config";
 
 export function Sidebar({
   role,
   name,
   avatarUrl,
+  locale = "ko",
 }: {
   role: UserRole;
   name: string;
   avatarUrl?: string | null;
+  locale?: Locale;
 }) {
-  const items = dashboardNav[role];
+  const items = navItemsFor(role, locale);
+  const t = dashboardDict[locale].nav;
   return (
     <aside className="hidden w-60 shrink-0 border-r border-border bg-background lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:self-start lg:overflow-y-auto">
       <div className="flex h-16 items-center justify-between px-6">
-        <Link href="/" aria-label="루비AI 홈">
+        <Link href="/" aria-label={t.homeAria}>
           <Image
             src="/logo.png"
-            alt="루비AI"
+            alt={t.logoAlt}
             width={1298}
             height={410}
             className="h-6 w-auto invert dark:invert-0"
@@ -60,7 +65,7 @@ export function Sidebar({
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-medium">{name}</div>
             <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-              {roleLabel[role]}
+              {roleLabelFor(role, locale)}
             </div>
           </div>
         </div>
@@ -69,7 +74,7 @@ export function Sidebar({
             type="submit"
             className="mt-3 w-full rounded-full border border-border bg-background px-4 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
-            로그아웃
+            {t.logout}
           </button>
         </form>
       </div>
