@@ -219,6 +219,51 @@ export type Database = {
           },
         ]
       }
+      campaign_translations: {
+        Row: {
+          business_name: string
+          campaign_id: string
+          created_at: string
+          industry_brief: string | null
+          keywords: string[]
+          locale: string
+          missions: Json
+          model: string | null
+          offerings: Json
+          source_hash: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          business_name: string
+          campaign_id: string
+          created_at?: string
+          industry_brief?: string | null
+          keywords?: string[]
+          locale: string
+          missions?: Json
+          model?: string | null
+          offerings?: Json
+          source_hash: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          business_name?: string
+          campaign_id?: string
+          created_at?: string
+          industry_brief?: string | null
+          keywords?: string[]
+          locale?: string
+          missions?: Json
+          model?: string | null
+          offerings?: Json
+          source_hash?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       campaign_external_results: {
         Row: {
           campaign_id: string

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LreChrome, LreChromeFooter } from "@/components/landing-re/LreChrome";
+import { getTranslationMap, translateCards } from "@/lib/i18n/campaign-translations";
 import "@/app/lre-chrome.css";
 
 import { unstable_cache } from "next/cache";
@@ -88,6 +89,8 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
   const pfx = localePrefix(locale);
   // 서버에서 쿠키를 읽지 않는다 — 로그인 여부에 따른 조각은 클라이언트에서 판단(CDN 캐시 유지)
   const dir = await fetchDirectory(params);
+  // /en, /zh 는 카드 제목·상호를 AI 번역본으로 (없으면 원문)
+  dir.items = translateCards(dir.items, await getTranslationMap(dir.items.map((c) => c.id), locale));
   const totalPages = Math.max(1, Math.ceil(dir.total / PAGE_SIZE));
   const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(t.dateFmt, { month: "short", day: "numeric" });
 

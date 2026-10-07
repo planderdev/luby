@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LreChrome, LreChromeFooter } from "@/components/landing-re/LreChrome";
+import { getTranslationMap, translateCards } from "@/lib/i18n/campaign-translations";
 import "@/app/lre-chrome.css";
 
 import Image from "next/image";
@@ -39,7 +40,8 @@ export async function CreatorLanding({ locale }: { locale: Locale }) {
     sb.rpc("list_public_campaigns", { p_limit: 3, p_offset: 0, p_channel: null, p_region: null, p_sort: "points" }),
   ]);
   const s = (statsRaw as Stats | null) ?? null;
-  const top = ((topRaw as { items?: Card[] } | null)?.items ?? []).slice(0, 3);
+  const topKo = ((topRaw as { items?: Card[] } | null)?.items ?? []).slice(0, 3);
+  const top = translateCards(topKo, await getTranslationMap(topKo.map((c) => c.id), locale));
   const fmtP = (n: number | null) => (n === null ? "-" : Math.round(n).toLocaleString());
   const signupHref = `/signup?role=influencer&redirect=${encodeURIComponent("/dashboard/campaigns")}`;
   const icons = [Globe, Sparkles, BellRing, IdCard];

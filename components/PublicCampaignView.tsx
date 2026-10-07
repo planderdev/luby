@@ -13,6 +13,7 @@ import { publicCampaignDict, localePrefix } from "@/lib/i18n/public-campaign";
 import type { Locale } from "@/lib/i18n/config";
 import { CampaignCta, CampaignShareButton } from "@/components/public/CampaignCta";
 import { ViewBeacon } from "@/components/ViewBeacon";
+import { getTranslationMap, translateCards, translateCampaignView } from "@/lib/i18n/campaign-translations";
 
 // 공개 캠페인 페이지 — 로그인 없이 볼 수 있는 공유·SEO용. 데이터는 get_public_campaign() (민감정보 제외).
 
@@ -78,7 +79,8 @@ async function isDemoCampaign(advertiserId: string | undefined | null): Promise<
 }
 
 export async function buildPublicCampaignMetadata(id: string, locale: Locale): Promise<Metadata> {
-  const c = await fetchPublicCampaign(id);
+  const raw = await fetchPublicCampaign(id);
+  const c = raw ? translateCampaignView(raw, (await getTranslationMap([raw.id], locale)).get(raw.id)) : raw;
   const t = publicCampaignDict[locale];
   if (!c) return { title: locale === "ko" ? "캠페인을 찾을 수 없어요" : locale === "zh" ? "找不到该活动" : "Campaign not found", robots: { index: false } };
   const fmt = fmtFor(locale);
@@ -120,8 +122,12 @@ const fetchRelatedCampaigns = unstable_cache(
 );
 
 export async function PublicCampaignView({ id, locale }: { id: string; locale: Locale }) {
-  const [c, related] = await Promise.all([fetchPublicCampaign(id), fetchRelatedCampaigns(id)]);
-  if (!c) notFound();
+  const [raw, relatedRaw] = await Promise.all([fetchPublicCampaign(id), fetchRelatedCampaigns(id)]);
+  if (!raw) notFound();
+  // /en, /zh 는 AI 번역본(campaign_translations)으로 본문을 덮어쓴다 — 없으면 한국어 그대로
+  const tmap = await getTranslationMap([raw.id, ...relatedRaw.map((r) => r.id)], locale);
+  const c = translateCampaignView(raw, tmap.get(raw.id));
+  const related = translateCards(relatedRaw, tmap);
   const t = publicCampaignDict[locale];
   const fmt = fmtFor(locale);
   const pfx = localePrefix(locale);
