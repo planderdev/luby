@@ -1583,6 +1583,10 @@ export type Database = {
         Args: Record<string, never>
         Returns: { reviewable: number; no_channel: number; unconfirmed: number }[]
       }
+      operator_locale_funnel: {
+        Args: { p_days?: number }
+        Returns: Json
+      }
       operator_open_campaign_nudge_preview: {
         Args: Record<string, never>
         Returns: { targets: number; sample_names: string[] | null; sample_body: string | null }[]

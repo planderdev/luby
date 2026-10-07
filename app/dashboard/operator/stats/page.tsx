@@ -83,6 +83,10 @@ export default async function OperatorStatsPage() {
   const { data: docFbRaw } = await supabase.rpc("operator_doc_feedback_stats", { p_days: 30 });
   const { data: docSearchRaw } = await supabase.rpc("operator_doc_search_stats", { p_days: 30 });
   const { data: docViewRaw } = await supabase.rpc("operator_doc_view_stats", { p_days: 30 });
+  // 언어별 퍼널(2026-10-08): 샤오홍슈·중국 포지셔닝 뒤 중문·영문 유입이 실제로 오는지 — 조회→가이드→가입→응모
+  const { data: localeRaw } = await supabase.rpc("operator_locale_funnel", { p_days: 30 });
+  const localeRows = (Array.isArray(localeRaw) ? localeRaw : []) as { lang: string; campaign_views: number; campaign_uniques: number; doc_views: number; signups: number; creator_signups: number; applications: number; approved_creators: number }[];
+  const LANG_LABEL: Record<string, string> = { ko: "한국어", en: "English", zh: "中文" };
   const docView = (docViewRaw ?? null) as null | { total: number; uniques: number; by_lang: Record<string, number>; top: { path: string; views: number }[] };
   const docSearch = (docSearchRaw ?? null) as null | { total: number; zero: number; top: { query: string; n: number; zero: number; clicks: number }[]; zero_queries: { query: string; n: number; lang: string }[] };
   const docFb = (docFbRaw ?? null) as null | { total: number; helpful: number; by_path: { path: string; helpful: number; unhelpful: number }[]; comments: { path: string; helpful: boolean; comment: string; created_at: string }[] };
@@ -400,6 +404,46 @@ export default async function OperatorStatsPage() {
               </li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {localeRows.length > 0 && (
+        <section className="mt-8 rounded-3xl glass-card p-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">다국어 퍼널 · 최근 30일</h2>
+            <span className="text-[11px] text-muted-foreground">공개 캠페인 조회 → 가이드 조회 → 가입(프로필 언어) → 응모 · 데모 계정 제외</span>
+          </div>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-[11px] uppercase tracking-wider text-muted-foreground">
+                  <th className="py-1.5 pr-3 font-medium">언어</th>
+                  <th className="py-1.5 pr-3 text-right font-medium">캠페인 조회</th>
+                  <th className="py-1.5 pr-3 text-right font-medium">순 방문</th>
+                  <th className="py-1.5 pr-3 text-right font-medium">가이드 조회</th>
+                  <th className="py-1.5 pr-3 text-right font-medium">가입</th>
+                  <th className="py-1.5 pr-3 text-right font-medium">크리에이터 가입</th>
+                  <th className="py-1.5 pr-3 text-right font-medium">응모</th>
+                  <th className="py-1.5 text-right font-medium">승인 크리에이터(누적)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {localeRows.map((r) => (
+                  <tr key={r.lang} className="border-t border-border">
+                    <td className="py-2 pr-3 font-medium">{LANG_LABEL[r.lang] ?? r.lang}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums">{r.campaign_views.toLocaleString()}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums text-muted-foreground">{r.campaign_uniques.toLocaleString()}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums">{r.doc_views.toLocaleString()}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums">{r.signups.toLocaleString()}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums text-muted-foreground">{r.creator_signups.toLocaleString()}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums">{r.applications.toLocaleString()}</td>
+                    <td className="py-2 text-right tabular-nums text-muted-foreground">{r.approved_creators.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-3 text-[11px] text-muted-foreground">가입 언어는 2026-10-07 이후 가입자부터 기록됩니다(이전 가입자는 한국어로 집계). 중문 조회는 있는데 가입이 없으면 /zh 가입 화면이나 인증 메일(한·영·중 템플릿 적용 여부)을 먼저 확인하세요.</p>
         </section>
       )}
 
