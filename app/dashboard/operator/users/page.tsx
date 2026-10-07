@@ -234,18 +234,20 @@ export default async function OperatorUsersPage({
           );
                 };
         if (filter === "pending") {
-          // 채널이 없는 크리에이터는 검수할 대상이 없어 승인할 수 없다 — 검수 가능한 사람부터 보여준다
+          // 채널이 없는 크리에이터는 검수할 대상이 없고, 이메일 미인증은 로그인 자체가 안 돼 승인할 수 없다 — 검수 가능한 사람부터 보여준다
           const reviewable = (p: (typeof members)[number]) =>
-            p.role !== "influencer" || (channelAgg.get(p.id)?.count ?? 0) > 0;
+            p.role !== "influencer" || ((channelAgg.get(p.id)?.count ?? 0) > 0 && !unconfirmed.has(p.id));
           const sorted = [...members].sort((a, b) => Number(reviewable(b)) - Number(reviewable(a)));
           const okCount = sorted.filter(reviewable).length;
-          const noChannel = sorted.length - okCount;
+          const unconfirmedCount = sorted.filter((p) => p.role === "influencer" && unconfirmed.has(p.id)).length;
+          const noChannel = sorted.length - okCount - unconfirmedCount;
           return (
             <div className="mt-6">
-              {noChannel > 0 && (
+              {(noChannel > 0 || unconfirmedCount > 0) && (
                 <p className="mb-3 text-xs text-muted-foreground">
-                  검수 가능 <b className="text-foreground">{okCount}명</b> · 채널 미등록 {noChannel}명
-                  (채널이 등록되면 검수할 수 있어요 — 매일 아침 등록 안내가 자동 발송됩니다)
+                  검수 가능 <b className="text-foreground">{okCount}명</b>
+                  {noChannel > 0 && <> · 채널 미등록 {noChannel}명 (채널이 등록되면 검수할 수 있어요 — 매일 아침 등록 안내가 자동 발송됩니다)</>}
+                  {unconfirmedCount > 0 && <> · 이메일 미인증 {unconfirmedCount}명 (인증 전에는 로그인·승인이 불가 — 인증 리마인더 자동 발송, 미로그인 탭에서 재발송 가능)</>}
                 </p>
               )}
               <BulkApproveList

@@ -1581,7 +1581,7 @@ export type Database = {
       }
       pending_creator_counts: {
         Args: Record<string, never>
-        Returns: { reviewable: number; no_channel: number }[]
+        Returns: { reviewable: number; no_channel: number; unconfirmed: number }[]
       }
       is_demo_account: {
         Args: { p_profile: string }

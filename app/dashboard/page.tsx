@@ -300,13 +300,14 @@ export default async function DashboardPage() {
     supabase.rpc("operator_dormant_count"),
   ]);
 
-  const pendingCreators = pendingCreatorRows?.[0] ?? { reviewable: 0, no_channel: 0 };
+  const pendingCreators = pendingCreatorRows?.[0] ?? { reviewable: 0, no_channel: 0, unconfirmed: 0 };
 
   return (
     <OperatorOverview
       name={profile.name}
       pendingUsersCount={pendingCreators.reviewable}
       noChannelCount={pendingCreators.no_channel}
+      unconfirmedCount={pendingCreators.unconfirmed ?? 0}
       pendingCampaignsCount={pendingCampaignsCount ?? 0}
       pendingWithdrawals={pendingWithdrawals ?? 0}
       openCampaigns={openCampaigns ?? 0}

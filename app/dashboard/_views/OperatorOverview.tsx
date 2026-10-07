@@ -10,6 +10,7 @@ export function OperatorOverview({
   openCampaigns,
   dormantCount = 0,
   noChannelCount = 0,
+  unconfirmedCount = 0,
 }: {
   name: string;
   pendingUsersCount: number;
@@ -20,6 +21,8 @@ export function OperatorOverview({
   dormantCount?: number;
   /** 채널 미등록으로 검수할 수 없는 승인 대기 크리에이터 수 — 처리 대기에 세지 않고 안내만 */
   noChannelCount?: number;
+  /** 이메일 미인증 승인 대기 크리에이터 수 — 로그인·승인이 불가하므로 처리 대기에서 제외, 인증 리마인더가 자동 발송 */
+  unconfirmedCount?: number;
 }) {
   const totalPending = pendingUsersCount + pendingCampaignsCount + pendingWithdrawals + dormantCount;
 
@@ -95,10 +98,11 @@ export function OperatorOverview({
 
       <TodoList items={todoItems} title="처리 대기" />
 
-      {noChannelCount > 0 && (
+      {(noChannelCount > 0 || unconfirmedCount > 0) && (
         <p className="mt-4 text-sm text-muted-foreground">
-          채널 미등록 크리에이터 {noChannelCount}명은 검수할 채널이 없어 처리 대기에서 뺐어요. 매일 아침 채널 등록 안내가
-          자동 발송되고, 채널을 등록하면 여기에 나타나요.{" "}
+          {noChannelCount > 0 && <>채널 미등록 크리에이터 {noChannelCount}명은 검수할 채널이 없어 처리 대기에서 뺐어요. 매일 아침 채널 등록 안내가 자동 발송되고, 채널을 등록하면 여기에 나타나요. </>}
+          {unconfirmedCount > 0 && <>이메일 미인증 {unconfirmedCount}명은 인증 전이라 로그인·승인이 불가해 처리 대기에서 뺐어요(가입 24시간 뒤 인증 리마인더 자동 발송, 미로그인 탭에서 일괄 재발송 가능). </>}
+          {" "}
           <Link
             href="/dashboard/operator/users?filter=pending"
             className="font-medium text-foreground underline underline-offset-4"
