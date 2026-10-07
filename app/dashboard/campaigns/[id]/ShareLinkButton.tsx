@@ -4,13 +4,16 @@ import { useState } from "react";
 import { Link2, Check, ChevronDown } from "lucide-react";
 
 const LANGS = [
-  { code: "", label: "한국어 (KR)" },
-  { code: "/en", label: "English (EN)" },
-  { code: "/zh", label: "中文 (CN)" },
+  { code: "", locale: "ko", label: "한국어 (KR)" },
+  { code: "/en", locale: "en", label: "English (EN)" },
+  { code: "/zh", locale: "zh", label: "中文 (CN)" },
 ];
 
-/** 공개 캠페인 페이지 링크 복사 — 언어별 URL (SNS·샤오홍슈·카톡 공유용) */
-export function ShareLinkButton({ campaignId, refId = null, buttonLabel = "공유 링크" }: { campaignId: string; refId?: string | null; buttonLabel?: string }) {
+/**
+ * 공개 캠페인 페이지 링크 복사 — 언어별 URL (SNS·샤오홍슈·카톡 공유용).
+ * translated: 영문·중문 AI 번역이 준비된 로케일(공개 페이지·포스터가 그 언어로 보인다). 없으면 '번역 준비 중'.
+ */
+export function ShareLinkButton({ campaignId, refId = null, buttonLabel = "공유 링크", translated }: { campaignId: string; refId?: string | null; buttonLabel?: string; translated?: string[] }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   async function copy(prefix: string) {
@@ -50,7 +53,14 @@ export function ShareLinkButton({ campaignId, refId = null, buttonLabel = "공�
               onClick={() => copy(l.code)}
               className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs hover:bg-muted"
             >
-              {l.label}
+              <span className="flex items-center gap-1.5">
+                {l.label}
+                {translated && l.locale !== "ko" && (
+                  translated.includes(l.locale)
+                    ? <span className="rounded-full bg-success-soft px-1.5 py-px text-[10px] font-medium text-success">번역됨</span>
+                    : <span className="rounded-full bg-muted px-1.5 py-px text-[10px] text-muted-foreground">번역 준비 중</span>
+                )}
+              </span>
               {copied === l.code ? <Check className="size-3.5 text-success" /> : <span className="text-[10px] text-muted-foreground">복사</span>}
             </button>
           ))}
@@ -60,7 +70,7 @@ export function ShareLinkButton({ campaignId, refId = null, buttonLabel = "공�
             </a>
           )}
           <p className="px-3 pb-1 pt-1.5 text-[10px] text-muted-foreground">
-            {refId ? "내 링크로 가입한 친구가 첫 체험을 완료하면 500P (월 5명)" : "샤오홍슈·해외 SNS엔 CN/EN 링크를 쓰세요"}
+            {refId ? "내 링크로 가입한 친구가 첫 체험을 완료하면 500P (월 5명)" : "샤오홍슈·해외 SNS엔 CN/EN 링크를 쓰세요 — 제목·미션이 그 언어로 번역돼 보여요"}
           </p>
         </div>
       )}

@@ -45,7 +45,7 @@ export function PosterSheet({ d }: { d: PosterData }) {
             <div className="text-[11px] font-semibold uppercase tracking-wider text-[#6b6472]">{T.offer}</div>
             <ul className="mt-2 space-y-1 text-[15px]">
               {c.offerings.map((o, i) => (
-                <li key={i} className="flex gap-2"><span className="mt-[9px] size-1.5 shrink-0 rounded-full bg-[#ff2aa7]" />{o.title}{o.estimated_value ? <span className="text-[#6b6472]"> (약 {o.estimated_value.toLocaleString()}원)</span> : null}</li>
+                <li key={i} className="flex gap-2"><span className="mt-[9px] size-1.5 shrink-0 rounded-full bg-[#ff2aa7]" />{o.title}{o.estimated_value ? <span className="text-[#6b6472]"> {d.locale === "ko" ? `(약 ${o.estimated_value.toLocaleString()}원)` : d.locale === "zh" ? `(约 ${o.estimated_value.toLocaleString()} 韩元)` : `(approx. ₩${o.estimated_value.toLocaleString()})`}</span> : null}</li>
               ))}
             </ul>
           </div>

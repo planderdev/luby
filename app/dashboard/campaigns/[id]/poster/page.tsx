@@ -36,6 +36,11 @@ export default async function PosterPage({ params, searchParams }: { params: Pro
 
   const locale = lang === "en" ? "en" : lang === "zh" ? "zh" : "ko";
   const prefix = locale === "ko" ? "" : `/${locale}`;
+  // 영문·중문 포스터는 공개 페이지와 같은 AI 번역본(campaign_translations)을 쓴다 — 없으면 원문
+  const { data: tr } = locale === "ko"
+    ? { data: null }
+    : await supabase.from("campaign_translations").select("title, business_name, offerings").eq("campaign_id", id).eq("locale", locale).maybeSingle();
+  const trOffer = new Map(((tr?.offerings as { source: string; title: string }[] | null) ?? []).map((o) => [o.source, o.title]));
   const url = `${getSiteUrl()}${prefix}/c/${c.id}`;
   const qr = await QRCode.toString(`${url}?src=qr`, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: "#151217", light: "#ffffff" } });
   const channelNames = (channels ?? []).map((x) => (x.channel_types as unknown as { name: string } | null)?.name).filter(Boolean) as string[];
@@ -59,15 +64,15 @@ export default async function PosterPage({ params, searchParams }: { params: Pro
 
       <PosterSheet
         d={{
-          title: c.title,
-          businessName: c.business_name,
+          title: tr?.title ?? c.title,
+          businessName: tr?.business_name ?? c.business_name,
           promotion: promo?.name ?? null,
           pointAmount: c.point_amount,
           recruitCount: c.recruit_count,
           recruitEnd: c.recruit_end,
           alwaysOpen: c.always_open,
           channels: channelNames,
-          offerings: offerings ?? [],
+          offerings: (offerings ?? []).map((o) => ({ ...o, title: trOffer.get(o.title) ?? o.title })),
           url,
           qrSvg: qr,
           locale,

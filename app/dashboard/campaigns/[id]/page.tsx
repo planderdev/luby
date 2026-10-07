@@ -73,6 +73,9 @@ export default async function CampaignDetailPage({
     : { data: [] as ExternalResultItem[] };
   const isInfluencer = profile.role === "influencer";
   const isPublic = ["open", "closed", "completed"].includes(campaign.status);
+  // 공개 페이지 영문·중문 번역 준비 여부 — 공유 링크 메뉴에 표시 (번역은 승인·수정 때 자동 생성)
+  const { data: trRows } = isPublic ? await supabase.from("campaign_translations").select("locale").eq("campaign_id", id) : { data: [] as { locale: string }[] };
+  const translated = (trRows ?? []).map((r) => r.locale);
 
   if (!isOwner && !isOperator && !(isInfluencer && isPublic)) {
     redirect("/dashboard/campaigns");
@@ -176,7 +179,7 @@ export default async function CampaignDetailPage({
 
         {isOwner && (
           <div className="flex flex-wrap items-center gap-2">
-            {["open", "closed", "completed"].includes(campaign.status) && <ShareLinkButton campaignId={id} />}
+            {["open", "closed", "completed"].includes(campaign.status) && <ShareLinkButton campaignId={id} translated={translated} />}
             {["draft", "pending_approval", "cancelled", "rejected"].includes(campaign.status) && (
               <Link
                 href={`/dashboard/campaigns/${id}/edit`}
