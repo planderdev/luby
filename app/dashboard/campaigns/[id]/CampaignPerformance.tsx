@@ -62,7 +62,11 @@ export async function CampaignPerformance({
   const extSummary = ext.length
     ? { creators: ext.length, posted: ext.filter((r) => r.post_url).length, followers: ext.reduce((a, r) => a + (r.followers ?? 0), 0), likes: ext.reduce((a, r) => a + (r.likes ?? 0), 0) }
     : null;
-  const views = (viewsRaw as { total: number; uniques: number; last7: number; by_source: Record<string, { views: number; uniques: number }> } | null) ?? null;
+  const views = (viewsRaw as { total: number; uniques: number; last7: number; by_source: Record<string, { views: number; uniques: number }>; by_lang?: Record<string, number> } | null) ?? null;
+  // 언어별 조회(2026-10-08): 샤오홍슈 캠페인이면 중문 페이지 조회가 곧 중국 크리에이터의 관심 — 한국어만 있으면 숨긴다
+  const LANG_LABEL: Record<string, string> = { ko: "한국어", en: "영문", zh: "중문" };
+  const langRows = Object.entries(views?.by_lang ?? {}).map(([lang, n]) => ({ lang: lang || "ko", n })).sort((a, b) => b.n - a.n);
+  const hasForeignViews = langRows.some((r) => r.lang !== "ko" && r.n > 0);
   const uniques = views?.uniques ?? 0;
   const sourceRows = viewSourceRows(views?.by_source);
   const submitted = (subs ?? []).length; // 제출물 행이 있으면 제출한 것 (재제출 대기 포함)
@@ -222,6 +226,15 @@ export async function CampaignPerformance({
                   <span key={r.key}>{r.label} <b className="text-foreground">{r.views.toLocaleString()}</b></span>
                 ))}
               </div>
+              {hasForeignViews && (
+                <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 border-t border-border/60 pt-1.5">
+                  <span className="font-medium text-foreground">언어별</span>
+                  {langRows.map((r) => (
+                    <span key={r.lang}>{LANG_LABEL[r.lang] ?? r.lang} <b className="text-foreground">{r.n.toLocaleString()}</b></span>
+                  ))}
+                  <span className="text-muted-foreground/80">— 영문·중문 조회는 해외 크리에이터가 번역된 공개 페이지를 본 횟수예요</span>
+                </div>
+              )}
             </div>
           ) : ["open", "closed", "completed"].includes(status) ? (
             <p className="mt-3 text-xs text-muted-foreground">
