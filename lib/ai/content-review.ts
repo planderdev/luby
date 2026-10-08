@@ -1,4 +1,5 @@
 import { trackedCreate, AI_MODEL_REASONING, stopReasonError, type AiContext } from "./client";
+import { aiErrorMessage } from "./ai-errors";
 
 /**
  * AI 콘텐츠 사전 검수 — 제출된 콘텐츠(URL + 메모)를 캠페인 미션과 대조해
@@ -127,7 +128,7 @@ ${missionLines}
     parsed.advertiser_actions = (parsed.advertiser_actions ?? []).slice(0, 4);
     return { ok: true, review: parsed };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return { ok: false, error: `AI 검수 실패: ${msg}` };
+    // SDK 원문(영문·과금 상태 등)을 그대로 노출하지 않는다
+    return { ok: false, error: aiErrorMessage(err, "AI 검수에 실패했어요. 잠시 후 다시 시도해 주세요.") };
   }
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAdminSupabase } from "@/lib/supabase/admin";
-import { verifyUnsubscribe } from "@/lib/unsubscribe-token";
+import { verifyUnsubscribeAny } from "@/lib/unsubscribe-token";
 import { normalizePrefs, EMAIL_CATEGORY_LABEL, type EmailCategory } from "@/lib/notification-categories";
 import { parseAppLocale } from "@/lib/i18n/app-locale-shared";
 import { dashboardDict } from "@/lib/i18n/app/dashboard";
@@ -33,7 +33,7 @@ async function handle(request: Request, mode: "html" | "text") {
   const locale: Locale = parseAppLocale(searchParams.get("lang")) ?? "ko";
   const ui = UI[locale];
   const valid = ["reminders", "transactional", "digest", "all"].includes(c) && /^[0-9a-f-]{36}$/.test(u);
-  if (!valid || !verifyUnsubscribe(u, c, t)) {
+  if (!valid || !(await verifyUnsubscribeAny(u, c, t))) {
     return mode === "text" ? new NextResponse("invalid", { status: 400 }) : html(ui.badTitle, ui.badBody, 400, locale);
   }
   const admin = getAdminSupabase();

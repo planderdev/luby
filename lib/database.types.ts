@@ -12,6 +12,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_secrets: {
+        Row: {
+          expires_at: string | null
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          expires_at?: string | null
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          expires_at?: string | null
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       ai_usage: {
         Row: {
           cache_read_tokens: number
