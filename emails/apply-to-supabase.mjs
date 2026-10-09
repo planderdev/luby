@@ -9,7 +9,9 @@
  *   node emails/apply-to-supabase.mjs --dry-run   # 본문 검사만, API 호출 없음
  *   node emails/apply-to-supabase.mjs             # 교체 + 검증
  *
- * 문구를 바꿀 때는 i18n-build.mjs 로 HTML 을 다시 만든 뒤 이 스크립트를 실행한다. 제목은 아래 SUBJECTS 와 README 표를 함께 고친다.
+ * 문구를 바꿀 때는 i18n-build.mjs 로 HTML 을 다시 만든 뒤 이 스크립트를 실행한다.
+ * 제목은 subjects.json(ko/en/zh)을 고친다 — 본문과 같은 Go 템플릿으로 수신자 locale 에 따라 한 언어만 보낸다.
+ * --dump-subjects <경로> 를 주면 실제로 보낼 제목 템플릿을 JSON 으로 써 둔다(Go 렌더 검증용).
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -21,14 +23,26 @@ const API = `https://api.supabase.com/v1/projects/${REF}/config/auth`;
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const dryRun = process.argv.includes("--dry-run");
 
-/** [Supabase 키, 파일, 제목(분기 불가 — 세 언어 병기)] */
+/** [Supabase 키, 본문 파일] */
 const TEMPLATES = [
-  ["confirmation", "01-confirm-signup.html", "Luby AI 이메일 인증 · Verify your email · 邮箱验证"],
-  ["magic_link", "02-magic-link.html", "Luby AI 로그인 링크 · Your login link · 登录链接"],
-  ["recovery", "03-reset-password.html", "Luby AI 비밀번호 재설정 · Reset your password · 重置密码"],
-  ["email_change", "04-change-email.html", "Luby AI 이메일 변경 확인 · Confirm email change · 确认更改邮箱"],
-  ["invite", "05-invite-user.html", "Luby AI에 초대되었어요 · You're invited · 邀请函"],
+  ["confirmation", "01-confirm-signup.html"],
+  ["magic_link", "02-magic-link.html"],
+  ["recovery", "03-reset-password.html"],
+  ["email_change", "04-change-email.html"],
+  ["invite", "05-invite-user.html"],
 ];
+const SUBJECTS = JSON.parse(fs.readFileSync(path.join(dir, "subjects.json"), "utf8"));
+
+/**
+ * 제목 한 줄 Go 템플릿. user_metadata 가 비었거나 locale 이 없어도 실행 오류가 나지 않도록 with 로 감싼다
+ * (제목 실행 오류는 메일 발송 실패로 이어진다). en/zh 외 값은 ko.
+ */
+function subjectTemplate(key) {
+  const s = SUBJECTS[key];
+  if (!s?.ko || !s?.en || !s?.zh) throw new Error(`subjects.json: ${key} 의 ko/en/zh 가 필요합니다`);
+  for (const v of [s.ko, s.en, s.zh]) if (/[{}\n]/.test(v)) throw new Error(`subjects.json: ${key} 에 중괄호·줄바꿈은 쓸 수 없습니다`);
+  return `{{ $l := "ko" }}{{ with .Data }}{{ with .locale }}{{ $l = printf "%v" . }}{{ end }}{{ end }}{{ if eq $l "zh" }}${s.zh}{{ else if eq $l "en" }}${s.en}{{ else }}${s.ko}{{ end }}`;
+}
 
 function readToken() {
   if (process.env.SUPABASE_ACCESS_TOKEN) return process.env.SUPABASE_ACCESS_TOKEN.trim();
@@ -45,13 +59,20 @@ function readToken() {
 }
 
 const body = {};
-for (const [key, file, subject] of TEMPLATES) {
+for (const [key, file] of TEMPLATES) {
   const html = fs.readFileSync(path.join(dir, file), "utf8");
-  if (!html.startsWith("{{ $l := printf")) throw new Error(`${file}: 첫 줄 언어 선언이 없습니다 (i18n-build.mjs 로 다시 만드세요)`);
+  if (!html.startsWith("{{ $l := \"ko\" }}{{ with .Data }}")) throw new Error(`${file}: 첫 줄 언어 선언이 없습니다 (i18n-build.mjs 로 다시 만드세요)`);
   if (!html.includes("{{ .ConfirmationURL }}")) throw new Error(`${file}: {{ .ConfirmationURL }} 가 없습니다`);
-  body[`mailer_subjects_${key}`] = subject;
+  body[`mailer_subjects_${key}`] = subjectTemplate(key);
   body[`mailer_templates_${key}_content`] = html;
   console.log(`  ${key.padEnd(13)} ${file} ${html.length} chars`);
+}
+
+const dumpAt = process.argv.indexOf("--dump-subjects");
+if (dumpAt > 0) {
+  const out = Object.fromEntries(TEMPLATES.map(([k]) => [k, body[`mailer_subjects_${k}`]]));
+  fs.writeFileSync(process.argv[dumpAt + 1], JSON.stringify(out, null, 1));
+  console.log(`subjects → ${process.argv[dumpAt + 1]}`);
 }
 
 if (dryRun) {

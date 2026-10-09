@@ -1,0 +1,28 @@
+{
+  "_comment": "인증 메일 제목 원본. apply-to-supabase.mjs 가 수신자 user_metadata.locale(ko/en/zh, 없거나 다른 값이면 ko)로 분기하는 Go 템플릿 한 줄로 만들어 Supabase 에 넣는다. ko 는 2026-10-09 이전 제목 그대로.",
+  "confirmation": {
+    "ko": "Luby AI 이메일 인증 — 가입을 완료해주세요",
+    "en": "Luby AI email verification — finish signing up",
+    "zh": "Luby AI 邮箱验证 — 请完成注册"
+  },
+  "magic_link": {
+    "ko": "Luby AI 로그인 링크가 도착했어요",
+    "en": "Your Luby AI login link is here",
+    "zh": "您的 Luby AI 登录链接已送达"
+  },
+  "recovery": {
+    "ko": "Luby AI 비밀번호 재설정 안내",
+    "en": "Reset your Luby AI password",
+    "zh": "Luby AI 重置密码"
+  },
+  "email_change": {
+    "ko": "Luby AI 이메일 변경 확인",
+    "en": "Confirm your Luby AI email change",
+    "zh": "Luby AI 确认更改邮箱"
+  },
+  "invite": {
+    "ko": "Luby AI에 초대되었어요",
+    "en": "You're invited to Luby AI",
+    "zh": "您已受邀加入 Luby AI"
+  }
+}

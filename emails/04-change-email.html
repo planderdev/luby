@@ -1,4 +1,4 @@
-{{ $l := printf "%v" .Data.locale }}{{ if and (ne $l "en") (ne $l "zh") }}{{ $l = "ko" }}{{ end }}
+{{ $l := "ko" }}{{ with .Data }}{{ with .locale }}{{ $l = printf "%v" . }}{{ end }}{{ end }}{{ if and (ne $l "en") (ne $l "zh") }}{{ $l = "ko" }}{{ end }}
 <!--
   Supabase Email Template: Change Email Address
   Subject (paste separately): Luby AI 이메일 변경 확인

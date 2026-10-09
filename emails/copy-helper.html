@@ -22,12 +22,13 @@ Supabase 템플릿 페이지: <a href="https://supabase.com/dashboard/project/nc
   <h2><span class="num">1</span> Supabase 왼쪽 목록에서 <b>“Confirm sign up”</b> 클릭</h2>
   <div class="row">
     <div class="label">① Subject heading 칸에 붙여넣기</div>
-    <div class="subj">Luby AI 이메일 인증 — 가입을 완료해주세요</div>
-    <button onclick="cp(this,"Luby AI \uc774\uba54\uc77c \uc778\uc99d \u2014 \uac00\uc785\uc744 \uc644\ub8cc\ud574\uc8fc\uc138\uc694")">제목 복사</button>
+    <div class="subj">한국어: Luby AI 이메일 인증 — 가입을 완료해주세요<br>English: Luby AI email verification — finish signing up<br>中文: Luby AI 邮箱验证 — 请完成注册</div>
+    <textarea id="s1" readonly hidden>{{ $l := &quot;ko&quot; }}{{ with .Data }}{{ with .locale }}{{ $l = printf &quot;%v&quot; . }}{{ end }}{{ end }}{{ if eq $l &quot;zh&quot; }}Luby AI 邮箱验证 — 请完成注册{{ else if eq $l &quot;en&quot; }}Luby AI email verification — finish signing up{{ else }}Luby AI 이메일 인증 — 가입을 완료해주세요{{ end }}</textarea>
+    <button onclick="cpTA(this,'s1')">제목 복사 (언어 분기 템플릿)</button>
   </div>
   <div class="row">
     <div class="label">② Message body 칸 → 클릭 → ⌘A → ⌘V (아래 버튼으로 복사한 뒤)</div>
-    <textarea id="t1" readonly>{{ $l := printf "%v" .Data.locale }}{{ if and (ne $l "en") (ne $l "zh") }}{{ $l = "ko" }}{{ end }}
+    <textarea id="t1" readonly>{{ $l := &quot;ko&quot; }}{{ with .Data }}{{ with .locale }}{{ $l = printf &quot;%v&quot; . }}{{ end }}{{ end }}{{ if and (ne $l &quot;en&quot;) (ne $l &quot;zh&quot;) }}{{ $l = &quot;ko&quot; }}{{ end }}
 &lt;!--
   Supabase Email Template: Confirm signup
   Subject (paste separately): Luby AI 이메일 인증 — 가입을 완료해주세요
@@ -35,13 +36,13 @@ Supabase 템플릿 페이지: <a href="https://supabase.com/dashboard/project/nc
   Variables used: {{ .ConfirmationURL }}
 --&gt;
 &lt;!DOCTYPE html&gt;
-&lt;html lang="{{ $l }}"&gt;
+&lt;html lang=&quot;{{ $l }}&quot;&gt;
 &lt;head&gt;
-&lt;meta charset="utf-8"&gt;
-&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
-&lt;meta name="color-scheme" content="light dark"&gt;
-&lt;meta name="supported-color-schemes" content="light dark"&gt;
-{{ if eq $l "zh" }}&lt;title&gt;Luby AI 邮箱验证&lt;/title&gt;{{ else if eq $l "en" }}&lt;title&gt;Verify your email – Luby AI&lt;/title&gt;{{ else }}&lt;title&gt;Luby AI 이메일 인증&lt;/title&gt;{{ end }}
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;color-scheme&quot; content=&quot;light dark&quot;&gt;
+&lt;meta name=&quot;supported-color-schemes&quot; content=&quot;light dark&quot;&gt;
+{{ if eq $l &quot;zh&quot; }}&lt;title&gt;Luby AI 邮箱验证&lt;/title&gt;{{ else if eq $l &quot;en&quot; }}&lt;title&gt;Verify your email – Luby AI&lt;/title&gt;{{ else }}&lt;title&gt;Luby AI 이메일 인증&lt;/title&gt;{{ end }}
 &lt;style&gt;
   @media (prefers-color-scheme: dark) {
     .bg { background:#0a0a0c !important; }
@@ -58,48 +59,48 @@ Supabase 템플릿 페이지: <a href="https://supabase.com/dashboard/project/nc
   a { text-decoration:none; }
 &lt;/style&gt;
 &lt;/head&gt;
-&lt;body class="bg" style="margin:0;padding:0;background:#fafafa;font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;"&gt;
-&lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg" style="background:#fafafa;"&gt;
-  &lt;tr&gt;&lt;td align="center" style="padding:40px 16px;"&gt;
-    &lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card border" style="max-width:560px;background:#ffffff;border:1px solid #e2e4ea;border-radius:24px;"&gt;
+&lt;body class=&quot;bg&quot; style=&quot;margin:0;padding:0;background:#fafafa;font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;&quot;&gt;
+&lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; class=&quot;bg&quot; style=&quot;background:#fafafa;&quot;&gt;
+  &lt;tr&gt;&lt;td align=&quot;center&quot; style=&quot;padding:40px 16px;&quot;&gt;
+    &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; class=&quot;card border&quot; style=&quot;max-width:560px;background:#ffffff;border:1px solid #e2e4ea;border-radius:24px;&quot;&gt;
 
       &lt;!-- Header --&gt;
-      &lt;tr&gt;&lt;td style="padding:36px 36px 28px;"&gt;
-        &lt;img src="https://luby.im/logo-email.png" width="89" height="28" alt="Luby AI" style="display:block;height:28px;width:auto;border:0;"&gt;
+      &lt;tr&gt;&lt;td style=&quot;padding:36px 36px 28px;&quot;&gt;
+        &lt;img src=&quot;https://luby.im/logo-email.png&quot; width=&quot;89&quot; height=&quot;28&quot; alt=&quot;Luby AI&quot; style=&quot;display:block;height:28px;width:auto;border:0;&quot;&gt;
       &lt;/td&gt;&lt;/tr&gt;
 
       &lt;!-- Body --&gt;
-      &lt;tr&gt;&lt;td style="padding:0 36px 36px;"&gt;
+      &lt;tr&gt;&lt;td style=&quot;padding:0 36px 36px;&quot;&gt;
 
         &lt;!-- Eyebrow --&gt;
-        &lt;div class="pink-soft" style="display:inline-block;background:#fce7f3;color:#831843;font-size:11px;font-weight:600;letter-spacing:0.1em;padding:6px 12px;border-radius:999px;text-transform:uppercase;"&gt;
-          {{ if eq $l "zh" }}欢迎{{ else if eq $l "en" }}Welcome{{ else }}환영합니다{{ end }}
+        &lt;div class=&quot;pink-soft&quot; style=&quot;display:inline-block;background:#fce7f3;color:#831843;font-size:11px;font-weight:600;letter-spacing:0.1em;padding:6px 12px;border-radius:999px;text-transform:uppercase;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}欢迎{{ else if eq $l &quot;en&quot; }}Welcome{{ else }}환영합니다{{ end }}
         &lt;/div&gt;
 
         &lt;!-- Headline --&gt;
-        &lt;h1 class="text" style="margin:20px 0 12px;font-size:28px;line-height:1.2;letter-spacing:-0.02em;color:#0c0c0e;font-weight:600;"&gt;
-          {{ if eq $l "zh" }}请验证&lt;br&gt;您的邮箱{{ else if eq $l "en" }}Please verify&lt;br&gt;your email{{ else }}이메일을&lt;br&gt;인증해주세요{{ end }}
+        &lt;h1 class=&quot;text&quot; style=&quot;margin:20px 0 12px;font-size:28px;line-height:1.2;letter-spacing:-0.02em;color:#0c0c0e;font-weight:600;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}请验证&lt;br&gt;您的邮箱{{ else if eq $l &quot;en&quot; }}Please verify&lt;br&gt;your email{{ else }}이메일을&lt;br&gt;인증해주세요{{ end }}
         &lt;/h1&gt;
 
         &lt;!-- Sub --&gt;
-        &lt;p class="muted" style="margin:0 0 28px;font-size:15px;line-height:1.6;color:#6e707a;"&gt;
-          {{ if eq $l "zh" }}感谢您注册 Luby AI。{{ else if eq $l "en" }}Thanks for joining Luby AI.{{ else }}Luby AI에 가입해 주셔서 감사합니다.{{ end }}&lt;br&gt;
-          {{ if eq $l "zh" }}点击下方按钮完成邮箱验证，即可使用全部功能。{{ else if eq $l "en" }}Click the button below to verify your email and unlock every feature.{{ else }}아래 버튼을 클릭하면 이메일 인증이 완료되고, 모든 기능을 사용하실 수 있어요.{{ end }}
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 28px;font-size:15px;line-height:1.6;color:#6e707a;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}感谢您注册 Luby AI。{{ else if eq $l &quot;en&quot; }}Thanks for joining Luby AI.{{ else }}Luby AI에 가입해 주셔서 감사합니다.{{ end }}&lt;br&gt;
+          {{ if eq $l &quot;zh&quot; }}点击下方按钮完成邮箱验证，即可使用全部功能。{{ else if eq $l &quot;en&quot; }}Click the button below to verify your email and unlock every feature.{{ else }}아래 버튼을 클릭하면 이메일 인증이 완료되고, 모든 기능을 사용하실 수 있어요.{{ end }}
         &lt;/p&gt;
 
         &lt;!-- CTA button --&gt;
-        &lt;table role="presentation" cellpadding="0" cellspacing="0" border="0"&gt;&lt;tr&gt;&lt;td&gt;
-          &lt;a href="{{ .ConfirmationURL }}" class="btn" style="display:inline-block;background:#0c0c0e;color:#ffffff;font-size:15px;font-weight:600;padding:14px 28px;border-radius:999px;text-decoration:none;letter-spacing:-0.01em;"&gt;
-            {{ if eq $l "zh" }}验证邮箱 →{{ else if eq $l "en" }}Verify email →{{ else }}이메일 인증하기 →{{ end }}
+        &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot;&gt;&lt;tr&gt;&lt;td&gt;
+          &lt;a href=&quot;{{ .ConfirmationURL }}&quot; class=&quot;btn&quot; style=&quot;display:inline-block;background:#0c0c0e;color:#ffffff;font-size:15px;font-weight:600;padding:14px 28px;border-radius:999px;text-decoration:none;letter-spacing:-0.01em;&quot;&gt;
+            {{ if eq $l &quot;zh&quot; }}验证邮箱 →{{ else if eq $l &quot;en&quot; }}Verify email →{{ else }}이메일 인증하기 →{{ end }}
           &lt;/a&gt;
         &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 
         &lt;!-- Manual link fallback --&gt;
-        &lt;div style="margin-top:32px;padding-top:24px;border-top:1px solid #e2e4ea;" class="border"&gt;
-          &lt;p class="muted" style="margin:0 0 8px;font-size:12px;color:#9ca0ac;line-height:1.5;"&gt;
-            {{ if eq $l "zh" }}如果按钮无法使用，请复制下方链接粘贴到浏览器地址栏。{{ else if eq $l "en" }}If the button doesn't work, copy the link below into your browser's address bar.{{ else }}버튼이 작동하지 않으면 아래 링크를 복사해서 브라우저 주소창에 붙여넣어주세요.{{ end }}
+        &lt;div style=&quot;margin-top:32px;padding-top:24px;border-top:1px solid #e2e4ea;&quot; class=&quot;border&quot;&gt;
+          &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 8px;font-size:12px;color:#9ca0ac;line-height:1.5;&quot;&gt;
+            {{ if eq $l &quot;zh&quot; }}如果按钮无法使用，请复制下方链接粘贴到浏览器地址栏。{{ else if eq $l &quot;en&quot; }}If the button doesn't work, copy the link below into your browser's address bar.{{ else }}버튼이 작동하지 않으면 아래 링크를 복사해서 브라우저 주소창에 붙여넣어주세요.{{ end }}
           &lt;/p&gt;
-          &lt;p class="link-fallback" style="margin:0;padding:10px 12px;background:#f4f4f6;border-radius:10px;font-size:11px;color:#6e707a;word-break:break-all;line-height:1.4;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;"&gt;
+          &lt;p class=&quot;link-fallback&quot; style=&quot;margin:0;padding:10px 12px;background:#f4f4f6;border-radius:10px;font-size:11px;color:#6e707a;word-break:break-all;line-height:1.4;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;&quot;&gt;
             {{ .ConfirmationURL }}
           &lt;/p&gt;
         &lt;/div&gt;
@@ -107,24 +108,24 @@ Supabase 템플릿 페이지: <a href="https://supabase.com/dashboard/project/nc
       &lt;/td&gt;&lt;/tr&gt;
 
       &lt;!-- Footer --&gt;
-      &lt;tr&gt;&lt;td class="border" style="padding:24px 36px 32px;border-top:1px solid #e2e4ea;"&gt;
-        &lt;p class="muted" style="margin:0 0 8px;color:#6e707a;font-size:12px;line-height:1.6;"&gt;
-          {{ if eq $l "zh" }}Luby AI · 全球体验营销平台{{ else if eq $l "en" }}Luby AI · Global creator campaign platform{{ else }}Luby AI · 글로벌 체험단 마케팅 플랫폼{{ end }}
+      &lt;tr&gt;&lt;td class=&quot;border&quot; style=&quot;padding:24px 36px 32px;border-top:1px solid #e2e4ea;&quot;&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 8px;color:#6e707a;font-size:12px;line-height:1.6;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}Luby AI · 全球体验营销平台{{ else if eq $l &quot;en&quot; }}Luby AI · Global creator campaign platform{{ else }}Luby AI · 글로벌 체험단 마케팅 플랫폼{{ end }}
         &lt;/p&gt;
-        &lt;p class="muted" style="margin:0;font-size:12px;line-height:1.6;"&gt;
-          &lt;a href="https://luby.im" class="muted" style="color:#6e707a;text-decoration:underline;"&gt;luby.im&lt;/a&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0;font-size:12px;line-height:1.6;&quot;&gt;
+          &lt;a href=&quot;https://luby.im&quot; class=&quot;muted&quot; style=&quot;color:#6e707a;text-decoration:underline;&quot;&gt;luby.im&lt;/a&gt;
           &amp;nbsp;·&amp;nbsp;
-          &lt;a href="mailto:contact@plander.io" class="muted" style="color:#6e707a;text-decoration:underline;"&gt;contact@plander.io&lt;/a&gt;
+          &lt;a href=&quot;mailto:contact@plander.io&quot; class=&quot;muted&quot; style=&quot;color:#6e707a;text-decoration:underline;&quot;&gt;contact@plander.io&lt;/a&gt;
         &lt;/p&gt;
       &lt;/td&gt;&lt;/tr&gt;
 
     &lt;/table&gt;
 
-    &lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;margin-top:20px;"&gt;
-      &lt;tr&gt;&lt;td align="center" style="padding:0 16px;"&gt;
-        &lt;p class="muted" style="margin:0;color:#9ca0ac;font-size:11px;line-height:1.6;"&gt;
-          {{ if eq $l "zh" }}如果不是您本人注册，请忽略此邮件。{{ else if eq $l "en" }}If you didn't sign up, you can safely ignore this email.{{ else }}본인이 가입하지 않으셨다면 이 메일을 안전하게 무시해주세요.{{ end }}&lt;br&gt;
-          {{ if eq $l "zh" }}不会创建任何账号。{{ else if eq $l "en" }}No account will be created.{{ else }}어떠한 계정도 생성되지 않습니다.{{ end }}
+    &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; style=&quot;max-width:560px;margin-top:20px;&quot;&gt;
+      &lt;tr&gt;&lt;td align=&quot;center&quot; style=&quot;padding:0 16px;&quot;&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0;color:#9ca0ac;font-size:11px;line-height:1.6;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}如果不是您本人注册，请忽略此邮件。{{ else if eq $l &quot;en&quot; }}If you didn't sign up, you can safely ignore this email.{{ else }}본인이 가입하지 않으셨다면 이 메일을 안전하게 무시해주세요.{{ end }}&lt;br&gt;
+          {{ if eq $l &quot;zh&quot; }}不会创建任何账号。{{ else if eq $l &quot;en&quot; }}No account will be created.{{ else }}어떠한 계정도 생성되지 않습니다.{{ end }}
         &lt;/p&gt;
       &lt;/td&gt;&lt;/tr&gt;
     &lt;/table&gt;
@@ -142,26 +143,27 @@ Supabase 템플릿 페이지: <a href="https://supabase.com/dashboard/project/nc
   <h2><span class="num">2</span> Supabase 왼쪽 목록에서 <b>“Magic Link”</b> 클릭</h2>
   <div class="row">
     <div class="label">① Subject heading 칸에 붙여넣기</div>
-    <div class="subj">Luby AI 로그인 링크가 도착했어요</div>
-    <button onclick="cp(this,"Luby AI \ub85c\uadf8\uc778 \ub9c1\ud06c\uac00 \ub3c4\ucc29\ud588\uc5b4\uc694")">제목 복사</button>
+    <div class="subj">한국어: Luby AI 로그인 링크가 도착했어요<br>English: Your Luby AI login link is here<br>中文: 您的 Luby AI 登录链接已送达</div>
+    <textarea id="s2" readonly hidden>{{ $l := &quot;ko&quot; }}{{ with .Data }}{{ with .locale }}{{ $l = printf &quot;%v&quot; . }}{{ end }}{{ end }}{{ if eq $l &quot;zh&quot; }}您的 Luby AI 登录链接已送达{{ else if eq $l &quot;en&quot; }}Your Luby AI login link is here{{ else }}Luby AI 로그인 링크가 도착했어요{{ end }}</textarea>
+    <button onclick="cpTA(this,'s2')">제목 복사 (언어 분기 템플릿)</button>
   </div>
   <div class="row">
     <div class="label">② Message body 칸 → 클릭 → ⌘A → ⌘V (아래 버튼으로 복사한 뒤)</div>
-    <textarea id="t2" readonly>{{ $l := printf "%v" .Data.locale }}{{ if and (ne $l "en") (ne $l "zh") }}{{ $l = "ko" }}{{ end }}
+    <textarea id="t2" readonly>{{ $l := &quot;ko&quot; }}{{ with .Data }}{{ with .locale }}{{ $l = printf &quot;%v&quot; . }}{{ end }}{{ end }}{{ if and (ne $l &quot;en&quot;) (ne $l &quot;zh&quot;) }}{{ $l = &quot;ko&quot; }}{{ end }}
 &lt;!--
   Supabase Email Template: Magic Link
-  Subject (paste separately): Luby AI {{ if eq $l "zh" }}登录链接{{ else if eq $l "en" }}Login link{{ else }}로그인 링크{{ end }}가 도착했어요
+  Subject (paste separately): Luby AI {{ if eq $l &quot;zh&quot; }}登录链接{{ else if eq $l &quot;en&quot; }}Login link{{ else }}로그인 링크{{ end }}가 도착했어요
 
   Variables used: {{ .ConfirmationURL }}
 --&gt;
 &lt;!DOCTYPE html&gt;
-&lt;html lang="{{ $l }}"&gt;
+&lt;html lang=&quot;{{ $l }}&quot;&gt;
 &lt;head&gt;
-&lt;meta charset="utf-8"&gt;
-&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
-&lt;meta name="color-scheme" content="light dark"&gt;
-&lt;meta name="supported-color-schemes" content="light dark"&gt;
-{{ if eq $l "zh" }}&lt;title&gt;Luby AI 登录链接&lt;/title&gt;{{ else if eq $l "en" }}&lt;title&gt;Your login link – Luby AI&lt;/title&gt;{{ else }}&lt;title&gt;Luby AI 로그인&lt;/title&gt;{{ end }}
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;color-scheme&quot; content=&quot;light dark&quot;&gt;
+&lt;meta name=&quot;supported-color-schemes&quot; content=&quot;light dark&quot;&gt;
+{{ if eq $l &quot;zh&quot; }}&lt;title&gt;Luby AI 登录链接&lt;/title&gt;{{ else if eq $l &quot;en&quot; }}&lt;title&gt;Your login link – Luby AI&lt;/title&gt;{{ else }}&lt;title&gt;Luby AI 로그인&lt;/title&gt;{{ end }}
 &lt;style&gt;
   @media (prefers-color-scheme: dark) {
     .bg { background:#0a0a0c !important; }
@@ -178,64 +180,64 @@ Supabase 템플릿 페이지: <a href="https://supabase.com/dashboard/project/nc
   a { text-decoration:none; }
 &lt;/style&gt;
 &lt;/head&gt;
-&lt;body class="bg" style="margin:0;padding:0;background:#fafafa;font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;"&gt;
-&lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg" style="background:#fafafa;"&gt;
-  &lt;tr&gt;&lt;td align="center" style="padding:40px 16px;"&gt;
-    &lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card border" style="max-width:560px;background:#ffffff;border:1px solid #e2e4ea;border-radius:24px;"&gt;
+&lt;body class=&quot;bg&quot; style=&quot;margin:0;padding:0;background:#fafafa;font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;&quot;&gt;
+&lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; class=&quot;bg&quot; style=&quot;background:#fafafa;&quot;&gt;
+  &lt;tr&gt;&lt;td align=&quot;center&quot; style=&quot;padding:40px 16px;&quot;&gt;
+    &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; class=&quot;card border&quot; style=&quot;max-width:560px;background:#ffffff;border:1px solid #e2e4ea;border-radius:24px;&quot;&gt;
 
-      &lt;tr&gt;&lt;td style="padding:36px 36px 28px;"&gt;
-        &lt;img src="https://luby.im/logo-email.png" width="89" height="28" alt="Luby AI" style="display:block;height:28px;width:auto;border:0;"&gt;
+      &lt;tr&gt;&lt;td style=&quot;padding:36px 36px 28px;&quot;&gt;
+        &lt;img src=&quot;https://luby.im/logo-email.png&quot; width=&quot;89&quot; height=&quot;28&quot; alt=&quot;Luby AI&quot; style=&quot;display:block;height:28px;width:auto;border:0;&quot;&gt;
       &lt;/td&gt;&lt;/tr&gt;
 
-      &lt;tr&gt;&lt;td style="padding:0 36px 36px;"&gt;
-        &lt;div class="pink-soft" style="display:inline-block;background:#fce7f3;color:#831843;font-size:11px;font-weight:600;letter-spacing:0.1em;padding:6px 12px;border-radius:999px;text-transform:uppercase;"&gt;
-          {{ if eq $l "zh" }}登录链接{{ else if eq $l "en" }}Login link{{ else }}로그인 링크{{ end }}
+      &lt;tr&gt;&lt;td style=&quot;padding:0 36px 36px;&quot;&gt;
+        &lt;div class=&quot;pink-soft&quot; style=&quot;display:inline-block;background:#fce7f3;color:#831843;font-size:11px;font-weight:600;letter-spacing:0.1em;padding:6px 12px;border-radius:999px;text-transform:uppercase;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}登录链接{{ else if eq $l &quot;en&quot; }}Login link{{ else }}로그인 링크{{ end }}
         &lt;/div&gt;
 
-        &lt;h1 class="text" style="margin:20px 0 12px;font-size:28px;line-height:1.2;letter-spacing:-0.02em;color:#0c0c0e;font-weight:600;"&gt;
-          {{ if eq $l "zh" }}一键&lt;br&gt;登录{{ else if eq $l "en" }}Log in with&lt;br&gt;one click{{ else }}한 번의 클릭으로&lt;br&gt;로그인하세요{{ end }}
+        &lt;h1 class=&quot;text&quot; style=&quot;margin:20px 0 12px;font-size:28px;line-height:1.2;letter-spacing:-0.02em;color:#0c0c0e;font-weight:600;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}一键&lt;br&gt;登录{{ else if eq $l &quot;en&quot; }}Log in with&lt;br&gt;one click{{ else }}한 번의 클릭으로&lt;br&gt;로그인하세요{{ end }}
         &lt;/h1&gt;
 
-        &lt;p class="muted" style="margin:0 0 28px;font-size:15px;line-height:1.6;color:#6e707a;"&gt;
-          {{ if eq $l "zh" }}这是您请求的登录链接。点击按钮即可免密码立即登录。{{ else if eq $l "en" }}Here's the magic link you requested. Click the button to log in instantly without a password.{{ else }}요청하신 매직 링크입니다. 아래 버튼을 누르면 비밀번호 없이 즉시 로그인됩니다.{{ end }}&lt;br&gt;
-          &lt;strong style="color:#0c0c0e;"&gt;{{ if eq $l "zh" }}此链接 1 小时内有效。{{ else if eq $l "en" }}This link is valid for 1 hour.{{ else }}이 링크는 1시간 동안 유효합니다.{{ end }}&lt;/strong&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 28px;font-size:15px;line-height:1.6;color:#6e707a;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}这是您请求的登录链接。点击按钮即可免密码立即登录。{{ else if eq $l &quot;en&quot; }}Here's the magic link you requested. Click the button to log in instantly without a password.{{ else }}요청하신 매직 링크입니다. 아래 버튼을 누르면 비밀번호 없이 즉시 로그인됩니다.{{ end }}&lt;br&gt;
+          &lt;strong style=&quot;color:#0c0c0e;&quot;&gt;{{ if eq $l &quot;zh&quot; }}此链接 1 小时内有效。{{ else if eq $l &quot;en&quot; }}This link is valid for 1 hour.{{ else }}이 링크는 1시간 동안 유효합니다.{{ end }}&lt;/strong&gt;
         &lt;/p&gt;
 
-        &lt;table role="presentation" cellpadding="0" cellspacing="0" border="0"&gt;&lt;tr&gt;&lt;td&gt;
-          &lt;a href="{{ .ConfirmationURL }}" class="btn" style="display:inline-block;background:#0c0c0e;color:#ffffff;font-size:15px;font-weight:600;padding:14px 28px;border-radius:999px;text-decoration:none;letter-spacing:-0.01em;"&gt;
-            {{ if eq $l "zh" }}登录 →{{ else if eq $l "en" }}Log in →{{ else }}로그인 →{{ end }}
+        &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot;&gt;&lt;tr&gt;&lt;td&gt;
+          &lt;a href=&quot;{{ .ConfirmationURL }}&quot; class=&quot;btn&quot; style=&quot;display:inline-block;background:#0c0c0e;color:#ffffff;font-size:15px;font-weight:600;padding:14px 28px;border-radius:999px;text-decoration:none;letter-spacing:-0.01em;&quot;&gt;
+            {{ if eq $l &quot;zh&quot; }}登录 →{{ else if eq $l &quot;en&quot; }}Log in →{{ else }}로그인 →{{ end }}
           &lt;/a&gt;
         &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 
-        &lt;div style="margin-top:32px;padding-top:24px;border-top:1px solid #e2e4ea;" class="border"&gt;
-          &lt;p class="muted" style="margin:0 0 8px;font-size:12px;color:#9ca0ac;line-height:1.5;"&gt;
-            {{ if eq $l "zh" }}如果按钮无法使用，请复制下方链接打开。{{ else if eq $l "en" }}If the button doesn't work, copy and open the link below.{{ else }}버튼이 작동하지 않으면 아래 링크를 복사해서 사용해주세요.{{ end }}
+        &lt;div style=&quot;margin-top:32px;padding-top:24px;border-top:1px solid #e2e4ea;&quot; class=&quot;border&quot;&gt;
+          &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 8px;font-size:12px;color:#9ca0ac;line-height:1.5;&quot;&gt;
+            {{ if eq $l &quot;zh&quot; }}如果按钮无法使用，请复制下方链接打开。{{ else if eq $l &quot;en&quot; }}If the button doesn't work, copy and open the link below.{{ else }}버튼이 작동하지 않으면 아래 링크를 복사해서 사용해주세요.{{ end }}
           &lt;/p&gt;
-          &lt;p class="link-fallback" style="margin:0;padding:10px 12px;background:#f4f4f6;border-radius:10px;font-size:11px;color:#6e707a;word-break:break-all;line-height:1.4;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;"&gt;
+          &lt;p class=&quot;link-fallback&quot; style=&quot;margin:0;padding:10px 12px;background:#f4f4f6;border-radius:10px;font-size:11px;color:#6e707a;word-break:break-all;line-height:1.4;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;&quot;&gt;
             {{ .ConfirmationURL }}
           &lt;/p&gt;
         &lt;/div&gt;
 
       &lt;/td&gt;&lt;/tr&gt;
 
-      &lt;tr&gt;&lt;td class="border" style="padding:24px 36px 32px;border-top:1px solid #e2e4ea;"&gt;
-        &lt;p class="muted" style="margin:0 0 8px;color:#6e707a;font-size:12px;line-height:1.6;"&gt;
-          {{ if eq $l "zh" }}Luby AI · 全球体验营销平台{{ else if eq $l "en" }}Luby AI · Global creator campaign platform{{ else }}Luby AI · 글로벌 체험단 마케팅 플랫폼{{ end }}
+      &lt;tr&gt;&lt;td class=&quot;border&quot; style=&quot;padding:24px 36px 32px;border-top:1px solid #e2e4ea;&quot;&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 8px;color:#6e707a;font-size:12px;line-height:1.6;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}Luby AI · 全球体验营销平台{{ else if eq $l &quot;en&quot; }}Luby AI · Global creator campaign platform{{ else }}Luby AI · 글로벌 체험단 마케팅 플랫폼{{ end }}
         &lt;/p&gt;
-        &lt;p class="muted" style="margin:0;font-size:12px;line-height:1.6;"&gt;
-          &lt;a href="https://luby.im" class="muted" style="color:#6e707a;text-decoration:underline;"&gt;luby.im&lt;/a&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0;font-size:12px;line-height:1.6;&quot;&gt;
+          &lt;a href=&quot;https://luby.im&quot; class=&quot;muted&quot; style=&quot;color:#6e707a;text-decoration:underline;&quot;&gt;luby.im&lt;/a&gt;
           &amp;nbsp;·&amp;nbsp;
-          &lt;a href="mailto:contact@plander.io" class="muted" style="color:#6e707a;text-decoration:underline;"&gt;contact@plander.io&lt;/a&gt;
+          &lt;a href=&quot;mailto:contact@plander.io&quot; class=&quot;muted&quot; style=&quot;color:#6e707a;text-decoration:underline;&quot;&gt;contact@plander.io&lt;/a&gt;
         &lt;/p&gt;
       &lt;/td&gt;&lt;/tr&gt;
 
     &lt;/table&gt;
 
-    &lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;margin-top:20px;"&gt;
-      &lt;tr&gt;&lt;td align="center" style="padding:0 16px;"&gt;
-        &lt;p class="muted" style="margin:0;color:#9ca0ac;font-size:11px;line-height:1.6;"&gt;
-          {{ if eq $l "zh" }}如果不是您本人请求，可能是他人误输入了您的邮箱。{{ else if eq $l "en" }}If you didn't request this, someone may have entered your email by mistake.{{ else }}본인이 요청하지 않으셨다면 누군가 이메일 주소를 잘못 입력했을 수 있습니다.{{ end }}&lt;br&gt;
-          {{ if eq $l "zh" }}请忽略此邮件。{{ else if eq $l "en" }}You can safely ignore this email.{{ else }}이 메일을 안전하게 무시해주세요.{{ end }}
+    &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; style=&quot;max-width:560px;margin-top:20px;&quot;&gt;
+      &lt;tr&gt;&lt;td align=&quot;center&quot; style=&quot;padding:0 16px;&quot;&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0;color:#9ca0ac;font-size:11px;line-height:1.6;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}如果不是您本人请求，可能是他人误输入了您的邮箱。{{ else if eq $l &quot;en&quot; }}If you didn't request this, someone may have entered your email by mistake.{{ else }}본인이 요청하지 않으셨다면 누군가 이메일 주소를 잘못 입력했을 수 있습니다.{{ end }}&lt;br&gt;
+          {{ if eq $l &quot;zh&quot; }}请忽略此邮件。{{ else if eq $l &quot;en&quot; }}You can safely ignore this email.{{ else }}이 메일을 안전하게 무시해주세요.{{ end }}
         &lt;/p&gt;
       &lt;/td&gt;&lt;/tr&gt;
     &lt;/table&gt;
@@ -253,12 +255,13 @@ Supabase 템플릿 페이지: <a href="https://supabase.com/dashboard/project/nc
   <h2><span class="num">3</span> Supabase 왼쪽 목록에서 <b>“Reset Password”</b> 클릭</h2>
   <div class="row">
     <div class="label">① Subject heading 칸에 붙여넣기</div>
-    <div class="subj">Luby AI 비밀번호 재설정 안내</div>
-    <button onclick="cp(this,"Luby AI \ube44\ubc00\ubc88\ud638 \uc7ac\uc124\uc815 \uc548\ub0b4")">제목 복사</button>
+    <div class="subj">한국어: Luby AI 비밀번호 재설정 안내<br>English: Reset your Luby AI password<br>中文: Luby AI 重置密码</div>
+    <textarea id="s3" readonly hidden>{{ $l := &quot;ko&quot; }}{{ with .Data }}{{ with .locale }}{{ $l = printf &quot;%v&quot; . }}{{ end }}{{ end }}{{ if eq $l &quot;zh&quot; }}Luby AI 重置密码{{ else if eq $l &quot;en&quot; }}Reset your Luby AI password{{ else }}Luby AI 비밀번호 재설정 안내{{ end }}</textarea>
+    <button onclick="cpTA(this,'s3')">제목 복사 (언어 분기 템플릿)</button>
   </div>
   <div class="row">
     <div class="label">② Message body 칸 → 클릭 → ⌘A → ⌘V (아래 버튼으로 복사한 뒤)</div>
-    <textarea id="t3" readonly>{{ $l := printf "%v" .Data.locale }}{{ if and (ne $l "en") (ne $l "zh") }}{{ $l = "ko" }}{{ end }}
+    <textarea id="t3" readonly>{{ $l := &quot;ko&quot; }}{{ with .Data }}{{ with .locale }}{{ $l = printf &quot;%v&quot; . }}{{ end }}{{ end }}{{ if and (ne $l &quot;en&quot;) (ne $l &quot;zh&quot;) }}{{ $l = &quot;ko&quot; }}{{ end }}
 &lt;!--
   Supabase Email Template: Reset Password
   Subject (paste separately): Luby AI 비밀번호 재설정 안내
@@ -266,13 +269,13 @@ Supabase 템플릿 페이지: <a href="https://supabase.com/dashboard/project/nc
   Variables used: {{ .ConfirmationURL }}
 --&gt;
 &lt;!DOCTYPE html&gt;
-&lt;html lang="{{ $l }}"&gt;
+&lt;html lang=&quot;{{ $l }}&quot;&gt;
 &lt;head&gt;
-&lt;meta charset="utf-8"&gt;
-&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
-&lt;meta name="color-scheme" content="light dark"&gt;
-&lt;meta name="supported-color-schemes" content="light dark"&gt;
-{{ if eq $l "zh" }}&lt;title&gt;Luby AI 重置密码&lt;/title&gt;{{ else if eq $l "en" }}&lt;title&gt;Reset your password – Luby AI&lt;/title&gt;{{ else }}&lt;title&gt;Luby AI 비밀번호 재설정&lt;/title&gt;{{ end }}
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;color-scheme&quot; content=&quot;light dark&quot;&gt;
+&lt;meta name=&quot;supported-color-schemes&quot; content=&quot;light dark&quot;&gt;
+{{ if eq $l &quot;zh&quot; }}&lt;title&gt;Luby AI 重置密码&lt;/title&gt;{{ else if eq $l &quot;en&quot; }}&lt;title&gt;Reset your password – Luby AI&lt;/title&gt;{{ else }}&lt;title&gt;Luby AI 비밀번호 재설정&lt;/title&gt;{{ end }}
 &lt;style&gt;
   @media (prefers-color-scheme: dark) {
     .bg { background:#0a0a0c !important; }
@@ -290,74 +293,74 @@ Supabase 템플릿 페이지: <a href="https://supabase.com/dashboard/project/nc
   a { text-decoration:none; }
 &lt;/style&gt;
 &lt;/head&gt;
-&lt;body class="bg" style="margin:0;padding:0;background:#fafafa;font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;"&gt;
-&lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg" style="background:#fafafa;"&gt;
-  &lt;tr&gt;&lt;td align="center" style="padding:40px 16px;"&gt;
-    &lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card border" style="max-width:560px;background:#ffffff;border:1px solid #e2e4ea;border-radius:24px;"&gt;
+&lt;body class=&quot;bg&quot; style=&quot;margin:0;padding:0;background:#fafafa;font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;&quot;&gt;
+&lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; class=&quot;bg&quot; style=&quot;background:#fafafa;&quot;&gt;
+  &lt;tr&gt;&lt;td align=&quot;center&quot; style=&quot;padding:40px 16px;&quot;&gt;
+    &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; class=&quot;card border&quot; style=&quot;max-width:560px;background:#ffffff;border:1px solid #e2e4ea;border-radius:24px;&quot;&gt;
 
-      &lt;tr&gt;&lt;td style="padding:36px 36px 28px;"&gt;
-        &lt;img src="https://luby.im/logo-email.png" width="89" height="28" alt="Luby AI" style="display:block;height:28px;width:auto;border:0;"&gt;
+      &lt;tr&gt;&lt;td style=&quot;padding:36px 36px 28px;&quot;&gt;
+        &lt;img src=&quot;https://luby.im/logo-email.png&quot; width=&quot;89&quot; height=&quot;28&quot; alt=&quot;Luby AI&quot; style=&quot;display:block;height:28px;width:auto;border:0;&quot;&gt;
       &lt;/td&gt;&lt;/tr&gt;
 
-      &lt;tr&gt;&lt;td style="padding:0 36px 36px;"&gt;
-        &lt;div class="pink-soft" style="display:inline-block;background:#fce7f3;color:#831843;font-size:11px;font-weight:600;letter-spacing:0.1em;padding:6px 12px;border-radius:999px;text-transform:uppercase;"&gt;
-          {{ if eq $l "zh" }}重置密码
-{{ else if eq $l "en" }}Password reset
+      &lt;tr&gt;&lt;td style=&quot;padding:0 36px 36px;&quot;&gt;
+        &lt;div class=&quot;pink-soft&quot; style=&quot;display:inline-block;background:#fce7f3;color:#831843;font-size:11px;font-weight:600;letter-spacing:0.1em;padding:6px 12px;border-radius:999px;text-transform:uppercase;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}重置密码
+{{ else if eq $l &quot;en&quot; }}Password reset
 {{ else }}비밀번호 재설정
 {{ end }}        &lt;/div&gt;
 
-        &lt;h1 class="text" style="margin:20px 0 12px;font-size:28px;line-height:1.2;letter-spacing:-0.02em;color:#0c0c0e;font-weight:600;"&gt;
-          {{ if eq $l "zh" }}设置&lt;br&gt;新密码{{ else if eq $l "en" }}Set a new&lt;br&gt;password{{ else }}새 비밀번호를&lt;br&gt;설정하세요{{ end }}
+        &lt;h1 class=&quot;text&quot; style=&quot;margin:20px 0 12px;font-size:28px;line-height:1.2;letter-spacing:-0.02em;color:#0c0c0e;font-weight:600;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}设置&lt;br&gt;新密码{{ else if eq $l &quot;en&quot; }}Set a new&lt;br&gt;password{{ else }}새 비밀번호를&lt;br&gt;설정하세요{{ end }}
         &lt;/h1&gt;
 
-        &lt;p class="muted" style="margin:0 0 28px;font-size:15px;line-height:1.6;color:#6e707a;"&gt;
-          {{ if eq $l "zh" }}我们收到了重置密码的请求。{{ else if eq $l "en" }}We received a request to reset your password.{{ else }}비밀번호 재설정 요청을 받았습니다.{{ end }}&lt;br&gt;
-          {{ if eq $l "zh" }}点击下方按钮即可安全地设置新密码。{{ else if eq $l "en" }}Click the button below to set a new password securely.{{ else }}아래 버튼을 클릭하시면 새 비밀번호를 안전하게 설정할 수 있어요.{{ end }}
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 28px;font-size:15px;line-height:1.6;color:#6e707a;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}我们收到了重置密码的请求。{{ else if eq $l &quot;en&quot; }}We received a request to reset your password.{{ else }}비밀번호 재설정 요청을 받았습니다.{{ end }}&lt;br&gt;
+          {{ if eq $l &quot;zh&quot; }}点击下方按钮即可安全地设置新密码。{{ else if eq $l &quot;en&quot; }}Click the button below to set a new password securely.{{ else }}아래 버튼을 클릭하시면 새 비밀번호를 안전하게 설정할 수 있어요.{{ end }}
         &lt;/p&gt;
 
-        &lt;table role="presentation" cellpadding="0" cellspacing="0" border="0"&gt;&lt;tr&gt;&lt;td&gt;
-          &lt;a href="{{ .ConfirmationURL }}" class="btn" style="display:inline-block;background:#0c0c0e;color:#ffffff;font-size:15px;font-weight:600;padding:14px 28px;border-radius:999px;text-decoration:none;letter-spacing:-0.01em;"&gt;
-            {{ if eq $l "zh" }}重置密码 →{{ else if eq $l "en" }}Reset password →{{ else }}비밀번호 재설정 →{{ end }}
+        &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot;&gt;&lt;tr&gt;&lt;td&gt;
+          &lt;a href=&quot;{{ .ConfirmationURL }}&quot; class=&quot;btn&quot; style=&quot;display:inline-block;background:#0c0c0e;color:#ffffff;font-size:15px;font-weight:600;padding:14px 28px;border-radius:999px;text-decoration:none;letter-spacing:-0.01em;&quot;&gt;
+            {{ if eq $l &quot;zh&quot; }}重置密码 →{{ else if eq $l &quot;en&quot; }}Reset password →{{ else }}비밀번호 재설정 →{{ end }}
           &lt;/a&gt;
         &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 
         &lt;!-- Security note --&gt;
-        &lt;div class="info-box" style="margin-top:28px;padding:16px 18px;background:#f4f4f6;border-radius:14px;"&gt;
-          &lt;p class="muted" style="margin:0;font-size:13px;line-height:1.6;color:#6e707a;"&gt;
-            🔒 &lt;strong style="color:#0c0c0e;"&gt;{{ if eq $l "zh" }}安全提示{{ else if eq $l "en" }}Security notice{{ else }}보안 안내{{ end }}&lt;/strong&gt;&lt;br&gt;
-            {{ if eq $l "zh" }}此链接 &lt;strong&gt;1 小时内&lt;/strong&gt;有效。如果不是您本人请求，请立即修改密码并联系 {{ else if eq $l "en" }}This link is valid for &lt;strong&gt;1 hour&lt;/strong&gt;. If you didn't request it, change your password right away and contact {{ else }}이 링크는 &lt;strong&gt;1시간 동안&lt;/strong&gt; 유효합니다. 본인이 요청하지 않으셨다면 즉시 비밀번호를 변경하시고 {{ end }}&lt;a href="mailto:contact@plander.io" style="color:#831843;text-decoration:underline;"&gt;contact@plander.io&lt;/a&gt;{{ if eq $l "zh" }}。{{ else if eq $l "en" }}.{{ else }} 로 문의해주세요.{{ end }}
+        &lt;div class=&quot;info-box&quot; style=&quot;margin-top:28px;padding:16px 18px;background:#f4f4f6;border-radius:14px;&quot;&gt;
+          &lt;p class=&quot;muted&quot; style=&quot;margin:0;font-size:13px;line-height:1.6;color:#6e707a;&quot;&gt;
+            🔒 &lt;strong style=&quot;color:#0c0c0e;&quot;&gt;{{ if eq $l &quot;zh&quot; }}安全提示{{ else if eq $l &quot;en&quot; }}Security notice{{ else }}보안 안내{{ end }}&lt;/strong&gt;&lt;br&gt;
+            {{ if eq $l &quot;zh&quot; }}此链接 &lt;strong&gt;1 小时内&lt;/strong&gt;有效。如果不是您本人请求，请立即修改密码并联系 {{ else if eq $l &quot;en&quot; }}This link is valid for &lt;strong&gt;1 hour&lt;/strong&gt;. If you didn't request it, change your password right away and contact {{ else }}이 링크는 &lt;strong&gt;1시간 동안&lt;/strong&gt; 유효합니다. 본인이 요청하지 않으셨다면 즉시 비밀번호를 변경하시고 {{ end }}&lt;a href=&quot;mailto:contact@plander.io&quot; style=&quot;color:#831843;text-decoration:underline;&quot;&gt;contact@plander.io&lt;/a&gt;{{ if eq $l &quot;zh&quot; }}。{{ else if eq $l &quot;en&quot; }}.{{ else }} 로 문의해주세요.{{ end }}
           &lt;/p&gt;
         &lt;/div&gt;
 
-        &lt;div style="margin-top:24px;padding-top:24px;border-top:1px solid #e2e4ea;" class="border"&gt;
-          &lt;p class="muted" style="margin:0 0 8px;font-size:12px;color:#9ca0ac;line-height:1.5;"&gt;
-            {{ if eq $l "zh" }}如果按钮无法使用，请复制下方链接打开。{{ else if eq $l "en" }}If the button doesn't work, copy and open the link below.{{ else }}버튼이 작동하지 않으면 아래 링크를 복사해서 사용해주세요.{{ end }}
+        &lt;div style=&quot;margin-top:24px;padding-top:24px;border-top:1px solid #e2e4ea;&quot; class=&quot;border&quot;&gt;
+          &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 8px;font-size:12px;color:#9ca0ac;line-height:1.5;&quot;&gt;
+            {{ if eq $l &quot;zh&quot; }}如果按钮无法使用，请复制下方链接打开。{{ else if eq $l &quot;en&quot; }}If the button doesn't work, copy and open the link below.{{ else }}버튼이 작동하지 않으면 아래 링크를 복사해서 사용해주세요.{{ end }}
           &lt;/p&gt;
-          &lt;p class="link-fallback" style="margin:0;padding:10px 12px;background:#f4f4f6;border-radius:10px;font-size:11px;color:#6e707a;word-break:break-all;line-height:1.4;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;"&gt;
+          &lt;p class=&quot;link-fallback&quot; style=&quot;margin:0;padding:10px 12px;background:#f4f4f6;border-radius:10px;font-size:11px;color:#6e707a;word-break:break-all;line-height:1.4;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;&quot;&gt;
             {{ .ConfirmationURL }}
           &lt;/p&gt;
         &lt;/div&gt;
 
       &lt;/td&gt;&lt;/tr&gt;
 
-      &lt;tr&gt;&lt;td class="border" style="padding:24px 36px 32px;border-top:1px solid #e2e4ea;"&gt;
-        &lt;p class="muted" style="margin:0 0 8px;color:#6e707a;font-size:12px;line-height:1.6;"&gt;
-          {{ if eq $l "zh" }}Luby AI · 全球体验营销平台{{ else if eq $l "en" }}Luby AI · Global creator campaign platform{{ else }}Luby AI · 글로벌 체험단 마케팅 플랫폼{{ end }}
+      &lt;tr&gt;&lt;td class=&quot;border&quot; style=&quot;padding:24px 36px 32px;border-top:1px solid #e2e4ea;&quot;&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 8px;color:#6e707a;font-size:12px;line-height:1.6;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}Luby AI · 全球体验营销平台{{ else if eq $l &quot;en&quot; }}Luby AI · Global creator campaign platform{{ else }}Luby AI · 글로벌 체험단 마케팅 플랫폼{{ end }}
         &lt;/p&gt;
-        &lt;p class="muted" style="margin:0;font-size:12px;line-height:1.6;"&gt;
-          &lt;a href="https://luby.im" class="muted" style="color:#6e707a;text-decoration:underline;"&gt;luby.im&lt;/a&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0;font-size:12px;line-height:1.6;&quot;&gt;
+          &lt;a href=&quot;https://luby.im&quot; class=&quot;muted&quot; style=&quot;color:#6e707a;text-decoration:underline;&quot;&gt;luby.im&lt;/a&gt;
           &amp;nbsp;·&amp;nbsp;
-          &lt;a href="mailto:contact@plander.io" class="muted" style="color:#6e707a;text-decoration:underline;"&gt;contact@plander.io&lt;/a&gt;
+          &lt;a href=&quot;mailto:contact@plander.io&quot; class=&quot;muted&quot; style=&quot;color:#6e707a;text-decoration:underline;&quot;&gt;contact@plander.io&lt;/a&gt;
         &lt;/p&gt;
       &lt;/td&gt;&lt;/tr&gt;
 
     &lt;/table&gt;
 
-    &lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;margin-top:20px;"&gt;
-      &lt;tr&gt;&lt;td align="center" style="padding:0 16px;"&gt;
-        &lt;p class="muted" style="margin:0;color:#9ca0ac;font-size:11px;line-height:1.6;"&gt;
-          {{ if eq $l "zh" }}如果不是您本人请求重置密码，请忽略此邮件。{{ else if eq $l "en" }}If you didn't request a password reset, ignore this email.{{ else }}본인이 비밀번호 재설정을 요청하지 않으셨다면 이 메일을 무시해주세요.{{ end }}&lt;br&gt;
-          {{ if eq $l "zh" }}当前密码不会被更改。{{ else if eq $l "en" }}Your current password stays unchanged.{{ else }}현재 비밀번호는 변경되지 않습니다.{{ end }}
+    &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; style=&quot;max-width:560px;margin-top:20px;&quot;&gt;
+      &lt;tr&gt;&lt;td align=&quot;center&quot; style=&quot;padding:0 16px;&quot;&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0;color:#9ca0ac;font-size:11px;line-height:1.6;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}如果不是您本人请求重置密码，请忽略此邮件。{{ else if eq $l &quot;en&quot; }}If you didn't request a password reset, ignore this email.{{ else }}본인이 비밀번호 재설정을 요청하지 않으셨다면 이 메일을 무시해주세요.{{ end }}&lt;br&gt;
+          {{ if eq $l &quot;zh&quot; }}当前密码不会被更改。{{ else if eq $l &quot;en&quot; }}Your current password stays unchanged.{{ else }}현재 비밀번호는 변경되지 않습니다.{{ end }}
         &lt;/p&gt;
       &lt;/td&gt;&lt;/tr&gt;
     &lt;/table&gt;
@@ -375,12 +378,13 @@ Supabase 템플릿 페이지: <a href="https://supabase.com/dashboard/project/nc
   <h2><span class="num">4</span> Supabase 왼쪽 목록에서 <b>“Change Email Address”</b> 클릭</h2>
   <div class="row">
     <div class="label">① Subject heading 칸에 붙여넣기</div>
-    <div class="subj">Luby AI 이메일 변경 확인</div>
-    <button onclick="cp(this,"Luby AI \uc774\uba54\uc77c \ubcc0\uacbd \ud655\uc778")">제목 복사</button>
+    <div class="subj">한국어: Luby AI 이메일 변경 확인<br>English: Confirm your Luby AI email change<br>中文: Luby AI 确认更改邮箱</div>
+    <textarea id="s4" readonly hidden>{{ $l := &quot;ko&quot; }}{{ with .Data }}{{ with .locale }}{{ $l = printf &quot;%v&quot; . }}{{ end }}{{ end }}{{ if eq $l &quot;zh&quot; }}Luby AI 确认更改邮箱{{ else if eq $l &quot;en&quot; }}Confirm your Luby AI email change{{ else }}Luby AI 이메일 변경 확인{{ end }}</textarea>
+    <button onclick="cpTA(this,'s4')">제목 복사 (언어 분기 템플릿)</button>
   </div>
   <div class="row">
     <div class="label">② Message body 칸 → 클릭 → ⌘A → ⌘V (아래 버튼으로 복사한 뒤)</div>
-    <textarea id="t4" readonly>{{ $l := printf "%v" .Data.locale }}{{ if and (ne $l "en") (ne $l "zh") }}{{ $l = "ko" }}{{ end }}
+    <textarea id="t4" readonly>{{ $l := &quot;ko&quot; }}{{ with .Data }}{{ with .locale }}{{ $l = printf &quot;%v&quot; . }}{{ end }}{{ end }}{{ if and (ne $l &quot;en&quot;) (ne $l &quot;zh&quot;) }}{{ $l = &quot;ko&quot; }}{{ end }}
 &lt;!--
   Supabase Email Template: Change Email Address
   Subject (paste separately): Luby AI 이메일 변경 확인
@@ -388,13 +392,13 @@ Supabase 템플릿 페이지: <a href="https://supabase.com/dashboard/project/nc
   Variables used: {{ .ConfirmationURL }}, {{ .Email }}, {{ .NewEmail }}
 --&gt;
 &lt;!DOCTYPE html&gt;
-&lt;html lang="{{ $l }}"&gt;
+&lt;html lang=&quot;{{ $l }}&quot;&gt;
 &lt;head&gt;
-&lt;meta charset="utf-8"&gt;
-&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
-&lt;meta name="color-scheme" content="light dark"&gt;
-&lt;meta name="supported-color-schemes" content="light dark"&gt;
-{{ if eq $l "zh" }}&lt;title&gt;Luby AI 更改邮箱&lt;/title&gt;{{ else if eq $l "en" }}&lt;title&gt;Confirm your email change – Luby AI&lt;/title&gt;{{ else }}&lt;title&gt;Luby AI 이메일 변경&lt;/title&gt;{{ end }}
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;color-scheme&quot; content=&quot;light dark&quot;&gt;
+&lt;meta name=&quot;supported-color-schemes&quot; content=&quot;light dark&quot;&gt;
+{{ if eq $l &quot;zh&quot; }}&lt;title&gt;Luby AI 更改邮箱&lt;/title&gt;{{ else if eq $l &quot;en&quot; }}&lt;title&gt;Confirm your email change – Luby AI&lt;/title&gt;{{ else }}&lt;title&gt;Luby AI 이메일 변경&lt;/title&gt;{{ end }}
 &lt;style&gt;
   @media (prefers-color-scheme: dark) {
     .bg { background:#0a0a0c !important; }
@@ -412,74 +416,74 @@ Supabase 템플릿 페이지: <a href="https://supabase.com/dashboard/project/nc
   a { text-decoration:none; }
 &lt;/style&gt;
 &lt;/head&gt;
-&lt;body class="bg" style="margin:0;padding:0;background:#fafafa;font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;"&gt;
-&lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg" style="background:#fafafa;"&gt;
-  &lt;tr&gt;&lt;td align="center" style="padding:40px 16px;"&gt;
-    &lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card border" style="max-width:560px;background:#ffffff;border:1px solid #e2e4ea;border-radius:24px;"&gt;
+&lt;body class=&quot;bg&quot; style=&quot;margin:0;padding:0;background:#fafafa;font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;&quot;&gt;
+&lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; class=&quot;bg&quot; style=&quot;background:#fafafa;&quot;&gt;
+  &lt;tr&gt;&lt;td align=&quot;center&quot; style=&quot;padding:40px 16px;&quot;&gt;
+    &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; class=&quot;card border&quot; style=&quot;max-width:560px;background:#ffffff;border:1px solid #e2e4ea;border-radius:24px;&quot;&gt;
 
-      &lt;tr&gt;&lt;td style="padding:36px 36px 28px;"&gt;
-        &lt;img src="https://luby.im/logo-email.png" width="89" height="28" alt="Luby AI" style="display:block;height:28px;width:auto;border:0;"&gt;
+      &lt;tr&gt;&lt;td style=&quot;padding:36px 36px 28px;&quot;&gt;
+        &lt;img src=&quot;https://luby.im/logo-email.png&quot; width=&quot;89&quot; height=&quot;28&quot; alt=&quot;Luby AI&quot; style=&quot;display:block;height:28px;width:auto;border:0;&quot;&gt;
       &lt;/td&gt;&lt;/tr&gt;
 
-      &lt;tr&gt;&lt;td style="padding:0 36px 36px;"&gt;
-        &lt;div class="pink-soft" style="display:inline-block;background:#fce7f3;color:#831843;font-size:11px;font-weight:600;letter-spacing:0.1em;padding:6px 12px;border-radius:999px;text-transform:uppercase;"&gt;
-          {{ if eq $l "zh" }}更改邮箱
-{{ else if eq $l "en" }}Email change
+      &lt;tr&gt;&lt;td style=&quot;padding:0 36px 36px;&quot;&gt;
+        &lt;div class=&quot;pink-soft&quot; style=&quot;display:inline-block;background:#fce7f3;color:#831843;font-size:11px;font-weight:600;letter-spacing:0.1em;padding:6px 12px;border-radius:999px;text-transform:uppercase;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}更改邮箱
+{{ else if eq $l &quot;en&quot; }}Email change
 {{ else }}이메일 변경
 {{ end }}        &lt;/div&gt;
 
-        &lt;h1 class="text" style="margin:20px 0 12px;font-size:28px;line-height:1.2;letter-spacing:-0.02em;color:#0c0c0e;font-weight:600;"&gt;
-          {{ if eq $l "zh" }}请确认&lt;br&gt;更改邮箱{{ else if eq $l "en" }}Please confirm&lt;br&gt;your email change{{ else }}이메일 변경을&lt;br&gt;확인해주세요{{ end }}
+        &lt;h1 class=&quot;text&quot; style=&quot;margin:20px 0 12px;font-size:28px;line-height:1.2;letter-spacing:-0.02em;color:#0c0c0e;font-weight:600;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}请确认&lt;br&gt;更改邮箱{{ else if eq $l &quot;en&quot; }}Please confirm&lt;br&gt;your email change{{ else }}이메일 변경을&lt;br&gt;확인해주세요{{ end }}
         &lt;/h1&gt;
 
-        &lt;p class="muted" style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#6e707a;"&gt;
-          {{ if eq $l "zh" }}我们收到了更改 Luby AI 账号邮箱的请求。{{ else if eq $l "en" }}We received a request to change the email on your Luby AI account.{{ else }}Luby AI 계정의 이메일 주소 변경 요청을 받았습니다.{{ end }}&lt;br&gt;
-          {{ if eq $l "zh" }}点击下方按钮即可完成更改。{{ else if eq $l "en" }}Click the button below to complete the change.{{ else }}아래 버튼을 클릭하시면 변경이 완료됩니다.{{ end }}
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 24px;font-size:15px;line-height:1.6;color:#6e707a;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}我们收到了更改 Luby AI 账号邮箱的请求。{{ else if eq $l &quot;en&quot; }}We received a request to change the email on your Luby AI account.{{ else }}Luby AI 계정의 이메일 주소 변경 요청을 받았습니다.{{ end }}&lt;br&gt;
+          {{ if eq $l &quot;zh&quot; }}点击下方按钮即可完成更改。{{ else if eq $l &quot;en&quot; }}Click the button below to complete the change.{{ else }}아래 버튼을 클릭하시면 변경이 완료됩니다.{{ end }}
         &lt;/p&gt;
 
         &lt;!-- Email change summary --&gt;
-        &lt;div class="info-box" style="margin-bottom:28px;padding:18px;background:#f4f4f6;border-radius:14px;"&gt;
-          &lt;p class="muted" style="margin:0 0 4px;font-size:11px;color:#9ca0ac;text-transform:uppercase;letter-spacing:0.08em;"&gt;{{ if eq $l "zh" }}更改前&lt;/p&gt;{{ else if eq $l "en" }}Current&lt;/p&gt;{{ else }}변경 전&lt;/p&gt;{{ end }}
-          &lt;p class="text" style="margin:0 0 12px;font-size:14px;color:#0c0c0e;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;"&gt;{{ .Email }}&lt;/p&gt;
-          &lt;p class="muted" style="margin:0 0 4px;font-size:11px;color:#9ca0ac;text-transform:uppercase;letter-spacing:0.08em;"&gt;{{ if eq $l "zh" }}更改后&lt;/p&gt;{{ else if eq $l "en" }}New&lt;/p&gt;{{ else }}변경 후&lt;/p&gt;{{ end }}
-          &lt;p class="text" style="margin:0;font-size:14px;color:#0c0c0e;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:600;"&gt;{{ .NewEmail }}&lt;/p&gt;
+        &lt;div class=&quot;info-box&quot; style=&quot;margin-bottom:28px;padding:18px;background:#f4f4f6;border-radius:14px;&quot;&gt;
+          &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 4px;font-size:11px;color:#9ca0ac;text-transform:uppercase;letter-spacing:0.08em;&quot;&gt;{{ if eq $l &quot;zh&quot; }}更改前&lt;/p&gt;{{ else if eq $l &quot;en&quot; }}Current&lt;/p&gt;{{ else }}변경 전&lt;/p&gt;{{ end }}
+          &lt;p class=&quot;text&quot; style=&quot;margin:0 0 12px;font-size:14px;color:#0c0c0e;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;&quot;&gt;{{ .Email }}&lt;/p&gt;
+          &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 4px;font-size:11px;color:#9ca0ac;text-transform:uppercase;letter-spacing:0.08em;&quot;&gt;{{ if eq $l &quot;zh&quot; }}更改后&lt;/p&gt;{{ else if eq $l &quot;en&quot; }}New&lt;/p&gt;{{ else }}변경 후&lt;/p&gt;{{ end }}
+          &lt;p class=&quot;text&quot; style=&quot;margin:0;font-size:14px;color:#0c0c0e;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:600;&quot;&gt;{{ .NewEmail }}&lt;/p&gt;
         &lt;/div&gt;
 
-        &lt;table role="presentation" cellpadding="0" cellspacing="0" border="0"&gt;&lt;tr&gt;&lt;td&gt;
-          &lt;a href="{{ .ConfirmationURL }}" class="btn" style="display:inline-block;background:#0c0c0e;color:#ffffff;font-size:15px;font-weight:600;padding:14px 28px;border-radius:999px;text-decoration:none;letter-spacing:-0.01em;"&gt;
-            {{ if eq $l "zh" }}确认更改 →{{ else if eq $l "en" }}Confirm change →{{ else }}변경 확인하기 →{{ end }}
+        &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot;&gt;&lt;tr&gt;&lt;td&gt;
+          &lt;a href=&quot;{{ .ConfirmationURL }}&quot; class=&quot;btn&quot; style=&quot;display:inline-block;background:#0c0c0e;color:#ffffff;font-size:15px;font-weight:600;padding:14px 28px;border-radius:999px;text-decoration:none;letter-spacing:-0.01em;&quot;&gt;
+            {{ if eq $l &quot;zh&quot; }}确认更改 →{{ else if eq $l &quot;en&quot; }}Confirm change →{{ else }}변경 확인하기 →{{ end }}
           &lt;/a&gt;
         &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 
-        &lt;div style="margin-top:32px;padding-top:24px;border-top:1px solid #e2e4ea;" class="border"&gt;
-          &lt;p class="muted" style="margin:0 0 8px;font-size:12px;color:#9ca0ac;line-height:1.5;"&gt;
-            {{ if eq $l "zh" }}如果按钮无法使用，请复制下方链接打开。{{ else if eq $l "en" }}If the button doesn't work, copy and open the link below.{{ else }}버튼이 작동하지 않으면 아래 링크를 복사해서 사용해주세요.{{ end }}
+        &lt;div style=&quot;margin-top:32px;padding-top:24px;border-top:1px solid #e2e4ea;&quot; class=&quot;border&quot;&gt;
+          &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 8px;font-size:12px;color:#9ca0ac;line-height:1.5;&quot;&gt;
+            {{ if eq $l &quot;zh&quot; }}如果按钮无法使用，请复制下方链接打开。{{ else if eq $l &quot;en&quot; }}If the button doesn't work, copy and open the link below.{{ else }}버튼이 작동하지 않으면 아래 링크를 복사해서 사용해주세요.{{ end }}
           &lt;/p&gt;
-          &lt;p class="link-fallback" style="margin:0;padding:10px 12px;background:#f4f4f6;border-radius:10px;font-size:11px;color:#6e707a;word-break:break-all;line-height:1.4;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;"&gt;
+          &lt;p class=&quot;link-fallback&quot; style=&quot;margin:0;padding:10px 12px;background:#f4f4f6;border-radius:10px;font-size:11px;color:#6e707a;word-break:break-all;line-height:1.4;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;&quot;&gt;
             {{ .ConfirmationURL }}
           &lt;/p&gt;
         &lt;/div&gt;
 
       &lt;/td&gt;&lt;/tr&gt;
 
-      &lt;tr&gt;&lt;td class="border" style="padding:24px 36px 32px;border-top:1px solid #e2e4ea;"&gt;
-        &lt;p class="muted" style="margin:0 0 8px;color:#6e707a;font-size:12px;line-height:1.6;"&gt;
-          {{ if eq $l "zh" }}Luby AI · 全球体验营销平台{{ else if eq $l "en" }}Luby AI · Global creator campaign platform{{ else }}Luby AI · 글로벌 체험단 마케팅 플랫폼{{ end }}
+      &lt;tr&gt;&lt;td class=&quot;border&quot; style=&quot;padding:24px 36px 32px;border-top:1px solid #e2e4ea;&quot;&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 8px;color:#6e707a;font-size:12px;line-height:1.6;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}Luby AI · 全球体验营销平台{{ else if eq $l &quot;en&quot; }}Luby AI · Global creator campaign platform{{ else }}Luby AI · 글로벌 체험단 마케팅 플랫폼{{ end }}
         &lt;/p&gt;
-        &lt;p class="muted" style="margin:0;font-size:12px;line-height:1.6;"&gt;
-          &lt;a href="https://luby.im" class="muted" style="color:#6e707a;text-decoration:underline;"&gt;luby.im&lt;/a&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0;font-size:12px;line-height:1.6;&quot;&gt;
+          &lt;a href=&quot;https://luby.im&quot; class=&quot;muted&quot; style=&quot;color:#6e707a;text-decoration:underline;&quot;&gt;luby.im&lt;/a&gt;
           &amp;nbsp;·&amp;nbsp;
-          &lt;a href="mailto:contact@plander.io" class="muted" style="color:#6e707a;text-decoration:underline;"&gt;contact@plander.io&lt;/a&gt;
+          &lt;a href=&quot;mailto:contact@plander.io&quot; class=&quot;muted&quot; style=&quot;color:#6e707a;text-decoration:underline;&quot;&gt;contact@plander.io&lt;/a&gt;
         &lt;/p&gt;
       &lt;/td&gt;&lt;/tr&gt;
 
     &lt;/table&gt;
 
-    &lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;margin-top:20px;"&gt;
-      &lt;tr&gt;&lt;td align="center" style="padding:0 16px;"&gt;
-        &lt;p class="muted" style="margin:0;color:#9ca0ac;font-size:11px;line-height:1.6;"&gt;
-          {{ if eq $l "zh" }}如果不是您本人请求更改，请立即联系{{ else if eq $l "en" }}If you didn't request this change, contact us right away at{{ else }}본인이 이메일 변경을 요청하지 않으셨다면 즉시{{ end }}&lt;br&gt;
-          &lt;a href="mailto:contact@plander.io" class="muted" style="color:#6e707a;text-decoration:underline;"&gt;contact@plander.io&lt;/a&gt;{{ if eq $l "zh" }}。{{ else if eq $l "en" }}.{{ else }} 로 문의해주세요.{{ end }}
+    &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; style=&quot;max-width:560px;margin-top:20px;&quot;&gt;
+      &lt;tr&gt;&lt;td align=&quot;center&quot; style=&quot;padding:0 16px;&quot;&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0;color:#9ca0ac;font-size:11px;line-height:1.6;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}如果不是您本人请求更改，请立即联系{{ else if eq $l &quot;en&quot; }}If you didn't request this change, contact us right away at{{ else }}본인이 이메일 변경을 요청하지 않으셨다면 즉시{{ end }}&lt;br&gt;
+          &lt;a href=&quot;mailto:contact@plander.io&quot; class=&quot;muted&quot; style=&quot;color:#6e707a;text-decoration:underline;&quot;&gt;contact@plander.io&lt;/a&gt;{{ if eq $l &quot;zh&quot; }}。{{ else if eq $l &quot;en&quot; }}.{{ else }} 로 문의해주세요.{{ end }}
         &lt;/p&gt;
       &lt;/td&gt;&lt;/tr&gt;
     &lt;/table&gt;
@@ -497,12 +501,13 @@ Supabase 템플릿 페이지: <a href="https://supabase.com/dashboard/project/nc
   <h2><span class="num">5</span> Supabase 왼쪽 목록에서 <b>“Invite user”</b> 클릭</h2>
   <div class="row">
     <div class="label">① Subject heading 칸에 붙여넣기</div>
-    <div class="subj">Luby AI에 초대되었어요</div>
-    <button onclick="cp(this,"Luby AI\uc5d0 \ucd08\ub300\ub418\uc5c8\uc5b4\uc694")">제목 복사</button>
+    <div class="subj">한국어: Luby AI에 초대되었어요<br>English: You're invited to Luby AI<br>中文: 您已受邀加入 Luby AI</div>
+    <textarea id="s5" readonly hidden>{{ $l := &quot;ko&quot; }}{{ with .Data }}{{ with .locale }}{{ $l = printf &quot;%v&quot; . }}{{ end }}{{ end }}{{ if eq $l &quot;zh&quot; }}您已受邀加入 Luby AI{{ else if eq $l &quot;en&quot; }}You're invited to Luby AI{{ else }}Luby AI에 초대되었어요{{ end }}</textarea>
+    <button onclick="cpTA(this,'s5')">제목 복사 (언어 분기 템플릿)</button>
   </div>
   <div class="row">
     <div class="label">② Message body 칸 → 클릭 → ⌘A → ⌘V (아래 버튼으로 복사한 뒤)</div>
-    <textarea id="t5" readonly>{{ $l := printf "%v" .Data.locale }}{{ if and (ne $l "en") (ne $l "zh") }}{{ $l = "ko" }}{{ end }}
+    <textarea id="t5" readonly>{{ $l := &quot;ko&quot; }}{{ with .Data }}{{ with .locale }}{{ $l = printf &quot;%v&quot; . }}{{ end }}{{ end }}{{ if and (ne $l &quot;en&quot;) (ne $l &quot;zh&quot;) }}{{ $l = &quot;ko&quot; }}{{ end }}
 &lt;!--
   Supabase Email Template: Invite User
   Subject (paste separately): Luby AI에 초대되었어요
@@ -510,13 +515,13 @@ Supabase 템플릿 페이지: <a href="https://supabase.com/dashboard/project/nc
   Variables used: {{ .ConfirmationURL }}, {{ .Email }}
 --&gt;
 &lt;!DOCTYPE html&gt;
-&lt;html lang="{{ $l }}"&gt;
+&lt;html lang=&quot;{{ $l }}&quot;&gt;
 &lt;head&gt;
-&lt;meta charset="utf-8"&gt;
-&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
-&lt;meta name="color-scheme" content="light dark"&gt;
-&lt;meta name="supported-color-schemes" content="light dark"&gt;
-{{ if eq $l "zh" }}&lt;title&gt;Luby AI 邀请函&lt;/title&gt;{{ else if eq $l "en" }}&lt;title&gt;You're invited to Luby AI&lt;/title&gt;{{ else }}&lt;title&gt;Luby AI 초대장&lt;/title&gt;{{ end }}
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;color-scheme&quot; content=&quot;light dark&quot;&gt;
+&lt;meta name=&quot;supported-color-schemes&quot; content=&quot;light dark&quot;&gt;
+{{ if eq $l &quot;zh&quot; }}&lt;title&gt;Luby AI 邀请函&lt;/title&gt;{{ else if eq $l &quot;en&quot; }}&lt;title&gt;You're invited to Luby AI&lt;/title&gt;{{ else }}&lt;title&gt;Luby AI 초대장&lt;/title&gt;{{ end }}
 &lt;style&gt;
   @media (prefers-color-scheme: dark) {
     .bg { background:#0a0a0c !important; }
@@ -535,81 +540,81 @@ Supabase 템플릿 페이지: <a href="https://supabase.com/dashboard/project/nc
   a { text-decoration:none; }
 &lt;/style&gt;
 &lt;/head&gt;
-&lt;body class="bg" style="margin:0;padding:0;background:#fafafa;font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;"&gt;
-&lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg" style="background:#fafafa;"&gt;
-  &lt;tr&gt;&lt;td align="center" style="padding:40px 16px;"&gt;
-    &lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card border" style="max-width:560px;background:#ffffff;border:1px solid #e2e4ea;border-radius:24px;"&gt;
+&lt;body class=&quot;bg&quot; style=&quot;margin:0;padding:0;background:#fafafa;font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;&quot;&gt;
+&lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; class=&quot;bg&quot; style=&quot;background:#fafafa;&quot;&gt;
+  &lt;tr&gt;&lt;td align=&quot;center&quot; style=&quot;padding:40px 16px;&quot;&gt;
+    &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; class=&quot;card border&quot; style=&quot;max-width:560px;background:#ffffff;border:1px solid #e2e4ea;border-radius:24px;&quot;&gt;
 
-      &lt;tr&gt;&lt;td style="padding:36px 36px 28px;"&gt;
-        &lt;img src="https://luby.im/logo-email.png" width="89" height="28" alt="Luby AI" style="display:block;height:28px;width:auto;border:0;"&gt;
+      &lt;tr&gt;&lt;td style=&quot;padding:36px 36px 28px;&quot;&gt;
+        &lt;img src=&quot;https://luby.im/logo-email.png&quot; width=&quot;89&quot; height=&quot;28&quot; alt=&quot;Luby AI&quot; style=&quot;display:block;height:28px;width:auto;border:0;&quot;&gt;
       &lt;/td&gt;&lt;/tr&gt;
 
-      &lt;tr&gt;&lt;td style="padding:0 36px 36px;"&gt;
-        &lt;div class="pink-soft" style="display:inline-block;background:#fce7f3;color:#831843;font-size:11px;font-weight:600;letter-spacing:0.1em;padding:6px 12px;border-radius:999px;text-transform:uppercase;"&gt;
-          {{ if eq $l "zh" }}邀请函已送达 🎉{{ else if eq $l "en" }}You're invited 🎉{{ else }}초대장 도착 🎉{{ end }}
+      &lt;tr&gt;&lt;td style=&quot;padding:0 36px 36px;&quot;&gt;
+        &lt;div class=&quot;pink-soft&quot; style=&quot;display:inline-block;background:#fce7f3;color:#831843;font-size:11px;font-weight:600;letter-spacing:0.1em;padding:6px 12px;border-radius:999px;text-transform:uppercase;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}邀请函已送达 🎉{{ else if eq $l &quot;en&quot; }}You're invited 🎉{{ else }}초대장 도착 🎉{{ end }}
         &lt;/div&gt;
 
-        &lt;h1 class="text" style="margin:20px 0 12px;font-size:28px;line-height:1.2;letter-spacing:-0.02em;color:#0c0c0e;font-weight:600;"&gt;
-          {{ if eq $l "zh" }}加入&lt;br&gt;Luby AI{{ else if eq $l "en" }}Join&lt;br&gt;Luby AI{{ else }}Luby AI에&lt;br&gt;합류하세요{{ end }}
+        &lt;h1 class=&quot;text&quot; style=&quot;margin:20px 0 12px;font-size:28px;line-height:1.2;letter-spacing:-0.02em;color:#0c0c0e;font-weight:600;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}加入&lt;br&gt;Luby AI{{ else if eq $l &quot;en&quot; }}Join&lt;br&gt;Luby AI{{ else }}Luby AI에&lt;br&gt;합류하세요{{ end }}
         &lt;/h1&gt;
 
-        &lt;p class="muted" style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#6e707a;"&gt;
-          &lt;strong style="color:#0c0c0e;"&gt;{{ .Email }}&lt;/strong&gt;{{ if eq $l "zh" }} 收到了 Luby AI 的邀请函。{{ else if eq $l "en" }} has been invited to Luby AI.{{ else }} 주소로 초대장이 도착했습니다.{{ end }}&lt;br&gt;
-          {{ if eq $l "zh" }}点击下方按钮完成注册，开启全球体验营销。{{ else if eq $l "en" }}Complete your signup with the button below and start global creator marketing.{{ else }}아래 버튼을 통해 가입을 완료하고 글로벌 체험단 마케팅을 시작해보세요.{{ end }}
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 24px;font-size:15px;line-height:1.6;color:#6e707a;&quot;&gt;
+          &lt;strong style=&quot;color:#0c0c0e;&quot;&gt;{{ .Email }}&lt;/strong&gt;{{ if eq $l &quot;zh&quot; }} 收到了 Luby AI 的邀请函。{{ else if eq $l &quot;en&quot; }} has been invited to Luby AI.{{ else }} 주소로 초대장이 도착했습니다.{{ end }}&lt;br&gt;
+          {{ if eq $l &quot;zh&quot; }}点击下方按钮完成注册，开启全球体验营销。{{ else if eq $l &quot;en&quot; }}Complete your signup with the button below and start global creator marketing.{{ else }}아래 버튼을 통해 가입을 완료하고 글로벌 체험단 마케팅을 시작해보세요.{{ end }}
         &lt;/p&gt;
 
         &lt;!-- Features preview --&gt;
-        &lt;div class="info-box" style="margin-bottom:28px;padding:18px 20px;background:#f4f4f6;border-radius:14px;"&gt;
-          &lt;table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"&gt;
-            &lt;tr&gt;&lt;td style="padding:4px 0;" class="feature-row"&gt;
-              &lt;span class="text" style="color:#0c0c0e;font-size:14px;"&gt;✦&lt;/span&gt;
-              &lt;span class="muted" style="color:#6e707a;font-size:14px;line-height:1.6;"&gt;&amp;nbsp;&amp;nbsp;{{ if eq $l "zh" }}覆盖 12 个国家的创作者资源{{ else if eq $l "en" }}Creator pool across 12 countries{{ else }}12개국 글로벌 인플루언서 풀{{ end }}&lt;/span&gt;
+        &lt;div class=&quot;info-box&quot; style=&quot;margin-bottom:28px;padding:18px 20px;background:#f4f4f6;border-radius:14px;&quot;&gt;
+          &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; width=&quot;100%&quot;&gt;
+            &lt;tr&gt;&lt;td style=&quot;padding:4px 0;&quot; class=&quot;feature-row&quot;&gt;
+              &lt;span class=&quot;text&quot; style=&quot;color:#0c0c0e;font-size:14px;&quot;&gt;✦&lt;/span&gt;
+              &lt;span class=&quot;muted&quot; style=&quot;color:#6e707a;font-size:14px;line-height:1.6;&quot;&gt;&amp;nbsp;&amp;nbsp;{{ if eq $l &quot;zh&quot; }}覆盖 12 个国家的创作者资源{{ else if eq $l &quot;en&quot; }}Creator pool across 12 countries{{ else }}12개국 글로벌 인플루언서 풀{{ end }}&lt;/span&gt;
             &lt;/td&gt;&lt;/tr&gt;
-            &lt;tr&gt;&lt;td style="padding:4px 0;" class="feature-row"&gt;
-              &lt;span class="text" style="color:#0c0c0e;font-size:14px;"&gt;✦&lt;/span&gt;
-              &lt;span class="muted" style="color:#6e707a;font-size:14px;line-height:1.6;"&gt;&amp;nbsp;&amp;nbsp;{{ if eq $l "zh" }}AI 5 分钟生成活动方案{{ else if eq $l "en" }}AI drafts your campaign in 5 minutes{{ else }}AI가 5분 안에 캠페인 작성{{ end }}&lt;/span&gt;
+            &lt;tr&gt;&lt;td style=&quot;padding:4px 0;&quot; class=&quot;feature-row&quot;&gt;
+              &lt;span class=&quot;text&quot; style=&quot;color:#0c0c0e;font-size:14px;&quot;&gt;✦&lt;/span&gt;
+              &lt;span class=&quot;muted&quot; style=&quot;color:#6e707a;font-size:14px;line-height:1.6;&quot;&gt;&amp;nbsp;&amp;nbsp;{{ if eq $l &quot;zh&quot; }}AI 5 分钟生成活动方案{{ else if eq $l &quot;en&quot; }}AI drafts your campaign in 5 minutes{{ else }}AI가 5분 안에 캠페인 작성{{ end }}&lt;/span&gt;
             &lt;/td&gt;&lt;/tr&gt;
-            &lt;tr&gt;&lt;td style="padding:4px 0;" class="feature-row"&gt;
-              &lt;span class="text" style="color:#0c0c0e;font-size:14px;"&gt;✦&lt;/span&gt;
-              &lt;span class="muted" style="color:#6e707a;font-size:14px;line-height:1.6;"&gt;&amp;nbsp;&amp;nbsp;{{ if eq $l "zh" }}报名者自动匹配与审核{{ else if eq $l "en" }}Automatic applicant matching &amp; verification{{ else }}응모자 자동 매칭 &amp; 검증 시스템{{ end }}&lt;/span&gt;
+            &lt;tr&gt;&lt;td style=&quot;padding:4px 0;&quot; class=&quot;feature-row&quot;&gt;
+              &lt;span class=&quot;text&quot; style=&quot;color:#0c0c0e;font-size:14px;&quot;&gt;✦&lt;/span&gt;
+              &lt;span class=&quot;muted&quot; style=&quot;color:#6e707a;font-size:14px;line-height:1.6;&quot;&gt;&amp;nbsp;&amp;nbsp;{{ if eq $l &quot;zh&quot; }}报名者自动匹配与审核{{ else if eq $l &quot;en&quot; }}Automatic applicant matching &amp; verification{{ else }}응모자 자동 매칭 &amp; 검증 시스템{{ end }}&lt;/span&gt;
             &lt;/td&gt;&lt;/tr&gt;
           &lt;/table&gt;
         &lt;/div&gt;
 
-        &lt;table role="presentation" cellpadding="0" cellspacing="0" border="0"&gt;&lt;tr&gt;&lt;td&gt;
-          &lt;a href="{{ .ConfirmationURL }}" class="btn" style="display:inline-block;background:#0c0c0e;color:#ffffff;font-size:15px;font-weight:600;padding:14px 28px;border-radius:999px;text-decoration:none;letter-spacing:-0.01em;"&gt;
-            {{ if eq $l "zh" }}接受邀请 →{{ else if eq $l "en" }}Accept invitation →{{ else }}초대 수락하기 →{{ end }}
+        &lt;table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot;&gt;&lt;tr&gt;&lt;td&gt;
+          &lt;a href=&quot;{{ .ConfirmationURL }}&quot; class=&quot;btn&quot; style=&quot;display:inline-block;background:#0c0c0e;color:#ffffff;font-size:15px;font-weight:600;padding:14px 28px;border-radius:999px;text-decoration:none;letter-spacing:-0.01em;&quot;&gt;
+            {{ if eq $l &quot;zh&quot; }}接受邀请 →{{ else if eq $l &quot;en&quot; }}Accept invitation →{{ else }}초대 수락하기 →{{ end }}
           &lt;/a&gt;
         &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 
-        &lt;div style="margin-top:32px;padding-top:24px;border-top:1px solid #e2e4ea;" class="border"&gt;
-          &lt;p class="muted" style="margin:0 0 8px;font-size:12px;color:#9ca0ac;line-height:1.5;"&gt;
-            {{ if eq $l "zh" }}如果按钮无法使用，请复制下方链接打开。{{ else if eq $l "en" }}If the button doesn't work, copy and open the link below.{{ else }}버튼이 작동하지 않으면 아래 링크를 복사해서 사용해주세요.{{ end }}
+        &lt;div style=&quot;margin-top:32px;padding-top:24px;border-top:1px solid #e2e4ea;&quot; class=&quot;border&quot;&gt;
+          &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 8px;font-size:12px;color:#9ca0ac;line-height:1.5;&quot;&gt;
+            {{ if eq $l &quot;zh&quot; }}如果按钮无法使用，请复制下方链接打开。{{ else if eq $l &quot;en&quot; }}If the button doesn't work, copy and open the link below.{{ else }}버튼이 작동하지 않으면 아래 링크를 복사해서 사용해주세요.{{ end }}
           &lt;/p&gt;
-          &lt;p class="link-fallback" style="margin:0;padding:10px 12px;background:#f4f4f6;border-radius:10px;font-size:11px;color:#6e707a;word-break:break-all;line-height:1.4;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;"&gt;
+          &lt;p class=&quot;link-fallback&quot; style=&quot;margin:0;padding:10px 12px;background:#f4f4f6;border-radius:10px;font-size:11px;color:#6e707a;word-break:break-all;line-height:1.4;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;&quot;&gt;
             {{ .ConfirmationURL }}
           &lt;/p&gt;
         &lt;/div&gt;
 
       &lt;/td&gt;&lt;/tr&gt;
 
-      &lt;tr&gt;&lt;td class="border" style="padding:24px 36px 32px;border-top:1px solid #e2e4ea;"&gt;
-        &lt;p class="muted" style="margin:0 0 8px;color:#6e707a;font-size:12px;line-height:1.6;"&gt;
-          {{ if eq $l "zh" }}Luby AI · 全球体验营销平台{{ else if eq $l "en" }}Luby AI · Global creator campaign platform{{ else }}Luby AI · 글로벌 체험단 마케팅 플랫폼{{ end }}
+      &lt;tr&gt;&lt;td class=&quot;border&quot; style=&quot;padding:24px 36px 32px;border-top:1px solid #e2e4ea;&quot;&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0 0 8px;color:#6e707a;font-size:12px;line-height:1.6;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}Luby AI · 全球体验营销平台{{ else if eq $l &quot;en&quot; }}Luby AI · Global creator campaign platform{{ else }}Luby AI · 글로벌 체험단 마케팅 플랫폼{{ end }}
         &lt;/p&gt;
-        &lt;p class="muted" style="margin:0;font-size:12px;line-height:1.6;"&gt;
-          &lt;a href="https://luby.im" class="muted" style="color:#6e707a;text-decoration:underline;"&gt;luby.im&lt;/a&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0;font-size:12px;line-height:1.6;&quot;&gt;
+          &lt;a href=&quot;https://luby.im&quot; class=&quot;muted&quot; style=&quot;color:#6e707a;text-decoration:underline;&quot;&gt;luby.im&lt;/a&gt;
           &amp;nbsp;·&amp;nbsp;
-          &lt;a href="mailto:contact@plander.io" class="muted" style="color:#6e707a;text-decoration:underline;"&gt;contact@plander.io&lt;/a&gt;
+          &lt;a href=&quot;mailto:contact@plander.io&quot; class=&quot;muted&quot; style=&quot;color:#6e707a;text-decoration:underline;&quot;&gt;contact@plander.io&lt;/a&gt;
         &lt;/p&gt;
       &lt;/td&gt;&lt;/tr&gt;
 
     &lt;/table&gt;
 
-    &lt;table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;margin-top:20px;"&gt;
-      &lt;tr&gt;&lt;td align="center" style="padding:0 16px;"&gt;
-        &lt;p class="muted" style="margin:0;color:#9ca0ac;font-size:11px;line-height:1.6;"&gt;
-          {{ if eq $l "zh" }}此邀请函是发送给您本人的。如非您所需，请忽略。{{ else if eq $l "en" }}This invitation was sent for you. If it wasn't intended for you, please ignore it.{{ else }}이 초대장은 본인을 위해 발송되었습니다. 의도하지 않은 메일이라면 무시해주세요.{{ end }}
+    &lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; style=&quot;max-width:560px;margin-top:20px;&quot;&gt;
+      &lt;tr&gt;&lt;td align=&quot;center&quot; style=&quot;padding:0 16px;&quot;&gt;
+        &lt;p class=&quot;muted&quot; style=&quot;margin:0;color:#9ca0ac;font-size:11px;line-height:1.6;&quot;&gt;
+          {{ if eq $l &quot;zh&quot; }}此邀请函是发送给您本人的。如非您所需，请忽略。{{ else if eq $l &quot;en&quot; }}This invitation was sent for you. If it wasn't intended for you, please ignore it.{{ else }}이 초대장은 본인을 위해 발송되었습니다. 의도하지 않은 메일이라면 무시해주세요.{{ end }}
         &lt;/p&gt;
       &lt;/td&gt;&lt;/tr&gt;
     &lt;/table&gt;

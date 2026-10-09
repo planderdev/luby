@@ -1,4 +1,4 @@
-{{ $l := printf "%v" .Data.locale }}{{ if and (ne $l "en") (ne $l "zh") }}{{ $l = "ko" }}{{ end }}
+{{ $l := "ko" }}{{ with .Data }}{{ with .locale }}{{ $l = printf "%v" . }}{{ end }}{{ end }}{{ if and (ne $l "en") (ne $l "zh") }}{{ $l = "ko" }}{{ end }}
 <!--
   Supabase Email Template: Magic Link
   Subject (paste separately): Luby AI {{ if eq $l "zh" }}登录链接{{ else if eq $l "en" }}Login link{{ else }}로그인 링크{{ end }}가 도착했어요

@@ -1,7 +1,8 @@
 // 인증 메일 5종을 한·영·중 분기(Go template) 템플릿으로 변환 (2026-10-07). 원본 한국어 문구는 {{ else }} 가지에 그대로 남는다.
 // 사용: node emails/i18n-build.mjs  → 같은 파일을 제자리에서 갱신하고, ko/en/zh 로 가상 렌더해 자가 검증한다.
 import { readFileSync, writeFileSync } from "node:fs";
-const DECL = `{{ $l := printf "%v" .Data.locale }}{{ if and (ne $l "en") (ne $l "zh") }}{{ $l = "ko" }}{{ end }}`;
+// 메타데이터가 nil 이어도 실행 오류가 나지 않도록 with 로 감싼다(실행 오류 = 메일 발송 실패)
+const DECL = `{{ $l := "ko" }}{{ with .Data }}{{ with .locale }}{{ $l = printf "%v" . }}{{ end }}{{ end }}{{ if and (ne $l "en") (ne $l "zh") }}{{ $l = "ko" }}{{ end }}`;
 const c = (ko, en, zh) => `{{ if eq $l "zh" }}${zh}{{ else if eq $l "en" }}${en}{{ else }}${ko}{{ end }}`;
 const COMMON = [
   ["Luby AI · 글로벌 체험단 마케팅 플랫폼", "Luby AI · Global creator campaign platform", "Luby AI · 全球体验营销平台"],

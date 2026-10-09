@@ -16,7 +16,8 @@ Supabase Auth 가 보내는 5종 트랜잭션 이메일을 Luby AI 브랜드에 
 
 ## 적용 상태
 
-**2026-10-09 프로덕션 적용 완료** — 5종 모두 한·영·중 분기 본문과 세 언어 병기 제목으로 교체했고, 다시 읽어 파일과 글자 단위로 일치함을 확인했습니다.
+**2026-10-09 프로덕션 적용 완료** — 5종 모두 본문과 제목이 수신자 언어(한·영·중)에 따라 한 언어로 나갑니다. 다시 읽어 파일과 글자 단위로 일치함을 확인했습니다.
+한국어 수신자가 받는 제목·본문은 2026-10-09 이전과 글자 하나 다르지 않습니다(예전 템플릿과 렌더 비교로 확인).
 
 ## 한 번에 적용하기 (권장)
 
@@ -35,31 +36,37 @@ Supabase 관리 API(`PATCH /v1/projects/{ref}/config/auth`)로 제목·본문을
    https://supabase.com/dashboard/project/ncyuljyeyuorgsfuzzmw/auth/templates
 
 2. 각 템플릿에 대해 좌측에서 종류 선택 후:
-   - **Subject** 필드에 아래 제목 입력
+   - **Subject** 필드에 `copy-helper.html` 의 "제목 복사" 값(언어 분기 템플릿 한 줄) 붙여넣기
    - **Message Body (HTML)** 에 해당 HTML 파일 내용 전체 복붙
    - **Save** 클릭
 
-## 제목 (Subject) 모음
+## 제목 (Subject) — 언어별 분기
 
-| 템플릿 | 제목 (복붙용 — 한·영·중 병기, 제목은 분기 없이 한 줄) |
-|---|---|
-| Confirm signup | `Luby AI 이메일 인증 · Verify your email · 邮箱验证` |
-| Magic Link | `Luby AI 로그인 링크 · Your login link · 登录链接` |
-| Reset Password | `Luby AI 비밀번호 재설정 · Reset your password · 重置密码` |
-| Change Email Address | `Luby AI 이메일 변경 확인 · Confirm email change · 确认更改邮箱` |
-| Invite user | `Luby AI에 초대되었어요 · You're invited · 邀请函` |
+제목도 본문과 같은 Go 템플릿이라 수신자 언어로 한 언어만 보냅니다. 원본은 `subjects.json` 이고, 적용 스크립트가 아래 형태의 한 줄 템플릿으로 만들어 넣습니다(메타데이터가 없거나 nil 이어도 오류 없이 한국어).
+
+```
+{{ $l := "ko" }}{{ with .Data }}{{ with .locale }}{{ $l = printf "%v" . }}{{ end }}{{ end }}{{ if eq $l "zh" }}中文{{ else if eq $l "en" }}English{{ else }}한국어{{ end }}
+```
+
+| 템플릿 | 한국어 (예전 그대로) | English | 中文 |
+|---|---|---|---|
+| Confirm signup | Luby AI 이메일 인증 — 가입을 완료해주세요 | Luby AI email verification — finish signing up | Luby AI 邮箱验证 — 请完成注册 |
+| Magic Link | Luby AI 로그인 링크가 도착했어요 | Your Luby AI login link is here | 您的 Luby AI 登录链接已送达 |
+| Reset Password | Luby AI 비밀번호 재설정 안내 | Reset your Luby AI password | Luby AI 重置密码 |
+| Change Email Address | Luby AI 이메일 변경 확인 | Confirm your Luby AI email change | Luby AI 确认更改邮箱 |
+| Invite user | Luby AI에 초대되었어요 | You're invited to Luby AI | 您已受邀加入 Luby AI |
 
 ## 한·영·중 분기 (2026-10-07)
 
 본문 HTML 은 Go 템플릿 분기로 **수신자 언어에 맞춰** 렌더됩니다. 가입 폼이 `options.data.locale`(ko/en/zh)을 넣으므로
 Supabase 가 `{{ .Data.locale }}` 로 읽을 수 있고, 값이 없거나 다른 값이면 한국어로 떨어집니다.
 
-- 파일 첫 줄의 선언 `{{ $l := printf "%v" .Data.locale }}…` 을 지우지 마세요(이게 언어를 정합니다).
+- 파일 첫 줄의 선언 `{{ $l := "ko" }}{{ with .Data }}…` 을 지우지 마세요(이게 언어를 정합니다). 메타데이터가 비어 있거나 nil 이어도 실행 오류 없이 한국어로 떨어지도록 `with` 로 감쌌습니다(2026-10-09) — 템플릿 실행 오류는 곧 메일 발송 실패입니다.
 - 한국어 원문은 각 분기의 `{{ else }}` 가지에 그대로 있습니다. 문구를 고칠 때는 `emails/i18n-build.mjs` 의 표를 고치고
   git 에서 원본(한국어 단일) 파일을 되돌린 뒤 `node emails/i18n-build.mjs` 로 다시 만드는 편이 안전합니다(ko 렌더가 원본과 같은지,
   en/zh 렌더에 한글이 없는지 자가 검증합니다). 그 뒤 `copy-helper.html` 도 같이 갱신됩니다(SKILL.md 참고).
 - 초대 메일(05)은 운영자가 보내므로 수신자 locale 이 없어 한국어로 갑니다 — `inviteUserByEmail` 의 `data.locale` 로 넘기면 분기됩니다.
-- 대시보드 **Subject** 는 분기가 안 되므로 위 표처럼 세 언어를 병기합니다.
+- 제목도 분기됩니다(위 "제목" 절). 2026-10-09 오전 몇 시간 동안은 세 언어 병기 제목이 나갔고, 같은 날 언어별 분기로 바꿨습니다.
 
 ## 디자인 톤
 
