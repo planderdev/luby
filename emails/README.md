@@ -14,7 +14,22 @@ Supabase Auth 가 보내는 5종 트랜잭션 이메일을 Luby AI 브랜드에 
 | `_partials/wrapper.html` | (참고용) 공유 래퍼 — 직접 사용 X | — |
 | `i18n-build.mjs` | 한·영·중 분기 템플릿 생성·자가 검증 스크립트 | — |
 
-## Supabase 대시보드에 적용하기
+## 적용 상태
+
+**2026-10-09 프로덕션 적용 완료** — 5종 모두 한·영·중 분기 본문과 세 언어 병기 제목으로 교체했고, 다시 읽어 파일과 글자 단위로 일치함을 확인했습니다.
+
+## 한 번에 적용하기 (권장)
+
+```
+npx supabase login                        # 최초 1회 — 토큰이 macOS 키체인에 저장됨
+node emails/apply-to-supabase.mjs --dry-run   # 본문 검사만
+node emails/apply-to-supabase.mjs             # 5종 제목·본문 교체 + 재조회 검증
+```
+
+Supabase 관리 API(`PATCH /v1/projects/{ref}/config/auth`)로 제목·본문을 한 번에 넣습니다. 토큰은 `SUPABASE_ACCESS_TOKEN` 이 있으면 그것을, 없으면 키체인 값을 쓰며 출력하지 않습니다.
+`supabase login` 이 "Press Enter" 에서 멈추면 Enter 를 누르고, 브라우저 승인 화면의 8자리 코드를 터미널에 입력합니다.
+
+## (수동) Supabase 대시보드에 적용하기
 
 1. **Auth → Email Templates** 열기
    https://supabase.com/dashboard/project/ncyuljyeyuorgsfuzzmw/auth/templates
