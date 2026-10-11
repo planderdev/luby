@@ -12,6 +12,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      email_suppressions: {
+        Row: {
+          email: string
+          origin: string
+          resend_id: string | null
+          suppressed_at: string | null
+          synced_at: string
+        }
+        Insert: {
+          email: string
+          origin: string
+          resend_id?: string | null
+          suppressed_at?: string | null
+          synced_at?: string
+        }
+        Update: {
+          email?: string
+          origin?: string
+          resend_id?: string | null
+          suppressed_at?: string | null
+          synced_at?: string
+        }
+        Relationships: []
+      }
       app_secrets: {
         Row: {
           expires_at: string | null
@@ -1590,6 +1614,14 @@ export type Database = {
       /** 초대만 되고 한 번도 로그인하지 않은 실계정 수 (데모 제외, 운영자 외에는 0) */
       operator_dormant_count: {
         Args: Record<string, never>
+        Returns: number
+      }
+      operator_bounced_ids: {
+        Args: { p_ids?: string[] | null }
+        Returns: string[]
+      }
+      request_suppression_sync: {
+        Args: Record<PropertyKey, never>
         Returns: number
       }
       operator_unconfirmed_ids: {

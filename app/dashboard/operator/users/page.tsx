@@ -9,14 +9,16 @@ import { BulkImportPanel } from "./BulkImportPanel";
 import { BulkInvitePanel } from "./BulkInvitePanel";
 import { BulkConfirmPanel } from "./BulkConfirmPanel";
 import { OpenCampaignNudgePanel } from "./OpenCampaignNudgePanel";
+import { BouncedPanel } from "./BouncedPanel";
 
 export const metadata = { title: "회원 관리 — 루비AI" };
 
-type Filter = "pending" | "never" | "all" | "advertiser" | "agency" | "influencer";
+type Filter = "pending" | "never" | "bounced" | "all" | "advertiser" | "agency" | "influencer";
 
 const TABS: { key: Filter; label: string }[] = [
   { key: "pending", label: "승인 대기" },
   { key: "never", label: "미로그인" },
+  { key: "bounced", label: "메일 반송" },
   { key: "all", label: "전체" },
   { key: "advertiser", label: "광고주" },
   { key: "agency", label: "대행사" },
@@ -69,12 +71,15 @@ export default async function OperatorUsersPage({
 
   const all = (profilesRes.data ?? []).filter((p) => p.role !== "operator");
   // 가입 후 한 번도 로그인하지 않은 계정 (일괄 등록 후 방치 파악)
-  const [{ data: neverRows }, { data: unconfirmedRows }] = await Promise.all([
+  const [{ data: neverRows }, { data: unconfirmedRows }, { data: bouncedRows }] = await Promise.all([
     supabase.rpc("operator_never_signed_in", { p_ids: all.map((p) => p.id) }),
     // 직접 가입했지만 이메일 인증을 안 누른 회원 — 초대(비밀번호 설정) 메일이 아니라 인증 메일을 다시 보내야 한다
     supabase.rpc("operator_unconfirmed_ids", { p_ids: all.map((p) => p.id) }),
+    // Resend 차단 목록(하드 바운스)에 있는 주소 — 어떤 메일도 닿지 않는다(2026-10-11, email_suppressions 매일 동기화)
+    supabase.rpc("operator_bounced_ids", { p_ids: all.map((p) => p.id) }),
   ]);
   const unconfirmed = new Set((unconfirmedRows ?? []) as string[]);
+  const bounced = new Set((bouncedRows ?? []) as string[]);
   // 인플루언서 탭: 모집 중 캠페인 안내 발송 미리보기 (운영자 전용 RPC, 발송하지 않음)
   const nudgePreview = filter === "influencer" ? ((await supabase.rpc("operator_open_campaign_nudge_preview")).data?.[0] ?? null) : null;
   // 데모 계정(@ruby-ai.kr)은 재초대 대상이 아니다 — 포함하면 400명이 넘어 숫자가 무의미해지고,
@@ -84,9 +89,15 @@ export default async function OperatorUsersPage({
     ((neverRows ?? []) as { id: string }[]).map((r) => r.id).filter((id) => !demoIds.has(id))
   );
   const isAgency = (id: string) => advertiserById.get(id)?.advertiser_kind === "agency";
+  const campaignCountByAdvertiser = new Map<string, number>();
+  if (filter === "bounced" && bounced.size > 0) {
+    const { data: camps } = await supabase.from("campaigns").select("advertiser_id").in("advertiser_id", [...bounced]);
+    for (const c of camps ?? []) campaignCountByAdvertiser.set(c.advertiser_id, (campaignCountByAdvertiser.get(c.advertiser_id) ?? 0) + 1);
+  }
   const counts: Record<Filter, number> = {
     pending: all.filter((p) => !p.approved).length,
     never: all.filter((p) => neverSignedIn.has(p.id)).length,
+    bounced: all.filter((p) => bounced.has(p.id)).length,
     all: all.length,
     advertiser: all.filter((p) => p.role === "advertiser" && !isAgency(p.id)).length,
     agency: all.filter((p) => p.role === "advertiser" && isAgency(p.id)).length,
@@ -105,6 +116,7 @@ export default async function OperatorUsersPage({
     if (!matchesQuery(p) || !matchesTag(p)) return false;
     if (filter === "pending") return !p.approved;
     if (filter === "never") return neverSignedIn.has(p.id);
+    if (filter === "bounced") return bounced.has(p.id);
     if (filter === "advertiser") return p.role === "advertiser" && !isAgency(p.id);
     if (filter === "agency") return p.role === "advertiser" && isAgency(p.id);
     if (filter === "influencer") return p.role === "influencer";
@@ -180,16 +192,29 @@ export default async function OperatorUsersPage({
         ))}
       </div>
 
-      {filter === "never" && members.some((p) => unconfirmed.has(p.id)) && (
+      {/* 반송 주소는 보내도 Resend 가 버린다 — 일괄 발송 대상에서 빼고 따로 안내 */}
+      {filter === "never" && members.some((p) => unconfirmed.has(p.id) && !bounced.has(p.id)) && (
         <BulkConfirmPanel
-          profileIds={members.filter((p) => unconfirmed.has(p.id)).map((p) => p.id)}
-          names={members.filter((p) => unconfirmed.has(p.id)).slice(0, 3).map((p) => p.name)}
+          profileIds={members.filter((p) => unconfirmed.has(p.id) && !bounced.has(p.id)).map((p) => p.id)}
+          names={members.filter((p) => unconfirmed.has(p.id) && !bounced.has(p.id)).slice(0, 3).map((p) => p.name)}
         />
       )}
-      {filter === "never" && members.some((p) => !unconfirmed.has(p.id)) && (
+      {filter === "never" && members.some((p) => !unconfirmed.has(p.id) && !bounced.has(p.id)) && (
         <BulkInvitePanel
-          profileIds={members.filter((p) => !unconfirmed.has(p.id)).map((p) => p.id)}
-          names={members.filter((p) => !unconfirmed.has(p.id)).slice(0, 3).map((p) => p.name)}
+          profileIds={members.filter((p) => !unconfirmed.has(p.id) && !bounced.has(p.id)).map((p) => p.id)}
+          names={members.filter((p) => !unconfirmed.has(p.id) && !bounced.has(p.id)).slice(0, 3).map((p) => p.name)}
+        />
+      )}
+      {filter === "never" && members.some((p) => bounced.has(p.id)) && (
+        <p className="mt-3 text-xs text-muted-foreground">
+          메일 반송 {members.filter((p) => bounced.has(p.id)).length}명은 일괄 발송에서 뺐어요 —{" "}
+          <Link href={qs({ filter: "bounced" })} className="underline underline-offset-2 hover:text-foreground">메일 반송 탭</Link>에서 실제 이메일로 바꾼 뒤 보내 주세요.
+        </p>
+      )}
+      {filter === "bounced" && (
+        <BouncedPanel
+          count={members.length}
+          advertisersWithCampaigns={members.filter((p) => p.role === "advertiser" && (campaignCountByAdvertiser.get(p.id) ?? 0) > 0).length}
         />
       )}
 
@@ -214,6 +239,7 @@ export default async function OperatorUsersPage({
               approved={p.approved}
               createdAt={p.created_at}
               neverSignedIn={neverSignedIn.has(p.id)}
+              bounced={bounced.has(p.id)}
               tags={p.operator_tags ?? []}
               business={
                 adv

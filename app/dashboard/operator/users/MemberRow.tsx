@@ -33,6 +33,7 @@ export function MemberRow({
   business,
   influencer,
   neverSignedIn = false,
+  bounced = false,
 }: {
   profileId: string;
   name: string;
@@ -46,6 +47,8 @@ export function MemberRow({
   influencer: Influencer | null;
   /** 가입 후 한 번도 로그인하지 않은 계정 (일괄 등록 등) */
   neverSignedIn?: boolean;
+  /** Resend 차단 목록(하드 바운스)에 있는 주소 — 어떤 메일도 닿지 않는다 */
+  bounced?: boolean;
 }) {
   const [isApproved, setIsApproved] = useState(approved);
   const [error, setError] = useState<string | null>(null);
@@ -91,6 +94,11 @@ export function MemberRow({
           {/* 이름 + 배지 줄 */}
           <div className="flex flex-wrap items-center gap-2">
             <Link href={`/dashboard/operator/users/${profileId}`} className="text-sm font-semibold hover:underline underline-offset-2">{name}</Link>
+            {bounced && (
+              <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-semibold text-accent-ink" title="없는 주소로 반송돼 메일이 모두 차단돼 있어요. 회원 상세에서 실제 이메일로 바꿔 주세요.">
+                메일 반송
+              </span>
+            )}
             {neverSignedIn && (
               <span className="rounded-full bg-warning-soft px-2 py-0.5 text-[10px] font-semibold text-warning" title="계정은 있지만 아직 한 번도 로그인하지 않았어요">
                 미로그인

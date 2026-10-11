@@ -6,6 +6,7 @@ import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { MemberActions } from "./MemberActions";
 import { MemberNotes } from "./MemberNotes";
+import { MemberEmailEditor } from "./MemberEmailEditor";
 
 export const metadata = { title: "회원 상세 — 루비AI" };
 
@@ -47,6 +48,9 @@ export default async function OperatorMemberDetailPage({ params }: { params: Pro
   const actorIds = [...new Set([...(auditRes.data ?? []).map((a) => a.actor_id), ...(noteRows ?? []).map((n) => n.author_id)].filter(Boolean))] as string[];
   const { data: actors } = actorIds.length ? await supabase.from("profiles").select("id, name").in("id", actorIds) : { data: [] };
   const actorName = new Map((actors ?? []).map((a) => [a.id, a.name]));
+  // Resend 차단 목록(하드 바운스)에 있는 주소인지 — 반송이면 로그인 이메일 수정 칸을 펼쳐 둔다
+  const { data: bouncedRows } = await supabase.rpc("operator_bounced_ids", { p_ids: [p.id] });
+  const bounced = ((bouncedRows ?? []) as string[]).includes(p.id);
   const roleLabel = isAdv ? (adv?.advertiser_kind === "agency" ? "대행사 · 실행사" : "광고주") : isInf ? "크리에이터" : "운영자";
 
   return (
@@ -71,6 +75,10 @@ export default async function OperatorMemberDetailPage({ params }: { params: Pro
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
             {isAdv && <span>담당자 {p.name}</span>}
             <span className="inline-flex items-center gap-1"><Mail className="size-3.5" /> {p.email}</span>
+            {bounced && (
+              <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-semibold text-accent-ink" title="없는 주소로 반송돼 메일이 모두 차단돼 있어요">메일 반송</span>
+            )}
+            {p.role !== "operator" && !bounced && <MemberEmailEditor profileId={p.id} email={p.email} bounced={false} />}
             {(p.phone || adv?.contact_phone) && <span className="inline-flex items-center gap-1"><Phone className="size-3.5" /> {p.phone ?? adv?.contact_phone}</span>}
             <span className="inline-flex items-center gap-1"><CalendarDays className="size-3.5" /> 가입 {d(p.created_at)}{p.approved_at ? ` · 승인 ${d(p.approved_at)}` : ""}</span>
             {(() => {
@@ -88,6 +96,7 @@ export default async function OperatorMemberDetailPage({ params }: { params: Pro
             })()}
             {refBy && <span>추천인: <Link href={`/dashboard/operator/users/${refBy.id}`} className="underline underline-offset-2">{refBy.name}</Link></span>}
           </div>
+          {p.role !== "operator" && bounced && <MemberEmailEditor profileId={p.id} email={p.email} bounced />}
         </div>
         <MemberActions profileId={p.id} approved={p.approved} role={p.role} />
       </header>

@@ -211,6 +211,9 @@ export async function resendInvite(profileId: string): Promise<{ ok: true } | { 
   if (!guard.ok) return { ok: false, error: guard.error };
   const { data: profile } = await guard.supabase.from("profiles").select("email, name").eq("id", profileId).maybeSingle();
   if (!profile?.email) return { ok: false, error: "회원을 찾을 수 없어요." };
+  // 반송(하드 바운스) 주소는 Resend 가 버린다 — 보내 봐야 한도만 쓰고 운영자는 보냈다고 착각한다
+  const { data: bouncedOne } = await guard.supabase.rpc("operator_bounced_ids", { p_ids: [profileId] });
+  if (((bouncedOne ?? []) as string[]).length > 0) return { ok: false, error: "이 주소는 반송된 적이 있어 메일이 차단돼 있어요. 회원 상세에서 실제 이메일로 바꾼 뒤 보내 주세요." };
 
   const { getAdminSupabase } = await import("@/lib/supabase/admin");
   const admin = getAdminSupabase();
@@ -240,6 +243,8 @@ export async function resendConfirmationBulk(profileIds: string[]): Promise<
   // 지금도 미인증인 회원만 (목록이 오래된 경우 대비 — 인증을 마친 사람에게 보내면 혼란)
   const { data: unconfirmed } = await guard.supabase.rpc("operator_unconfirmed_ids", { p_ids: ids });
   const targets = new Set((unconfirmed ?? []) as string[]);
+  const { data: bouncedRows } = await guard.supabase.rpc("operator_bounced_ids", { p_ids: ids });
+  const bounced = new Set((bouncedRows ?? []) as string[]);
   const { data: rows } = await guard.supabase.from("profiles").select("id, email, name").in("id", ids);
 
   const { getAdminSupabase } = await import("@/lib/supabase/admin");
@@ -250,6 +255,7 @@ export async function resendConfirmationBulk(profileIds: string[]): Promise<
 
   for (const row of rows ?? []) {
     if (!targets.has(row.id) || !row.email) continue;
+    if (bounced.has(row.id)) { failed.push({ name: row.name ?? row.email, error: "메일 반송 주소라 제외했어요" }); continue; }
     const { error } = await admin.auth.resend({ type: "signup", email: row.email });
     if (error) {
       const msg = authErrorMessage(error, "메일 발송에 실패했어요.");
@@ -308,6 +314,8 @@ export async function resendInviteBulk(profileIds: string[]): Promise<
   // 실제로 아직 로그인한 적 없는 회원만 (목록이 오래된 경우 대비)
   const { data: never } = await guard.supabase.rpc("operator_never_signed_in", { p_ids: ids });
   const targets = new Set(((never ?? []) as { id: string }[]).map((r) => r.id));
+  const { data: bouncedRows } = await guard.supabase.rpc("operator_bounced_ids", { p_ids: ids });
+  const bounced = new Set((bouncedRows ?? []) as string[]);
   const { data: rows } = await guard.supabase.from("profiles").select("id, email, name").in("id", ids);
 
   const { getAdminSupabase } = await import("@/lib/supabase/admin");
@@ -319,6 +327,7 @@ export async function resendInviteBulk(profileIds: string[]): Promise<
 
   for (const row of rows ?? []) {
     if (!targets.has(row.id) || !row.email) continue;
+    if (bounced.has(row.id)) { failed.push({ name: row.name ?? row.email, error: "메일 반송 주소라 제외했어요" }); continue; }
     const { error } = await admin.auth.resetPasswordForEmail(row.email, { redirectTo: `${site}/reset-password` });
     if (error) {
       const msg = authErrorMessage(error, "메일 발송에 실패했어요.");
@@ -528,4 +537,65 @@ export async function commitMemberImport(rows: import("@/lib/member-import").Imp
   });
   revalidatePath("/dashboard/operator/users");
   return { ok: true as const, results };
+}
+
+/** 회원 관리 '메일 반송' 탭 — Resend 차단 목록을 지금 바로 다시 가져온다(평소엔 매일 09:10 자동). */
+export async function syncSuppressionsNow(): Promise<{ ok: true; total: number; removed: number } | { ok: false; error: string }> {
+  const guard = await ensureOperator();
+  if (!guard.ok) return { ok: false, error: guard.error };
+  const { getAdminSupabase } = await import("@/lib/supabase/admin");
+  const { syncResendSuppressions } = await import("@/lib/resend-suppressions");
+  try {
+    const r = await syncResendSuppressions(getAdminSupabase(), process.env.RESEND_API_KEY);
+    revalidatePath("/dashboard/operator/users");
+    return { ok: true, total: r.upserted, removed: r.removed };
+  } catch (e) {
+    console.error("[syncSuppressionsNow]", e instanceof Error ? e.message : e);
+    return { ok: false, error: "Resend 차단 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요." };
+  }
+}
+
+/**
+ * 운영자가 회원의 로그인 이메일을 바꾼다 — 일괄 등록 때 잘못 들어간(반송된) 주소를 실제 주소로 고치는 용도.
+ * 인증 완료 상태로 바꾸고(email_confirm), 운영자·데모 계정은 바꾸지 않는다. 바꾼 뒤 미로그인이면 초대 메일을 다시 보내면 된다.
+ */
+export async function changeMemberEmail(
+  profileId: string,
+  newEmailRaw: string,
+): Promise<{ ok: true; email: string } | { ok: false; error: string }> {
+  const guard = await ensureOperator();
+  if (!guard.ok) return { ok: false, error: guard.error };
+  if (!/^[0-9a-f-]{36}$/.test(profileId)) return { ok: false, error: "회원을 찾을 수 없어요." };
+  const email = newEmailRaw.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return { ok: false, error: "이메일 형식을 확인해 주세요." };
+  const { suggestEmail } = await import("@/lib/email-typo");
+  const suggestion = suggestEmail(email);
+  if (suggestion) return { ok: false, error: `오타 같아요. 혹시 ${suggestion} 아닌가요? 맞는 주소로 다시 입력해 주세요.` };
+
+  const { getAdminSupabase } = await import("@/lib/supabase/admin");
+  const admin = getAdminSupabase();
+  const { data: target } = await admin.from("profiles").select("id, email, role, name").eq("id", profileId).maybeSingle();
+  if (!target) return { ok: false, error: "회원을 찾을 수 없어요." };
+  if (target.role === "operator") return { ok: false, error: "운영자 계정의 이메일은 여기서 바꿀 수 없어요." };
+  if ((target.email ?? "").endsWith("@ruby-ai.kr") || email.endsWith("@ruby-ai.kr")) return { ok: false, error: "데모 계정 주소는 바꿀 수 없어요." };
+  if ((target.email ?? "").toLowerCase() === email) return { ok: false, error: "지금 주소와 같아요." };
+
+  const { getSuppression } = await import("@/lib/resend-suppressions");
+  if (await getSuppression(admin, email)) return { ok: false, error: "이 주소도 반송 목록에 있어요. 다른 주소를 확인해 주세요." };
+  const { data: dup } = await admin.from("profiles").select("id").ilike("email", email).neq("id", profileId).limit(1);
+  if ((dup ?? []).length > 0) return { ok: false, error: "이미 다른 회원이 쓰는 주소예요." };
+
+  const { error: authErr } = await admin.auth.admin.updateUserById(profileId, { email, email_confirm: true });
+  if (authErr) return { ok: false, error: authErrorMessage(authErr, "이메일을 바꾸지 못했어요. 잠시 후 다시 시도해 주세요.") };
+  const { error: profErr } = await admin.from("profiles").update({ email }).eq("id", profileId);
+  if (profErr) return { ok: false, error: dbErrorWith("로그인 이메일은 바뀌었지만 회원 정보 반영에 실패했어요", profErr) };
+
+  await guard.supabase.from("member_notes").insert({
+    profile_id: profileId,
+    author_id: guard.user.id,
+    body: `로그인 이메일 변경: ${target.email ?? "-"} → ${email}`,
+  });
+  revalidatePath("/dashboard/operator/users");
+  revalidatePath(`/dashboard/operator/users/${profileId}`);
+  return { ok: true, email };
 }
