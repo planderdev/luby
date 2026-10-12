@@ -10,6 +10,7 @@ import { BulkInvitePanel } from "./BulkInvitePanel";
 import { BulkConfirmPanel } from "./BulkConfirmPanel";
 import { OpenCampaignNudgePanel } from "./OpenCampaignNudgePanel";
 import { BouncedPanel } from "./BouncedPanel";
+import { undeliverableReasons } from "@/lib/email-deliverability";
 
 export const metadata = { title: "회원 관리 — 루비AI" };
 
@@ -122,6 +123,10 @@ export default async function OperatorUsersPage({
     if (filter === "influencer") return p.role === "influencer";
     return true;
   });
+  // 미로그인 탭: 오타·메일을 받을 수 없는 도메인은 보내면 바로 반송된다 — 일괄 발송에서 빼고 행에 표시(도메인별 DNS 1회)
+  const undeliverable = filter === "never" ? await undeliverableReasons(members.map((p) => p.email ?? "").filter(Boolean)) : new Map<string, string>();
+  const addressIssue = (p: (typeof members)[number]) => undeliverable.get((p.email ?? "").toLowerCase());
+  const blocked = (p: (typeof members)[number]) => bounced.has(p.id) || !!addressIssue(p);
   const qs = (over: Record<string, string | undefined>) => {
     const u = new URLSearchParams();
     const merged = { filter, q: params.q ?? "", tag, ...over };
@@ -193,22 +198,25 @@ export default async function OperatorUsersPage({
       </div>
 
       {/* 반송 주소는 보내도 Resend 가 버린다 — 일괄 발송 대상에서 빼고 따로 안내 */}
-      {filter === "never" && members.some((p) => unconfirmed.has(p.id) && !bounced.has(p.id)) && (
+      {filter === "never" && members.some((p) => unconfirmed.has(p.id) && !blocked(p)) && (
         <BulkConfirmPanel
-          profileIds={members.filter((p) => unconfirmed.has(p.id) && !bounced.has(p.id)).map((p) => p.id)}
-          names={members.filter((p) => unconfirmed.has(p.id) && !bounced.has(p.id)).slice(0, 3).map((p) => p.name)}
+          profileIds={members.filter((p) => unconfirmed.has(p.id) && !blocked(p)).map((p) => p.id)}
+          names={members.filter((p) => unconfirmed.has(p.id) && !blocked(p)).slice(0, 3).map((p) => p.name)}
         />
       )}
-      {filter === "never" && members.some((p) => !unconfirmed.has(p.id) && !bounced.has(p.id)) && (
+      {filter === "never" && members.some((p) => !unconfirmed.has(p.id) && !blocked(p)) && (
         <BulkInvitePanel
-          profileIds={members.filter((p) => !unconfirmed.has(p.id) && !bounced.has(p.id)).map((p) => p.id)}
-          names={members.filter((p) => !unconfirmed.has(p.id) && !bounced.has(p.id)).slice(0, 3).map((p) => p.name)}
+          profileIds={members.filter((p) => !unconfirmed.has(p.id) && !blocked(p)).map((p) => p.id)}
+          names={members.filter((p) => !unconfirmed.has(p.id) && !blocked(p)).slice(0, 3).map((p) => p.name)}
         />
       )}
-      {filter === "never" && members.some((p) => bounced.has(p.id)) && (
+      {filter === "never" && members.some((p) => blocked(p)) && (
         <p className="mt-3 text-xs text-muted-foreground">
-          메일 반송 {members.filter((p) => bounced.has(p.id)).length}명은 일괄 발송에서 뺐어요 —{" "}
-          <Link href={qs({ filter: "bounced" })} className="underline underline-offset-2 hover:text-foreground">메일 반송 탭</Link>에서 실제 이메일로 바꾼 뒤 보내 주세요.
+          메일이 닿지 않는 {members.filter((p) => blocked(p)).length}명은 일괄 발송에서 뺐어요
+          {members.some((p) => bounced.has(p.id)) && <> (반송 이력 {members.filter((p) => bounced.has(p.id)).length}명)</>}
+          {members.some((p) => !bounced.has(p.id) && !!addressIssue(p)) && <> (오타·없는 도메인 {members.filter((p) => !bounced.has(p.id) && !!addressIssue(p)).length}명)</>}
+          {" "}— 목록의 &lsquo;주소 확인&rsquo; 표시를 눌러 회원 상세에서 실제 이메일로 바꾼 뒤 보내 주세요.{" "}
+          <Link href={qs({ filter: "bounced" })} className="underline underline-offset-2 hover:text-foreground">메일 반송 탭</Link>
         </p>
       )}
       {filter === "bounced" && (
@@ -240,6 +248,7 @@ export default async function OperatorUsersPage({
               createdAt={p.created_at}
               neverSignedIn={neverSignedIn.has(p.id)}
               bounced={bounced.has(p.id)}
+              addressIssue={bounced.has(p.id) ? undefined : addressIssue(p)}
               tags={p.operator_tags ?? []}
               business={
                 adv

@@ -214,6 +214,10 @@ export async function resendInvite(profileId: string): Promise<{ ok: true } | { 
   // 반송(하드 바운스) 주소는 Resend 가 버린다 — 보내 봐야 한도만 쓰고 운영자는 보냈다고 착각한다
   const { data: bouncedOne } = await guard.supabase.rpc("operator_bounced_ids", { p_ids: [profileId] });
   if (((bouncedOne ?? []) as string[]).length > 0) return { ok: false, error: "이 주소는 반송된 적이 있어 메일이 차단돼 있어요. 회원 상세에서 실제 이메일로 바꾼 뒤 보내 주세요." };
+  // 오타·메일을 받을 수 없는 도메인은 보내면 바로 반송된다
+  const { undeliverableReasons } = await import("@/lib/email-deliverability");
+  const why = (await undeliverableReasons([profile.email])).get(profile.email.toLowerCase());
+  if (why) return { ok: false, error: `보내지 않았어요 — ${why}. 회원 상세에서 실제 이메일로 바꾼 뒤 보내 주세요.` };
 
   const { getAdminSupabase } = await import("@/lib/supabase/admin");
   const admin = getAdminSupabase();
@@ -246,6 +250,7 @@ export async function resendConfirmationBulk(profileIds: string[]): Promise<
   const { data: bouncedRows } = await guard.supabase.rpc("operator_bounced_ids", { p_ids: ids });
   const bounced = new Set((bouncedRows ?? []) as string[]);
   const { data: rows } = await guard.supabase.from("profiles").select("id, email, name").in("id", ids);
+  const undeliverable = await (await import("@/lib/email-deliverability")).undeliverableReasons((rows ?? []).map((r) => r.email ?? "").filter(Boolean));
 
   const { getAdminSupabase } = await import("@/lib/supabase/admin");
   const admin = getAdminSupabase();
@@ -256,6 +261,7 @@ export async function resendConfirmationBulk(profileIds: string[]): Promise<
   for (const row of rows ?? []) {
     if (!targets.has(row.id) || !row.email) continue;
     if (bounced.has(row.id)) { failed.push({ name: row.name ?? row.email, error: "메일 반송 주소라 제외했어요" }); continue; }
+    { const why = undeliverable.get(row.email.toLowerCase()); if (why) { failed.push({ name: row.name ?? row.email, error: `보내지 않음 — ${why}` }); continue; } }
     const { error } = await admin.auth.resend({ type: "signup", email: row.email });
     if (error) {
       const msg = authErrorMessage(error, "메일 발송에 실패했어요.");
@@ -317,6 +323,7 @@ export async function resendInviteBulk(profileIds: string[]): Promise<
   const { data: bouncedRows } = await guard.supabase.rpc("operator_bounced_ids", { p_ids: ids });
   const bounced = new Set((bouncedRows ?? []) as string[]);
   const { data: rows } = await guard.supabase.from("profiles").select("id, email, name").in("id", ids);
+  const undeliverable = await (await import("@/lib/email-deliverability")).undeliverableReasons((rows ?? []).map((r) => r.email ?? "").filter(Boolean));
 
   const { getAdminSupabase } = await import("@/lib/supabase/admin");
   const admin = getAdminSupabase();
@@ -328,6 +335,7 @@ export async function resendInviteBulk(profileIds: string[]): Promise<
   for (const row of rows ?? []) {
     if (!targets.has(row.id) || !row.email) continue;
     if (bounced.has(row.id)) { failed.push({ name: row.name ?? row.email, error: "메일 반송 주소라 제외했어요" }); continue; }
+    { const why = undeliverable.get(row.email.toLowerCase()); if (why) { failed.push({ name: row.name ?? row.email, error: `보내지 않음 — ${why}` }); continue; } }
     const { error } = await admin.auth.resetPasswordForEmail(row.email, { redirectTo: `${site}/reset-password` });
     if (error) {
       const msg = authErrorMessage(error, "메일 발송에 실패했어요.");
