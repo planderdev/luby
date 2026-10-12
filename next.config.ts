@@ -14,6 +14,8 @@ const nextConfig: NextConfig = {
   async headers() {
     // 오픈 전 기본 보안 헤더. CSP는 토스 결제창·Supabase·GA 도메인 정리 후 별도 도입.
     return [
+      // 직접 호스팅 라이브러리·글꼴(경로에 버전 포함) — 오래 캐시
+      { source: "/vendor/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
       {
         source: "/:path*",
         headers: [

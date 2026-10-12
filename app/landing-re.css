@@ -98,7 +98,7 @@ button {
     font-weight: 100 900;
     font-style: normal;
     font-display: swap;
-    src: url("https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/variable/woff2/SUIT-Variable.woff2") format("woff2-variations");
+    src: url("/vendor/suit/SUIT-Variable.woff2") format("woff2-variations");
 }
 
 :root {

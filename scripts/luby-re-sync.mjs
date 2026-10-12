@@ -11,6 +11,7 @@
  */
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { applyToGenerated } from "./self-host-vendor.mjs";
 import { dirname, join } from "node:path";
 import postcss from "postcss";
 import sharp from "sharp";
@@ -441,4 +442,10 @@ if (chrome.ko && chrome.en && chrome.zh) {
   console.log("chrome-fragment → ko/en/zh");
 } else {
   console.warn("en/zh 베이크가 없어 chrome-fragment 를 쓰지 않았다 (기존 파일 유지)");
+}
+
+// 중국 본토 대응(2026-10-12): 시안이 쓰는 jsDelivr 자원을 사이트 직접 호스팅(/vendor/…)으로 — 동기화할 때마다 다시 적용한다
+{
+  const changed = applyToGenerated(ROOT);
+  console.log(`self-host-vendor → ${changed.length} files`);
 }
