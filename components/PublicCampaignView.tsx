@@ -91,7 +91,7 @@ export async function buildPublicCampaignMetadata(id: string, locale: Locale): P
   const base = getSiteUrl();
   const url = `${base}${localePrefix(locale)}/c/${c.id}`;
   return {
-    title: `${c.title} — ${t.metaSuffix}`,
+    title: locale === "ko" ? `${c.title} — ${t.metaSuffix}` : { absolute: `${c.title} — ${t.metaSuffix} · Luby AI` },
     description: desc,
     alternates: {
       canonical: url,
@@ -251,7 +251,19 @@ export async function PublicCampaignView({ id, locale }: { id: string; locale: L
           <aside className="lg:sticky lg:top-6 lg:self-start">
             <div className="rounded-3xl border border-accent/30 bg-accent-soft/40 p-6">
               <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{t.applyBox}</div>
-              <div className="display mt-2 text-2xl font-semibold">{c.point_amount > 0 ? `${c.point_amount.toLocaleString()}P` : t.benefit}</div>
+              {(() => {
+                // 영문·중문: 해외 크리에이터는 포인트 출금이 한국 계좌로만 가능 — 무료 체험 가치를 앞세운다(2026-10-12 사장님 결정)
+                const offerValue = c.offerings.reduce((sum, o) => sum + (o.estimated_value ?? 0), 0);
+                if (locale !== "ko" && offerValue >= 1000) {
+                  return (
+                    <>
+                      <div className="display mt-2 text-2xl font-semibold">{t.freeWorth(offerValue.toLocaleString())}</div>
+                      {c.point_amount > 0 && <p className="mt-1 text-xs font-medium text-accent-ink">{t.pointsPlus(c.point_amount.toLocaleString())}</p>}
+                    </>
+                  );
+                }
+                return <div className="display mt-2 text-2xl font-semibold">{c.point_amount > 0 ? `${c.point_amount.toLocaleString()}P` : t.benefit}</div>;
+              })()}
               <p className="mt-1 text-xs text-muted-foreground">
                 {isOpen ? (c.always_open ? t.statusAlways : daysLeft > 0 ? t.daysToClose(daysLeft) : t.closesToday) : t.ended}
               </p>

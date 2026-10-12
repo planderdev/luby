@@ -31,6 +31,12 @@ const RULES: Rule[] = [
   { label: "스레드", utm: ["threads"], hosts: ["threads.net", "www.threads.net", "threads.com"] },
   { label: "X(트위터)", utm: ["x", "twitter"], hosts: ["x.com", "twitter.com", "t.co"] },
   { label: "샤오홍슈", utm: ["xiaohongshu", "xhs", "rednote"], hosts: ["xiaohongshu.com", "www.xiaohongshu.com", "xhslink.com"] },
+  // 중국 크리에이터 유입 5경로(2026-10-12 사장님 결정) — 유입 키트의 추적 링크 utm_source 와 1:1
+  { label: "위챗 단톡방(방한 크리에이터)", utm: ["wechat_group"], hosts: [] },
+  { label: "위챗", utm: ["wechat", "weixin"], hosts: ["weixin.qq.com", "mp.weixin.qq.com"] },
+  { label: "중국인 유학생·거주자", utm: ["cn_student"], hosts: [] },
+  { label: "중국 KOL 에이전시", utm: ["kol_agency"], hosts: [] },
+  { label: "관광 가이드·여행사", utm: ["travel_partner"], hosts: [] },
   { label: "다음", utm: ["daum"], hosts: ["daum.net", "search.daum.net", "m.daum.net"] },
   { label: "티스토리", utm: ["tistory"], hosts: ["tistory.com"] },
   { label: "밴드", utm: ["band"], hosts: ["band.us"] },

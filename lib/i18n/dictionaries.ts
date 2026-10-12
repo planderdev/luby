@@ -585,11 +585,11 @@ const en: Dict = {
 const zh: Dict = {
   meta: {
     brand: "Luby AI",
-    title: "Luby AI — 韩国品牌合作·体验官招募平台",
+    title: "Luby AI — 韩国品牌小红书体验团 · 免费探店种草招募",
     description:
       "想和韩国品牌合作？Luby AI 用 AI 匹配小红书、抖音、Instagram 达人与韩国 K-beauty、美食、生活方式品牌。报名体验 → 入选 → 发布内容 → 积分结算，一站式完成。",
     ogLocale: "zh_CN",
-    ogImageAlt: "Luby AI — 韩国品牌合作·体验官招募平台",
+    ogImageAlt: "Luby AI — 韩国品牌小红书体验团 · 免费探店种草招募",
   },
   audience: ["广告主", "达人", "营销人员"],
   nav: {

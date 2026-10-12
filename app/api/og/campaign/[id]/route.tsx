@@ -7,10 +7,10 @@ import { categoryLabel, regionLabel, promotionTypeLabel } from "@/lib/i18n/app/c
 import type { Locale } from "@/lib/i18n/config";
 
 /** 카드 문구 — ?lang=en|zh 면 제목·상호는 campaign_translations 번역본, 라벨은 여기 (2026-10-07 다국어) */
-const OG_UI: Record<Locale, { brand: string; closed: string; always: string; today: string; reward: (p: string) => string; recruit: (n: number) => string; family: string; font: string }> = {
-  ko: { brand: "루비AI 체험단 모집", closed: "모집 마감", always: "상시 모집", today: "오늘 마감", reward: (p) => `보상 ${p}`, recruit: (n) => `모집 ${n}명`, family: "Noto+Sans+KR", font: "NotoKR" },
-  en: { brand: "Luby AI campaign", closed: "Closed", always: "Always open", today: "Closes today", reward: (p) => `Reward ${p}`, recruit: (n) => `${n} creators`, family: "Noto+Sans+KR", font: "NotoKR" },
-  zh: { brand: "Luby AI 体验活动", closed: "已截止", always: "长期招募", today: "今天截止", reward: (p) => `奖励 ${p}`, recruit: (n) => `招募 ${n} 人`, family: "Noto+Sans+SC", font: "NotoSC" },
+const OG_UI: Record<Locale, { brand: string; closed: string; always: string; today: string; reward: (p: string) => string; free: (v: string) => string; recruit: (n: number) => string; family: string; font: string }> = {
+  ko: { brand: "루비AI 체험단 모집", closed: "모집 마감", always: "상시 모집", today: "오늘 마감", reward: (p) => `보상 ${p}`, free: (v) => `무료 체험 ${v}원 상당`, recruit: (n) => `모집 ${n}명`, family: "Noto+Sans+KR", font: "NotoKR" },
+  en: { brand: "Luby AI campaign", closed: "Closed", always: "Always open", today: "Closes today", reward: (p) => `Reward ${p}`, free: (v) => `Free · worth ₩${v}`, recruit: (n) => `${n} creators`, family: "Noto+Sans+KR", font: "NotoKR" },
+  zh: { brand: "Luby AI 体验活动", closed: "已截止", always: "长期招募", today: "今天截止", reward: (p) => `奖励 ${p}`, free: (v) => `免费体验 价值₩${v}`, recruit: (n) => `招募 ${n} 人`, family: "Noto+Sans+SC", font: "NotoSC" },
 };
 
 /**
@@ -63,7 +63,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const meta = [c.region?.flag ? `${c.region.flag} ${regionName}` : null, c.category ? `${c.category.emoji} ${categoryName}` : null, c.promotion_type ? promotionTypeLabel({ name: c.promotion_type }, locale) : null]
     .filter(Boolean)
     .join("  ·  ");
-  const pillsFor = (withThumb: boolean) => [ui.reward(fmtP(c.point_amount)), ui.recruit(c.recruit_count), ...c.channels.slice(0, withThumb ? 2 : 3)];
+  const offerValue = (raw.offerings ?? []).reduce((sum, o) => sum + (o.estimated_value ?? 0), 0);
+  const firstPill = locale !== "ko" && offerValue >= 1000 ? ui.free(offerValue.toLocaleString("ko-KR")) : ui.reward(fmtP(c.point_amount));
+  const pillsFor = (withThumb: boolean) => [firstPill, ui.recruit(c.recruit_count), ...c.channels.slice(0, withThumb ? 2 : 3)];
   const pills = pillsFor(false);
   const title = c.title.length > 44 ? `${c.title.slice(0, 43)}…` : c.title;
 

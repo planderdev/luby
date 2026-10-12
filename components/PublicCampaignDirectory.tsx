@@ -7,11 +7,13 @@ import "@/app/lre-chrome.css";
 import { unstable_cache } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Coins, Users } from "lucide-react";
+import { ArrowRight, Coins, Users, Gift } from "lucide-react";
 import { getStaticSupabase } from "@/lib/supabase/static";
 import { getSiteUrl, SITE } from "@/lib/seo/site";
 import type { Locale } from "@/lib/i18n/config";
 import { publicCampaignDict, localePrefix } from "@/lib/i18n/public-campaign";
+import { fetchUICatalog } from "@/lib/cache/ui-catalog";
+import { categoryLabel, regionLabel, promotionTypeLabel } from "@/lib/i18n/app/catalog";
 import { PendingNavArea } from "@/components/dashboard/PendingNavArea";
 import { GuestOnly } from "@/components/public/GuestOnly";
 
@@ -23,6 +25,8 @@ type Card = {
   business_name: string;
   thumbnail_url: string | null;
   point_amount: number;
+  /** 제공 내역 합계(원). 영문·중문 카드에서 '무료 체험 ₩N 상당'을 포인트보다 먼저 보여 준다(2026-10-12 체험 중심) */
+  offer_value?: number;
   recruit_count: number;
   recruit_end: string;
   always_open: boolean;
@@ -74,18 +78,22 @@ export function buildDirectoryMetadata(locale: Locale): Metadata {
   const base = getSiteUrl();
   const url = `${base}${localePrefix(locale)}/c`;
   return {
-    title: t.dirMetaTitle,
+    title: locale === "ko" ? t.dirMetaTitle : { absolute: `${t.dirMetaTitle} — Luby AI` },
     description: t.dirMetaDesc,
     alternates: {
       canonical: url,
       languages: { "ko-KR": `${base}/c`, en: `${base}/en/c`, "zh-CN": `${base}/zh/c`, "x-default": `${base}/c` },
     },
-    openGraph: { title: t.dirMetaTitle, description: t.dirMetaDesc, url, type: "website", siteName: SITE.name, images: [{ url: "/og.png", width: 1280, height: 720 }] },
+    openGraph: { title: t.dirMetaTitle, description: t.dirMetaDesc, url, type: "website", siteName: locale === "ko" ? SITE.name : "Luby AI", images: [{ url: "/og.png", width: 1280, height: 720 }] },
   };
 }
 
 /** 공개 캠페인 디렉터리 — 모집중 캠페인 카드 목록 (KR/EN/CN, 로그인 불필요) */
 export async function PublicCampaignDirectory({ locale, params }: { locale: Locale; params: DirectoryParams }) {
+  // 공개 RPC 는 한국어 이름만 준다 — 영문·중문은 카탈로그 이름 매칭으로 바꾼다(PublicCampaignView 와 같은 방식)
+  const catalog = locale === "ko" ? null : await fetchUICatalog();
+  const regionName = (name: string | undefined) => { if (!name || !catalog) return name ?? ""; const r = catalog.regions.find((x) => x.name === name); return r ? regionLabel(r, locale) : name; };
+  const categoryName = (name: string | undefined) => { if (!name || !catalog) return name ?? ""; const k = catalog.categories.find((x) => x.name === name); return k ? categoryLabel(k, locale) : name; };
   const t = publicCampaignDict[locale];
   const pfx = localePrefix(locale);
   // 서버에서 쿠키를 읽지 않는다 — 로그인 여부에 따른 조각은 클라이언트에서 판단(CDN 캐시 유지)
@@ -153,7 +161,7 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
               <span className="mr-1 text-[11px] uppercase tracking-wider text-muted-foreground">{t.dirRegion}</span>
               <Link data-pending-nav href={qs({ region: undefined, page: undefined })} className={chip(!params.region)}>{t.dirAll}</Link>
               {dir.regions.map((r) => (
-                <Link key={r.id} data-pending-nav href={qs({ region: params.region === r.id ? undefined : r.id, page: undefined })} className={chip(params.region === r.id)}>{r.flag} {r.name}</Link>
+                <Link key={r.id} data-pending-nav href={qs({ region: params.region === r.id ? undefined : r.id, page: undefined })} className={chip(params.region === r.id)}>{r.flag} {regionName(r.name)}</Link>
               ))}
             </div>
           )}
@@ -187,9 +195,9 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
                     </div>
                     <div className="flex flex-1 flex-col p-4">
                       <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
-                        {c.region && <span>{c.region.flag} {c.region.name}</span>}
-                        {c.category && <span>· {c.category.emoji} {c.category.name}</span>}
-                        {c.promotion && <span>· {c.promotion}</span>}
+                        {c.region && <span>{c.region.flag} {regionName(c.region.name)}</span>}
+                        {c.category && <span>· {c.category.emoji} {categoryName(c.category.name)}</span>}
+                        {c.promotion && <span>· {promotionTypeLabel({ name: c.promotion }, locale)}</span>}
                       </div>
                       <h2 className="mt-1.5 line-clamp-2 break-keep text-base font-semibold leading-snug">{c.title}</h2>
                       <div className="mt-0.5 text-xs text-muted-foreground">{c.business_name}</div>
@@ -202,7 +210,14 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
                         </div>
                       )}
                       <div className="mt-auto flex items-center justify-between pt-4 text-xs">
-                        <span className="inline-flex items-center gap-1 font-semibold"><Coins className="size-3.5 text-accent-ink" /> {c.point_amount.toLocaleString()}P</span>
+                        {locale !== "ko" && (c.offer_value ?? 0) >= 1000 ? (
+                          <span className="inline-flex min-w-0 flex-col">
+                            <span className="inline-flex items-center gap-1 font-semibold"><Gift className="size-3.5 text-accent-ink" /> {t.freeWorth((c.offer_value ?? 0).toLocaleString())}</span>
+                            {c.point_amount > 0 && <span className="text-[11px] text-muted-foreground">{t.pointsPlus(c.point_amount.toLocaleString())}</span>}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 font-semibold"><Coins className="size-3.5 text-accent-ink" /> {c.point_amount.toLocaleString()}P</span>
+                        )}
                         <span className="inline-flex items-center gap-1 text-muted-foreground"><Users className="size-3.5" /> {t.people(c.recruit_count)} · {t.applied(c.applied)}</span>
                       </div>
                       {!c.always_open && <div className="mt-1 text-[11px] text-muted-foreground">{t.until(fmtDate(c.recruit_end))}</div>}

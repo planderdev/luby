@@ -24,10 +24,10 @@ export function buildCreatorLandingMetadata(locale: Locale): Metadata {
   const base = getSiteUrl();
   const url = `${base}${localePrefix(locale)}/creators`;
   return {
-    title: t.metaTitle,
+    title: locale === "ko" ? t.metaTitle : { absolute: `${t.metaTitle} — Luby AI` },
     description: t.metaDesc,
     alternates: { canonical: url, languages: { "ko-KR": `${base}/creators`, en: `${base}/en/creators`, "zh-CN": `${base}/zh/creators`, "x-default": `${base}/creators` } },
-    openGraph: { title: t.metaTitle, description: t.metaDesc, url, siteName: SITE.name, images: [{ url: `${base}/og.png`, width: 1280, height: 720 }] },
+    openGraph: { title: t.metaTitle, description: t.metaDesc, url, siteName: locale === "ko" ? SITE.name : "Luby AI", images: [{ url: `${base}/og.png`, width: 1280, height: 720 }] },
   };
 }
 

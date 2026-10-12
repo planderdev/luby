@@ -50,11 +50,11 @@ const ko = {
 export type CreatorLandingDict = typeof ko;
 
 const en: CreatorLandingDict = {
-  metaTitle: "Become a creator — try products, get paid in points",
+  metaTitle: "Become a creator — free brand experiences in Korea, plus reward points",
   metaDesc: "All you need is an Instagram, YouTube, TikTok, blog or Xiaohongshu channel. Apply to Korean and global brand campaigns, get selected, create content, and cash out from 10,000P to a Korean bank account.",
   eyebrow: "Creators wanted",
-  title: "Experience brands with your channel,\nget paid in points",
-  sub: "Content matters more than follower count. Register one channel and apply to Korean and global brand campaigns right away.",
+  title: "Free brand experiences in Korea,\nshared on your channel",
+  sub: "Free meals, products and visits from Korean brands. Content matters more than follower count — register one channel, apply right away, and earn reward points on top.",
   ctaPrimary: "Sign up free & apply",
   ctaSecondary: "Browse open campaigns",
   liveOpen: (n) => `${n} open campaigns`,
@@ -97,11 +97,11 @@ const en: CreatorLandingDict = {
 };
 
 const zh: CreatorLandingDict = {
-  metaTitle: "成为体验官 — 体验品牌，积分结算",
-  metaDesc: "只要有 Instagram、YouTube、TikTok、博客或小红书频道，就能报名韩国与全球品牌的体验活动。入选 → 体验 → 内容 → 审核后积分，满 10,000P 可提现到韩国银行账户。",
+  metaTitle: "成为体验官 — 免费体验韩国品牌 · 小红书种草",
+  metaDesc: "只要有 Instagram、YouTube、TikTok、博客或小红书频道，就能报名韩国与全球品牌的体验活动。入选 → 免费体验 → 发布内容 → 审核后另享积分（满 10,000P 可提现到韩国银行账户）。",
   eyebrow: "招募体验官",
-  title: "用你的频道体验品牌，\n以积分结算",
-  sub: "内容比粉丝数更重要。登记一个频道，即可报名韩国与全球品牌的体验活动。",
+  title: "免费体验韩国品牌，\n用你的频道种草",
+  sub: "免费探店、免费试用产品，内容比粉丝数更重要。登记一个频道即可报名韩国与全球品牌的体验活动，审核通过后另享积分。",
   ctaPrimary: "免费注册并报名",
   ctaSecondary: "查看招募中的活动",
   liveOpen: (n) => `招募中活动 ${n} 个`,
