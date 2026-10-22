@@ -3,22 +3,11 @@ import Link from "next/link";
 import { ScrollText } from "lucide-react";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
+import { AUDIT_ACTION_LABEL, auditExtra } from "@/lib/audit-labels";
 
 export const metadata = { title: "운영 기록 — 루비AI" };
 
-const ACTION_LABEL: Record<string, { label: string; tone: string }> = {
-  user_approved: { label: "회원 승인", tone: "bg-success-soft text-success" },
-  user_unapproved: { label: "승인 해제", tone: "bg-warning-soft text-warning" },
-  user_role_changed: { label: "역할 변경", tone: "bg-warning-soft text-warning" },
-  campaign_approved: { label: "캠페인 승인", tone: "bg-success-soft text-success" },
-  campaign_rejected: { label: "캠페인 반려", tone: "bg-danger-soft text-danger" },
-  campaign_cancelled_by_operator: { label: "캠페인 취소(운영)", tone: "bg-danger-soft text-danger" },
-  campaign_status_changed: { label: "캠페인 상태 변경", tone: "bg-muted text-muted-foreground" },
-  campaign_created_on_behalf: { label: "대행 등록", tone: "bg-accent-soft text-accent-ink" },
-  force_match: { label: "강제 매칭", tone: "bg-accent-soft text-accent-ink" },
-  withdrawal_paid: { label: "정산 지급", tone: "bg-success-soft text-success" },
-  withdrawal_rejected: { label: "정산 반려", tone: "bg-danger-soft text-danger" },
-};
+const ACTION_LABEL = AUDIT_ACTION_LABEL;
 const ACTIONS = Object.keys(ACTION_LABEL);
 
 export default async function OperatorAuditPage({ searchParams }: { searchParams: Promise<{ action?: string; actor?: string }> }) {
@@ -32,7 +21,7 @@ export default async function OperatorAuditPage({ searchParams }: { searchParams
     supabase.from("profiles").select("id, name").eq("role", "operator").order("name"),
   ]);
   const targetHref = (t: string, id: string | null) =>
-    !id ? null : t === "campaign" ? `/dashboard/campaigns/${id}` : t === "profile" ? `/dashboard/operator/users` : t === "withdrawal" ? `/dashboard/operator/withdrawals` : null;
+    !id ? null : t === "campaign" ? `/dashboard/campaigns/${id}` : t === "profile" ? `/dashboard/operator/users/${id}` : t === "withdrawal" ? `/dashboard/operator/withdrawals` : null;
 
   return (
     <div>
@@ -62,7 +51,7 @@ export default async function OperatorAuditPage({ searchParams }: { searchParams
           const a = ACTION_LABEL[r.action] ?? { label: r.action, tone: "bg-muted text-muted-foreground" };
           const href = targetHref(r.target_type, r.target_id);
           const meta = (r.meta ?? {}) as Record<string, unknown>;
-          const extra = r.action === "force_match" ? `${meta.assigned}명 배정${meta.note ? ` · ${meta.note}` : ""}` : r.action === "withdrawal_rejected" && meta.reason ? `사유: ${meta.reason}` : r.action.startsWith("campaign_") && meta.from ? `${meta.from} → ${meta.to}` : "";
+          const extra = auditExtra(r.action, meta);
           return (
             <li key={r.id} className="flex flex-wrap items-center gap-3 px-5 py-3 text-sm">
               <span className="w-36 shrink-0 text-xs text-muted-foreground">{new Date(r.created_at).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>

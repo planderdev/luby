@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase/server";
 import { MemberActions } from "./MemberActions";
 import { MemberNotes } from "./MemberNotes";
 import { MemberEmailEditor } from "./MemberEmailEditor";
+import { PlanOverridePanel } from "./PlanOverridePanel";
+import { AUDIT_ACTION_LABEL, auditExtra } from "@/lib/audit-labels";
 
 export const metadata = { title: "회원 상세 — 루비AI" };
 
@@ -20,7 +22,7 @@ export default async function OperatorMemberDetailPage({ params }: { params: Pro
   if (me.role !== "operator") redirect("/dashboard");
   const supabase = await createClient();
 
-  const { data: p } = await supabase.from("profiles").select("id, email, name, phone, avatar_url, role, approved, approved_at, created_at, referred_by, onboarding_done, email_prefs, operator_tags, signup_source").eq("id", id).maybeSingle();
+  const { data: p } = await supabase.from("profiles").select("id, email, name, phone, avatar_url, role, approved, approved_at, created_at, referred_by, onboarding_done, email_prefs, operator_tags, signup_source, is_super_operator").eq("id", id).maybeSingle();
   if (!p) notFound();
   const isAdv = p.role === "advertiser";
   const isInf = p.role === "influencer";
@@ -30,12 +32,12 @@ export default async function OperatorMemberDetailPage({ params }: { params: Pro
     isInf ? supabase.from("influencers").select("bio, region_id, total_points, public_profile, regions(name, flag)").eq("profile_id", id).maybeSingle() : Promise.resolve({ data: null }),
     isInf ? supabase.from("influencer_channels").select("url, handle, followers, channel_types(name)").eq("influencer_id", id) : Promise.resolve({ data: [] }),
     isInf ? supabase.from("influencer_categories").select("categories(name, emoji)").eq("influencer_id", id) : Promise.resolve({ data: [] }),
-    isAdv ? supabase.from("subscriptions").select("status, expires_at, plans(name)").eq("advertiser_id", id).maybeSingle() : Promise.resolve({ data: null }),
+    isAdv ? supabase.from("subscriptions").select("status, expires_at, plans(name, tier)").eq("advertiser_id", id).maybeSingle() : Promise.resolve({ data: null }),
     isAdv ? supabase.from("campaigns").select("id, title, status, recruit_end, point_amount, created_at").eq("advertiser_id", id).order("created_at", { ascending: false }).limit(20) : Promise.resolve({ data: [] }),
     isInf ? supabase.from("applications").select("id, status, created_at, campaigns(id, title, point_amount)").eq("influencer_id", id).order("created_at", { ascending: false }).limit(20) : Promise.resolve({ data: [] }),
     isInf ? supabase.from("point_withdrawals").select("amount, status, requested_at").eq("influencer_id", id).order("requested_at", { ascending: false }).limit(10) : Promise.resolve({ data: [] }),
     p.referred_by ? supabase.from("profiles").select("id, name, email").eq("id", p.referred_by).maybeSingle() : Promise.resolve({ data: null }),
-    supabase.from("operator_audit_log").select("id, action, created_at, actor_id, target_label").eq("target_id", id).order("created_at", { ascending: false }).limit(10),
+    supabase.from("operator_audit_log").select("id, action, created_at, actor_id, target_label, meta").eq("target_id", id).order("created_at", { ascending: false }).limit(10),
     supabase.from("notifications").select("title, created_at, read_at").eq("user_id", id).order("created_at", { ascending: false }).limit(8),
   ]);
   const { data: noteRows } = await supabase.from("member_notes").select("id, body, pinned, created_at, author_id").eq("profile_id", id).order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(50);
@@ -44,6 +46,7 @@ export default async function OperatorMemberDetailPage({ params }: { params: Pro
   const adv = advRes.data; const inf = infRes.data; const sub = subRes.data;
   const region = inf ? one(inf.regions as Named) : null;
   const plan = sub ? one(sub.plans as Named) : null;
+  const planTier = ((plan as { tier?: string } | null)?.tier ?? "free") as "free" | "business" | "enterprise";
   const refBy = refRes.data;
   const actorIds = [...new Set([...(auditRes.data ?? []).map((a) => a.actor_id), ...(noteRows ?? []).map((n) => n.author_id)].filter(Boolean))] as string[];
   const { data: actors } = actorIds.length ? await supabase.from("profiles").select("id, name").in("id", actorIds) : { data: [] };
@@ -51,7 +54,7 @@ export default async function OperatorMemberDetailPage({ params }: { params: Pro
   // Resend 차단 목록(하드 바운스)에 있는 주소인지 — 반송이면 로그인 이메일 수정 칸을 펼쳐 둔다
   const { data: bouncedRows } = await supabase.rpc("operator_bounced_ids", { p_ids: [p.id] });
   const bounced = ((bouncedRows ?? []) as string[]).includes(p.id);
-  const roleLabel = isAdv ? (adv?.advertiser_kind === "agency" ? "대행사 · 실행사" : "광고주") : isInf ? "크리에이터" : "운영자";
+  const roleLabel = isAdv ? (adv?.advertiser_kind === "agency" ? "대행사 · 실행사" : "광고주") : isInf ? "크리에이터" : p.is_super_operator ? "총운영관리자" : "운영자";
 
   return (
     <div>
@@ -117,6 +120,11 @@ export default async function OperatorMemberDetailPage({ params }: { params: Pro
               <div className="pt-1"><Link href={`/dashboard/advertisers/${p.id}`} className="text-xs underline underline-offset-2">공개 프로필 보기</Link></div>
             </dl>
           )}
+          {isAdv && me.is_super_operator && (
+            <div className="mt-3">
+              <PlanOverridePanel profileId={p.id} memberName={p.name ?? p.email} currentTier={planTier} currentExpiresAt={sub?.status === "active" ? sub.expires_at : null} />
+            </div>
+          )}
           {isInf && inf && (
             <dl className="mt-3 space-y-2 text-sm">
               <div><dt className="text-xs text-muted-foreground">활동 지역</dt><dd>{region ? `${region.flag} ${region.name}` : "—"}</dd></div>
@@ -175,7 +183,7 @@ export default async function OperatorMemberDetailPage({ params }: { params: Pro
             <div>
               <h2 className="flex items-center gap-2 text-sm font-semibold"><ScrollText className="size-4" /> 이 회원에 대한 운영 기록</h2>
               <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
-                {(auditRes.data ?? []).map((a) => <li key={a.id}>{new Date(a.created_at).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })} · {actorName.get(a.actor_id ?? "") ?? "시스템"} · {a.action}</li>)}
+                {(auditRes.data ?? []).map((a) => <li key={a.id}>{new Date(a.created_at).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })} · {actorName.get(a.actor_id ?? "") ?? "시스템"} · {AUDIT_ACTION_LABEL[a.action]?.label ?? a.action}{(() => { const x = auditExtra(a.action, (a.meta ?? {}) as Record<string, unknown>); return x ? ` · ${x}` : ""; })()}</li>)}
                 {(auditRes.data ?? []).length === 0 && <li>기록 없음</li>}
               </ul>
             </div>

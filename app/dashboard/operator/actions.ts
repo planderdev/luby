@@ -489,6 +489,43 @@ export async function setMemberTags(profileId: string, tags: string[]) {
   return { ok: true as const, tags: (data ?? []) as string[] };
 }
 
+export type PlanPeriod = "30" | "90" | "365" | "none" | "date";
+
+/**
+ * 총운영관리자: 회원 플랜 강제 설정(FREE/BUSINESS/ENTERPRISE). 권한·사유·만료일 검사와 감사 기록·광고주 알림은
+ * RPC operator_set_plan 이 한다(일반 운영자는 DB 에서 거절). date 는 그날 23:59:59(KST)까지.
+ */
+export async function setMemberPlan(
+  profileId: string,
+  input: { tier: "free" | "business" | "enterprise"; period: PlanPeriod; date?: string; reason: string; notify: boolean },
+): Promise<{ ok: true; planName: string; expiresAt: string | null } | { ok: false; error: string }> {
+  const guard = await ensureOperator();
+  if (!guard.ok) return { ok: false, error: guard.error };
+
+  let expiresAt: string | null = null;
+  if (input.tier !== "free") {
+    if (input.period === "date") {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date ?? "")) return { ok: false, error: "만료일을 선택해 주세요." };
+      expiresAt = new Date(`${input.date}T23:59:59+09:00`).toISOString();
+    } else if (input.period !== "none") {
+      expiresAt = new Date(Date.now() + Number(input.period) * 24 * 60 * 60 * 1000).toISOString();
+    }
+  }
+
+  const { data, error } = await guard.supabase.rpc("operator_set_plan", {
+    p_advertiser: profileId,
+    p_tier: input.tier,
+    p_expires_at: expiresAt,
+    p_reason: input.reason,
+    p_notify: input.notify,
+  });
+  if (error) return { ok: false, error: dbErrorMessage(error) };
+  const r = (data ?? {}) as { plan_name?: string; expires_at?: string | null };
+  revalidatePath(`/dashboard/operator/users/${profileId}`);
+  revalidatePath("/dashboard/operator/audit");
+  return { ok: true, planName: r.plan_name ?? input.tier.toUpperCase(), expiresAt: r.expires_at ?? null };
+}
+
 /** 운영자: 세금계산서 발행 완료 처리 (홈택스/API 로 발행 후 표시 → 광고주 알림·감사 로그) */
 export async function markTaxInvoiceIssued(paymentId: string, note?: string) {
   const guard = await ensureOperator();

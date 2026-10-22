@@ -1138,6 +1138,7 @@ export type Database = {
       profiles: {
         Row: {
           is_demo: boolean
+          is_super_operator: boolean
           approved: boolean
           approved_at: string | null
           approved_by: string | null
@@ -1158,6 +1159,7 @@ export type Database = {
         }
         Insert: {
           is_demo?: boolean
+          is_super_operator?: boolean
           approved?: boolean
           approved_at?: string | null
           approved_by?: string | null
@@ -1178,6 +1180,7 @@ export type Database = {
         }
         Update: {
           is_demo?: boolean
+          is_super_operator?: boolean
           approved?: boolean
           approved_at?: string | null
           approved_by?: string | null
@@ -1654,6 +1657,20 @@ export type Database = {
       is_demo_email: {
         Args: { p_email: string }
         Returns: boolean
+      }
+      is_super_operator: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      operator_set_plan: {
+        Args: {
+          p_advertiser: string
+          p_tier: string
+          p_expires_at: string | null
+          p_reason: string
+          p_notify?: boolean
+        }
+        Returns: Json
       }
       finalize_paid_payment: {
         Args: {
