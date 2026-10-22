@@ -4,6 +4,8 @@ import { ArrowLeft } from "lucide-react";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { CheckoutClient } from "./CheckoutClient";
+import { PaymentChooser } from "./PaymentChooser";
+import { getAutopayOffer } from "@/lib/payments/autopay-offer";
 
 export const metadata = { title: "결제 — 루비AI" };
 
@@ -12,8 +14,10 @@ export default async function CheckoutPage() {
   if (!profile) redirect("/login?redirect=/dashboard/billing/checkout");
   if (profile.role !== "advertiser") redirect("/dashboard");
 
-  const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY;
-  if (!clientKey) {
+  const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY ?? null;
+  // 정기결제 키가 있으면 월 구독(정기결제)·단건 결제를 함께 보여주고 고르게 한다
+  const offer = await getAutopayOffer(profile.id);
+  if (!clientKey && !offer.available) {
     return (
       <div>
         <BackLink />
@@ -44,12 +48,17 @@ export default async function CheckoutPage() {
         {plan.name} 플랜 결제
       </h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        월 ₩{plan.monthly_price.toLocaleString()} · 결제 즉시 30일간 BUSINESS 혜택이
-        적용됩니다.
+        {offer.available
+          ? `월 ₩${plan.monthly_price.toLocaleString()} · 결제 방식을 골라 주세요 — 매월 자동결제되는 월 구독(정기결제) 또는 한 달씩 결제하는 단건 결제.`
+          : `월 ₩${plan.monthly_price.toLocaleString()} · 결제 즉시 30일간 BUSINESS 혜택이 적용됩니다.`}
       </p>
 
       <div className="mt-8 max-w-2xl">
-        <CheckoutClient clientKey={clientKey} />
+        {offer.available ? (
+          <PaymentChooser offer={offer} clientKey={clientKey} planName={plan.name} price={plan.monthly_price} />
+        ) : (
+          <CheckoutClient clientKey={clientKey!} />
+        )}
       </div>
     </div>
   );

@@ -210,14 +210,12 @@ export default async function BillingPage() {
               ) : plan.tier === "business" && billingEnabled ? (
                 <div className="mt-8 space-y-2">
                   <a
-                    href="/dashboard/billing/autopay"
+                    href="/dashboard/billing/checkout"
                     className="block w-full rounded-full bg-background px-6 py-3 text-center text-sm font-medium text-foreground transition-colors hover:bg-background/90"
                   >
-                    {isCurrent ? "자동결제로 이어서 쓰기" : "자동결제로 구독하기"}
+                    {isCurrent ? "연장하기" : `${formatPrice(plan.monthly_price)} 결제하기`}
                   </a>
-                  <a href="/dashboard/billing/checkout" className="block text-center text-xs text-background/70 underline underline-offset-2 hover:text-background">
-                    {isCurrent ? "1개월만 연장하기 (+30일)" : "1개월만 결제하기"}
-                  </a>
+                  <p className="text-center text-[11px] text-background/60">월 구독(정기결제) · 단건 결제 중 선택</p>
                 </div>
               ) : isCurrent && plan.tier === "business" ? (
                 <a
