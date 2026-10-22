@@ -24,7 +24,7 @@ export function AutopayTerms({ planName, prices }: { planName: string; prices: P
           "만료 하루 전 오전 10시에 등록 카드로 결제하고, 성공하면 기존 만료일에 이어서 30일이 연장돼요.",
           "결제 3일 전에 '자동결제 예정' 알림을 보내 드려요.",
           "결제가 실패하면 만료 후 3일 동안 BUSINESS를 유지하며 매일 다시 시도해요. 그 안에 카드를 바꾸면 바로 결제돼요.",
-          "해지하면 남은 기간까지 이용하고 더는 결제되지 않아요. 결제 후 환불은 고객센터로 문의해 주세요.",
+          "해지하면 남은 기간까지 이용하고 더는 결제되지 않아요. 해지만으로 이미 결제된 요금이 환불되지는 않고, 환불은 이용약관 제9조 기준(결제 후 7일 이내 미사용 시 전액)에 따라 고객센터로 요청해 주세요.",
         ].map((t) => (
           <li key={t} className="flex items-start gap-2">
             <Check className="mt-0.5 size-4 shrink-0 text-accent-ink" strokeWidth={2.5} />

@@ -20,6 +20,8 @@ export type LegalDoc = {
   title: string;
   effectiveLabel: string;
   effectiveDate: string;
+  /** 개정 안내(있으면 시행일 아래에 표시) */
+  revision?: string;
   disclaimer: string;
   companyLabel: string;
   company: { label: string; value: string }[];
@@ -48,7 +50,9 @@ const ko: LegalContent = {
   terms: {
     title: "이용약관",
     effectiveLabel: "시행일",
-    effectiveDate: "2026년 7월 13일",
+    effectiveDate: "2026년 10월 30일 (최초 시행 2026년 7월 13일)",
+    revision:
+      "2026년 10월 30일 개정 — 결제 방식(단건 결제·월 구독) 안내(제8조 제2항), 월 구독(정기결제) 조항 신설(제8조의2), 정기결제 해지와 환불(제9조 제4항). 개정 약관은 2026년 10월 23일 공지했습니다.",
     disclaimer:
       "본 약관은 루비AI 서비스 이용에 관한 회사와 회원 간의 권리·의무를 규정합니다. 서비스를 이용함으로써 본 약관에 동의한 것으로 간주됩니다.",
     companyLabel: "사업자 정보",
@@ -128,8 +132,20 @@ const ko: LegalContent = {
         heading: "제8조 (요금 및 결제)",
         body: [
           "1. 서비스의 이용 요금 및 요금제는 서비스 화면에 게시된 바에 따릅니다.",
-          "2. 유료 결제는 토스페이먼츠 등 회사가 지정한 결제대행사를 통해 처리됩니다. 회사는 회원의 카드 정보 등 결제 수단 정보를 직접 저장하지 않습니다.",
-          "3. 요금은 부가가치세(VAT)가 별도로 부과될 수 있습니다.",
+          "2. 유료 플랜은 1개월 단건 결제 또는 월 구독(정기결제) 중 회원이 선택하여 결제하며, 결제 방식별 금액과 부가가치세 포함 여부는 결제 화면에 표시됩니다.",
+          "3. 유료 결제는 토스페이먼츠 등 회사가 지정한 결제대행사를 통해 처리됩니다. 회사는 회원의 카드 정보 등 결제 수단 정보를 직접 저장하지 않습니다.",
+          "4. 요금은 부가가치세(VAT)가 별도로 부과될 수 있습니다.",
+        ],
+      },
+      {
+        heading: "제8조의2 (월 구독(정기결제))",
+        body: [
+          "1. 월 구독은 회원이 결제 화면에서 정기결제에 동의하고 결제 카드를 등록한 때 시작되며, 등록한 카드로 매월 이용 요금이 자동으로 결제됩니다.",
+          "2. 처음 구독하는 경우 카드 등록과 함께 첫 달 이용 요금이 결제되고, 이후에는 이용 기간 만료 하루 전에 다음 달 요금이 결제되어 이용 기간이 30일씩 연장됩니다. 이미 유료 플랜을 이용 중인 회원은 현재 이용 기간 만료 하루 전부터 결제됩니다.",
+          "3. 회사는 정기결제일 3일 전까지 결제 예정일, 금액 및 결제 카드를 서비스 내 알림과 이메일로 안내합니다.",
+          "4. 정기결제가 실패한 경우 회사는 이용 기간 만료 후 3일 동안 유료 플랜을 유지하면서 매일 결제를 다시 시도하며, 이 기간 안에 결제되지 않으면 정기결제를 해지하고 무료 플랜으로 전환합니다.",
+          "5. 회원은 구독·결제 화면에서 언제든지 정기결제를 해지하거나 결제 카드를 변경·삭제할 수 있습니다. 해지하면 이미 결제한 이용 기간이 끝날 때까지 이용할 수 있고 이후에는 결제되지 않습니다.",
+          "6. 회사가 정기결제 요금을 인상하는 경우 적용일 30일 전까지 회원에게 알리며, 동의하지 않는 회원은 인상 전에 정기결제를 해지할 수 있습니다.",
         ],
       },
       {
@@ -138,6 +154,7 @@ const ko: LegalContent = {
           "1. 회원은 관련 법령(전자상거래법 등)에 따라 청약철회 및 환불을 요청할 수 있습니다.",
           "2. 결제 후 서비스를 이용하지 않은 경우, 결제일로부터 7일 이내에 전액 환불을 요청할 수 있습니다. 단, 이미 캠페인을 등록·운영하는 등 서비스를 실질적으로 이용한 경우 이용분을 공제할 수 있습니다.",
           "3. 환불 문의는 contact@plander.io 로 접수합니다.",
+          "4. 정기결제 해지는 다음 결제를 멈추는 것으로, 해지만으로 이미 결제된 요금이 환불되지는 않습니다. 이미 결제된 요금의 환불은 제2항에 따릅니다.",
         ],
       },
       {
@@ -294,7 +311,9 @@ const en: LegalContent = {
   terms: {
     title: "Terms of Service",
     effectiveLabel: "Effective",
-    effectiveDate: "July 13, 2026",
+    effectiveDate: "October 30, 2026 (first effective July 13, 2026)",
+    revision:
+      "Amended October 30, 2026 — payment options (one-time payment or monthly subscription) in Article 8(2), new Article 8-2 (Monthly subscription / recurring payment), and cancellation vs. refunds in Article 9(4). The amendment was announced on October 23, 2026.",
     disclaimer:
       "These terms govern the rights and obligations between the company and members regarding use of the Luby AI service. By using the service, you agree to these terms. The Korean version is the legally binding original.",
     companyLabel: "Business information",
@@ -367,8 +386,20 @@ const en: LegalContent = {
         heading: "8. Fees and payment",
         body: [
           "1. Fees and plans follow what is posted on the service.",
-          "2. Paid transactions are processed through payment processors designated by the Company, such as Toss Payments. The Company does not directly store payment method information such as card numbers.",
-          "3. VAT may be charged separately.",
+          "2. Members choose either a one-month one-time payment or a monthly subscription (recurring payment) for paid plans. The amount for each option and whether VAT is included are shown on the payment screen.",
+          "3. Paid transactions are processed through payment processors designated by the Company, such as Toss Payments. The Company does not directly store payment method information such as card numbers.",
+          "4. VAT may be charged separately.",
+        ],
+      },
+      {
+        heading: "8-2. Monthly subscription (recurring payment)",
+        body: [
+          "1. A monthly subscription starts when the member agrees to recurring payment and registers a card on the payment screen; the monthly fee is then charged automatically to the registered card.",
+          "2. For a new subscription, the first month's fee is charged when the card is registered. After that, the next month's fee is charged one day before the current period ends and the period is extended by 30 days. Members already on a paid plan are first charged one day before their current period ends.",
+          "3. The Company notifies the member of the charge date, amount and card through in-service notifications and email at least 3 days before each recurring charge.",
+          "4. If a recurring charge fails, the Company keeps the paid plan for 3 days after the period ends and retries daily. If payment is not made within that time, the recurring payment is cancelled and the plan changes to the free plan.",
+          "5. Members can cancel the recurring payment or change or delete the registered card at any time on the Subscription & Billing screen. After cancellation, the service remains available until the end of the period already paid for and no further charges are made.",
+          "6. If the Company raises the recurring fee, it will notify members at least 30 days before the change takes effect, and members who do not agree may cancel the recurring payment before then.",
         ],
       },
       {
@@ -377,6 +408,7 @@ const en: LegalContent = {
           "1. Members may request withdrawal and refund under applicable law.",
           "2. If the service has not been used after payment, a full refund may be requested within 7 days. Where the service has been substantially used, the used portion may be deducted.",
           "3. Refund inquiries: contact@plander.io.",
+          "4. Cancelling a recurring payment stops future charges; it does not by itself refund fees already paid. Refunds of fees already paid follow paragraph 2.",
         ],
       },
       {
@@ -509,7 +541,9 @@ const zh: LegalContent = {
   terms: {
     title: "服务条款",
     effectiveLabel: "生效日",
-    effectiveDate: "2026年7月13日",
+    effectiveDate: "2026年10月30日（首次生效 2026年7月13日）",
+    revision:
+      "2026年10月30日修订 —— 付款方式（单次付款·月度订阅）说明（第8条第2款）、新增月度订阅（定期扣款）条款（第8条之2）、定期扣款解约与退款（第9条第4款）。修订条款已于2026年10月23日公告。",
     disclaimer:
       "本条款规定了公司与会员之间关于使用 Luby AI 服务的权利与义务。使用本服务即视为同意本条款。韩文版为具有法律约束力的正式文本。",
     companyLabel: "企业信息",
@@ -582,8 +616,20 @@ const zh: LegalContent = {
         heading: "第8条（费用与支付）",
         body: [
           "1. 服务费用及方案以服务页面公示为准。",
-          "2. 付费交易通过公司指定的支付服务商（如 Toss Payments）处理。公司不直接保存卡号等支付方式信息。",
-          "3. 费用可能另行加收增值税（VAT）。",
+          "2. 付费方案由会员在 1 个月单次付款或月度订阅（定期扣款）中选择支付，各付款方式的金额及是否含增值税显示在付款页面。",
+          "3. 付费交易通过公司指定的支付服务商（如 Toss Payments）处理。公司不直接保存卡号等支付方式信息。",
+          "4. 费用可能另行加收增值税（VAT）。",
+        ],
+      },
+      {
+        heading: "第8条之2（月度订阅（定期扣款））",
+        body: [
+          "1. 月度订阅自会员在付款页面同意定期扣款并登记银行卡时开始，此后每月自动从登记的银行卡扣除使用费。",
+          "2. 首次订阅时，登记银行卡的同时扣除首月使用费；此后在使用期到期前一天扣除下月费用，使用期顺延 30 天。已在使用付费方案的会员，从当前使用期到期前一天开始扣款。",
+          "3. 公司至少在每次定期扣款日 3 天前，通过服务内通知和电子邮件告知扣款日期、金额及扣款银行卡。",
+          "4. 定期扣款失败时，公司在使用期到期后 3 天内保留付费方案并每日重试；若在此期间仍未付款，将解除定期扣款并转为免费方案。",
+          "5. 会员可随时在订阅·结算页面解除定期扣款或更换、删除登记的银行卡。解除后可使用至已付费期间结束，此后不再扣款。",
+          "6. 公司上调定期扣款费用时，将至少在适用日 30 天前通知会员；不同意的会员可在上调前解除定期扣款。",
         ],
       },
       {
@@ -592,6 +638,7 @@ const zh: LegalContent = {
           "1. 会员可依相关法律申请撤回要约及退款。",
           "2. 支付后未使用服务的，可在7日内申请全额退款；若已实质使用服务，可扣除已使用部分。",
           "3. 退款咨询：contact@plander.io。",
+          "4. 解除定期扣款仅停止此后的扣款，不会因此退还已支付的费用。已支付费用的退款依第2款处理。",
         ],
       },
       {

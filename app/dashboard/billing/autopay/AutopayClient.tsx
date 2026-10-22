@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
 import { CreditCard, Loader2 } from "lucide-react";
 import { trackClient } from "@/lib/analytics";
@@ -44,7 +45,11 @@ export function AutopayClient({ cta, changing }: { cta: string; changing: boolea
       <label className="flex items-start gap-3 rounded-2xl border border-border bg-background px-5 py-4 text-sm">
         <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5 size-4 shrink-0" />
         <span className="leading-relaxed">
-          위 내용을 확인했고, 등록한 카드로 <b>매월 BUSINESS 이용료가 자동결제</b>되는 것에 동의합니다. 자동결제는 구독·결제 화면에서 언제든 해지할 수 있어요.
+          위 내용과{" "}
+          <Link href="/terms" target="_blank" className="underline underline-offset-2">
+            이용약관 제8조의2(월 구독)·제9조(환불)
+          </Link>
+          를 확인했고, 등록한 카드로 <b>매월 BUSINESS 이용료가 자동결제</b>되는 것에 동의합니다. 자동결제는 구독·결제 화면에서 언제든 해지할 수 있어요.
         </span>
       </label>
       {error && <div className="rounded-2xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent-ink">⚠ {error}</div>}

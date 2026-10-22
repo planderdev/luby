@@ -68,6 +68,9 @@ export function LegalDocument({
         <p className="mt-3 text-sm text-muted-foreground">
           {d.effectiveLabel}: {d.effectiveDate}
         </p>
+        {d.revision && (
+          <p className="mt-3 rounded-2xl border border-accent/30 bg-accent-soft/50 px-5 py-3 text-sm leading-relaxed text-accent-ink">{d.revision}</p>
+        )}
 
         {/* Disclaimer */}
         <p className="mt-6 rounded-2xl border border-border bg-muted/40 px-5 py-4 text-sm leading-relaxed text-muted-foreground">

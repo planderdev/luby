@@ -8,6 +8,7 @@ import { GuideButton } from "@/components/dashboard/GuideButton";
 import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { SubscriptionBanner } from "@/components/dashboard/SubscriptionBanner";
 import { PushNudgeBanner } from "@/components/dashboard/PushNudgeBanner";
+import { TermsUpdateBanner } from "@/components/dashboard/TermsUpdateBanner";
 import { countPushSubscriptions } from "@/app/dashboard/settings/actions";
 import { getAppLocale } from "@/lib/i18n/app-locale";
 import { LangSync } from "@/components/LangSync";
@@ -61,6 +62,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
         {/* 콘텐츠 — 모바일은 하단 탭바 높이만큼 여백. main 랜드마크로 스크린리더가 본문으로 바로 갈 수 있게 */}
         <main id="main" className="mx-auto w-full max-w-6xl px-5 pb-24 pt-5 md:px-8 lg:px-12 lg:pb-14 lg:pt-4">
+          <TermsUpdateBanner locale={locale} />
           {profile.role === "advertiser" && <SubscriptionBanner userId={profile.id} />}
           <PushNudgeBanner hasAnySubscription={pushCount > 0} />
           {children}
