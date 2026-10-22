@@ -7,6 +7,7 @@ import { AutopayPanel } from "./AutopayPanel";
 import { getAdminSupabase } from "@/lib/supabase/admin";
 import { isBillingConfigured } from "@/lib/payments/toss";
 import { isSubscriptionActive } from "@/lib/plans/active";
+import { planPrices, won } from "@/lib/payments/prices";
 
 export const metadata = { title: "구독·결제 — 루비AI" };
 
@@ -59,7 +60,7 @@ export default async function BillingPage() {
       .select("id, status, started_at, expires_at, plan_id, auto_renew, grace_until, renew_last_error")
       .eq("advertiser_id", profile.id)
       .maybeSingle(),
-    supabase.from("plans").select("id, name, tier, monthly_price").order("monthly_price"),
+    supabase.from("plans").select("id, name, tier, monthly_price, list_price, one_time_amount, subscription_amount").order("monthly_price"),
     supabase.from("payments").select("id, order_name, amount, status, payment_key, kind, approved_at, created_at, tax_invoice_requested_at, tax_invoice_issued_at").eq("advertiser_id", profile.id).order("created_at", { ascending: false }).limit(24),
   ]);
 
@@ -79,7 +80,9 @@ export default async function BillingPage() {
   const inGrace = !!subscription?.expires_at && new Date(subscription.expires_at).getTime() <= nowMs && !!subscription.grace_until && new Date(subscription.grace_until).getTime() > nowMs;
   const businessActive = currentTier === "business" && !!subscription?.expires_at && new Date(subscription.expires_at).getTime() > nowMs;
   const autoRenewOn = !!subscription?.auto_renew && (businessActive || inGrace);
-  const businessPrice = (plans ?? []).find((p) => p.tier === "business")?.monthly_price ?? 0;
+  const businessPlan = (plans ?? []).find((p) => p.tier === "business");
+  // 정기결제 실제 결제 금액(부가세 포함) — 자동결제 영역의 '다음 결제'·'지금 결제' 금액
+  const businessCharge = businessPlan ? planPrices(businessPlan).subscription : 0;
   const sortedPlans = [...(plans ?? [])].sort(
     (a, b) => TIER_ORDER.indexOf(a.tier) - TIER_ORDER.indexOf(b.tier)
   );
@@ -139,6 +142,7 @@ export default async function BillingPage() {
               {formatPrice(currentPlan?.monthly_price ?? 0)}
               <span className="text-sm font-normal text-muted-foreground"> / 월</span>
             </div>
+            {(currentPlan?.monthly_price ?? 0) > 0 && <div className="mt-0.5 text-[11px] text-muted-foreground">부가세 별도</div>}
           </div>
         </div>
       </div>
@@ -172,7 +176,13 @@ export default async function BillingPage() {
               >
                 {plan.name}
               </div>
-              <div className="mt-4 flex items-baseline gap-2">
+              {isBusiness && planPrices(plan).list && (
+                <div className="mt-4 flex items-center gap-2 text-sm">
+                  <span className="text-background/50 line-through tabular-nums">{won(planPrices(plan).list!)}</span>
+                  <span className="rounded-full bg-accent px-2 py-0.5 text-[11px] font-medium text-background">할인 중</span>
+                </div>
+              )}
+              <div className={`${isBusiness && planPrices(plan).list ? "mt-1" : "mt-4"} flex items-baseline gap-2`}>
                 <span className="display text-3xl font-semibold">
                   {plan.tier === "enterprise" ? "Custom" : formatPrice(plan.monthly_price)}
                 </span>
@@ -184,6 +194,11 @@ export default async function BillingPage() {
                   </span>
                 )}
               </div>
+              {isBusiness && (
+                <p className="mt-1 text-[11px] leading-relaxed text-background/60">
+                  부가세 별도 · 월 구독 결제 {won(planPrices(plan).subscription)} · 단건 결제 {won(planPrices(plan).oneTime)}(부가세 포함)
+                </p>
+              )}
               <p
                 className={`mt-2 text-sm ${isBusiness ? "text-background/70" : "text-muted-foreground"}`}
               >
@@ -213,7 +228,7 @@ export default async function BillingPage() {
                     href="/dashboard/billing/checkout"
                     className="block w-full rounded-full bg-background px-6 py-3 text-center text-sm font-medium text-foreground transition-colors hover:bg-background/90"
                   >
-                    {isCurrent ? "연장하기" : `${formatPrice(plan.monthly_price)} 결제하기`}
+                    {isCurrent ? "연장하기" : "결제하기"}
                   </a>
                   <p className="text-center text-[11px] text-background/60">월 구독(정기결제) · 단건 결제 중 선택</p>
                 </div>
@@ -260,7 +275,7 @@ export default async function BillingPage() {
           expiresAt={subscription?.expires_at ?? null}
           graceUntil={inGrace ? subscription!.grace_until : null}
           lastError={subscription?.renew_last_error ?? null}
-          price={businessPrice}
+          price={businessCharge}
         />
       )}
 

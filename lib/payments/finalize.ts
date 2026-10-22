@@ -5,10 +5,11 @@
  *   결제 키로 토스에 다시 물어본 결제 객체를 기준으로 맞춘다(주문번호가 다르면 반영 안 함) — 새로고침·동시 요청·웹훅 모두 같은 경로.
  * - 결제 확정 + 구독 연장은 DB 함수(finalize_paid_payment) 한 번으로: 같은 결제가 여러 번 들어와도
  *   구독은 정확히 한 번만 늘어나고, 이미 결제 완료인 주문을 '실패'로 덮어쓰지 않는다.
- * - 금액은 주문 행이 아니라 플랜 원가와 대조(주문 행은 광고주가 직접 넣을 수 있음).
+ * - 금액은 주문 행이 아니라 플랜의 결제 방식별 금액과 대조(주문 행은 광고주가 직접 넣을 수 있음) — 단건 one_time_amount, 정기 subscription_amount.
  */
 import type { TossConfirmResult, TossPayment } from "./toss";
 import { dbErrorMessage } from "@/lib/db-errors";
+import { chargeAmount, type PlanPriceRow } from "./prices";
 
 export const SUBSCRIPTION_DAYS = 30;
 
@@ -18,8 +19,10 @@ export type PaymentOrder = {
   plan_id: string;
   status: string;
   advertiser_id: string;
+  /** one_time(단건) | billing_first | billing_renewal(정기결제) — 결제 금액 기준이 다르다 */
+  kind?: string | null;
 };
-export type PaymentPlan = { id: string; name: string; monthly_price: number };
+export type PaymentPlan = { id: string; name: string } & PlanPriceRow;
 export type DepositInfo = { bank: string; accountNumber: string; dueDate: string | null; amount: number };
 
 export type FinalizeResult =
@@ -90,10 +93,11 @@ export async function applyTossPayment(
 
   switch (payment.status) {
     case "DONE": {
-      if (payment.totalAmount !== plan.monthly_price) {
+      const expected = chargeAmount(plan, order.kind);
+      if (payment.totalAmount !== expected) {
         await deps.markFailed(order.id, {
           paymentKey: payment.paymentKey,
-          reason: `AMOUNT_MISMATCH: ${payment.totalAmount} != ${plan.monthly_price}`,
+          reason: `AMOUNT_MISMATCH: ${payment.totalAmount} != ${expected}`,
           raw: payment,
         });
         return err("결제 금액이 플랜 가격과 달라 플랜을 적용하지 않았어요. 고객센터로 문의해 주세요.");
@@ -141,7 +145,7 @@ export async function confirmAndFinalize(
 
   const plan = await deps.plan(order.plan_id);
   if (!plan) return err("플랜 정보를 찾을 수 없습니다.");
-  if (params.amount !== plan.monthly_price) return err("결제 금액이 플랜 가격과 일치하지 않습니다.");
+  if (params.amount !== chargeAmount(plan, "one_time")) return err("결제 금액이 플랜 가격과 일치하지 않습니다.");
 
   const result = await deps.confirm(params);
   if (result.ok) return applyTossPayment(order, result.payment, deps);
@@ -174,7 +178,7 @@ export function adminFinalizeDeps(admin: any, toss: Pick<FinalizeDeps, "confirm"
   return {
     ...toss,
     plan: async (planId) => {
-      const { data } = await admin.from("plans").select("id, name, monthly_price").eq("id", planId).maybeSingle();
+      const { data } = await admin.from("plans").select("id, name, monthly_price, list_price, one_time_amount, subscription_amount").eq("id", planId).maybeSingle();
       return (data as PaymentPlan | null) ?? null;
     },
     markPaid: async (orderRowId, payment) => {

@@ -91,7 +91,7 @@ export function AutopayPanel({
           {graceUntil
             ? ""
             : nextCharge
-              ? `다음 결제: ${kst(nextCharge)} · ${won} (결제 3일 전에 알림을 보내 드려요)`
+              ? `다음 결제: ${kst(nextCharge)} · ${won}(부가세 포함) · 결제 3일 전에 알림을 보내 드려요`
               : businessActive && expiresAt
                 ? `자동결제가 꺼져 있어요. ${kst(expiresAt)}에 만료돼요.`
                 : cardLabel

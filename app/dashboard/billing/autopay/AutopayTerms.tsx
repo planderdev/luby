@@ -1,14 +1,22 @@
 import { Check } from "lucide-react";
+import { won, type PlanPrices } from "@/lib/payments/prices";
 
-/** 월 구독(정기결제) 이용 조건 — 결제 방식 선택과 자동결제(카드 변경) 페이지 공용 */
-export function AutopayTerms({ planName, price }: { planName: string; price: number }) {
+/** 월 구독(정기결제) 이용 조건 — 결제 방식 선택과 정기결제 카드 페이지 공용. 정가 취소선 + 할인가(부가세 별도) + 실제 결제 금액 */
+export function AutopayTerms({ planName, prices }: { planName: string; prices: PlanPrices }) {
   return (
     <div className="rounded-3xl glass-card px-6 py-5">
-      <div className="flex items-baseline justify-between">
-        <div className="text-sm font-medium">{planName} 플랜 · 매월 자동결제</div>
-        <div className="display text-xl font-semibold">
-          ₩{price.toLocaleString()}
-          <span className="text-xs font-normal text-muted-foreground"> / 월</span>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="text-sm font-medium">
+          {planName} 플랜 · 매월 자동결제
+          {prices.list && <span className="ml-2 rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-medium text-accent-ink">할인 중</span>}
+        </div>
+        <div className="text-right">
+          {prices.list && <div className="text-xs text-muted-foreground line-through tabular-nums">{won(prices.list)}</div>}
+          <div className="display text-xl font-semibold tabular-nums">
+            {won(prices.monthly)}
+            <span className="text-xs font-normal text-muted-foreground"> / 월</span>
+          </div>
+          <div className="text-[11px] text-muted-foreground">부가세 별도 · 결제 금액 {won(prices.subscription)}</div>
         </div>
       </div>
       <ul className="mt-4 space-y-2 text-sm text-muted-foreground">

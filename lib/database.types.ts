@@ -1019,6 +1019,8 @@ export type Database = {
           advertiser_id: string
           billing_method_id: string | null
           kind: string
+          cancelled_at: string | null
+          cancel_reason: string | null
           plan_id: string
           order_id: string
           order_name: string
@@ -1041,6 +1043,8 @@ export type Database = {
           advertiser_id: string
           billing_method_id?: string | null
           kind?: string
+          cancelled_at?: string | null
+          cancel_reason?: string | null
           plan_id: string
           order_id: string
           order_name: string
@@ -1063,6 +1067,8 @@ export type Database = {
           advertiser_id?: string
           billing_method_id?: string | null
           kind?: string
+          cancelled_at?: string | null
+          cancel_reason?: string | null
           plan_id?: string
           order_id?: string
           order_name?: string
@@ -1105,6 +1111,9 @@ export type Database = {
           features: Json
           id: string
           monthly_price: number
+          list_price: number | null
+          one_time_amount: number | null
+          subscription_amount: number | null
           name: string
           tier: Database["public"]["Enums"]["plan_tier"]
         }
@@ -1115,6 +1124,9 @@ export type Database = {
           features?: Json
           id?: string
           monthly_price?: number
+          list_price?: number | null
+          one_time_amount?: number | null
+          subscription_amount?: number | null
           name: string
           tier: Database["public"]["Enums"]["plan_tier"]
         }
@@ -1125,6 +1137,9 @@ export type Database = {
           features?: Json
           id?: string
           monthly_price?: number
+          list_price?: number | null
+          one_time_amount?: number | null
+          subscription_amount?: number | null
           name?: string
           tier?: Database["public"]["Enums"]["plan_tier"]
         }

@@ -31,7 +31,7 @@ export default async function AutopayPage() {
       </p>
 
       <div className="mt-8 max-w-2xl space-y-4">
-        <AutopayTerms planName={offer.planName} price={offer.price} />
+        <AutopayTerms planName={offer.planName} prices={offer.prices} />
         <AutopayClient changing={changing} cta={offer.cta} />
       </div>
     </div>

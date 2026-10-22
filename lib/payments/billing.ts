@@ -20,6 +20,7 @@ import {
   type PaymentPlan,
 } from "./finalize";
 import { dbErrorMessage } from "@/lib/db-errors";
+import { chargeAmount } from "./prices";
 
 export type BillingCard = {
   id: string;
@@ -99,7 +100,7 @@ export async function chargeOnce(t: ChargeTarget, deps: BillingDeps): Promise<Fi
 
   const body: ChargeBody = {
     customerKey: t.card.customerKey,
-    amount: t.plan.monthly_price,
+    amount: chargeAmount(t.plan, t.kind),
     orderId,
     orderName,
     ...(t.email ? { customerEmail: t.email } : {}),
@@ -162,7 +163,7 @@ export async function runBillingRenewals(deps: RenewalDeps) {
         d.advertiserId,
         "billing_renewed",
         `${d.plan.name} 자동결제 완료`,
-        `${d.plan.name} 1개월 이용료 ${won(d.plan.monthly_price)}을 ${cardLabel(d.card)} 카드로 결제했어요. ${kstDay(r.expiresAt)}까지 이용할 수 있어요.`,
+        `${d.plan.name} 1개월 이용료 ${won(chargeAmount(d.plan, "billing_renewal"))}(부가세 포함)을 ${cardLabel(d.card)} 카드로 결제했어요. ${kstDay(r.expiresAt)}까지 이용할 수 있어요.`,
       );
     } else if (r.status === "error" && r.retryable) {
       s.pending++;
@@ -285,12 +286,12 @@ export function adminBillingDeps(admin: any, toss: BillingToss): RenewalDeps & R
           plan_id: t.plan.id,
           order_id: orderId,
           order_name: orderName,
-          amount: t.plan.monthly_price,
+          amount: chargeAmount(t.plan, t.kind),
           status: "ready",
           kind: t.kind,
           billing_method_id: t.card.id,
         })
-        .select("id, order_id, plan_id, status, advertiser_id")
+        .select("id, order_id, plan_id, status, advertiser_id, kind")
         .single();
       return error ? { error: error.message as string } : (data as PaymentOrder);
     },
@@ -300,7 +301,7 @@ export function adminBillingDeps(admin: any, toss: BillingToss): RenewalDeps & R
     pendingOrders: async (beforeIso) => {
       const { data } = await admin
         .from("payments")
-        .select("id, order_id, plan_id, status, advertiser_id")
+        .select("id, order_id, plan_id, status, advertiser_id, kind")
         .eq("status", "ready")
         .neq("kind", "one_time")
         .lt("created_at", beforeIso)
@@ -314,7 +315,7 @@ export function adminBillingDeps(admin: any, toss: BillingToss): RenewalDeps & R
     due: async (now) => {
       const { data } = await admin.rpc("billing_renewal_due", { p_now: now.toISOString() });
       type Row = {
-        advertiser_id: string; email: string | null; name: string | null; plan_id: string; plan_name: string; monthly_price: number;
+        advertiser_id: string; email: string | null; name: string | null; plan_id: string; plan_name: string; monthly_price: number; subscription_amount: number | null; one_time_amount: number | null;
         expires_at: string; grace_until: string | null; renew_attempts: number;
         billing_method_id: string; billing_key: string; customer_key: string; card_company: string | null; card_number: string | null;
       };
@@ -322,7 +323,7 @@ export function adminBillingDeps(admin: any, toss: BillingToss): RenewalDeps & R
         advertiserId: r.advertiser_id,
         email: r.email,
         name: r.name,
-        plan: { id: r.plan_id, name: r.plan_name, monthly_price: r.monthly_price },
+        plan: { id: r.plan_id, name: r.plan_name, monthly_price: r.monthly_price, subscription_amount: r.subscription_amount, one_time_amount: r.one_time_amount },
         card: toCard({ id: r.billing_method_id, billing_key: r.billing_key, customer_key: r.customer_key, card_company: r.card_company, card_number: r.card_number }),
         expiresAt: r.expires_at,
         graceUntil: r.grace_until,
@@ -383,7 +384,7 @@ export function adminBillingDeps(admin: any, toss: BillingToss): RenewalDeps & R
       };
     },
     businessPlan: async () => {
-      const { data } = await admin.from("plans").select("id, name, monthly_price").eq("tier", "business").maybeSingle();
+      const { data } = await admin.from("plans").select("id, name, monthly_price, list_price, one_time_amount, subscription_amount").eq("tier", "business").maybeSingle();
       return (data as PaymentPlan | null) ?? null;
     },
     setAutoRenew: async (advertiserId, on) => {

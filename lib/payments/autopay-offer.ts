@@ -5,13 +5,14 @@
 import { getAdminSupabase } from "@/lib/supabase/admin";
 import { isBillingConfigured } from "@/lib/payments/toss";
 import { isSubscriptionActive } from "@/lib/plans/active";
+import { planPrices, won, type PlanPrices } from "@/lib/payments/prices";
 
 export type AutopayOffer =
   | { available: false; reason: string }
   | {
       available: true;
       planName: string;
-      price: number;
+      prices: PlanPrices;
       /** 등록하면 무엇이 일어나는지 한 문장 */
       when: string;
       cta: string;
@@ -26,7 +27,7 @@ export async function getAutopayOffer(advertiserId: string): Promise<AutopayOffe
   if (!isBillingConfigured()) return { available: false, reason: "정기결제 준비 중이에요." };
   const admin = getAdminSupabase();
   const [{ data: plan }, { data: sub }, { data: card }] = await Promise.all([
-    admin.from("plans").select("name, monthly_price").eq("tier", "business").single(),
+    admin.from("plans").select("name, monthly_price, list_price, one_time_amount, subscription_amount").eq("tier", "business").single(),
     admin.from("subscriptions").select("status, expires_at, grace_until, auto_renew, plans(tier)").eq("advertiser_id", advertiserId).maybeSingle(),
     admin.from("billing_methods").select("card_company, card_number").eq("advertiser_id", advertiserId).eq("status", "active").maybeSingle(),
   ]);
@@ -38,7 +39,8 @@ export async function getAutopayOffer(advertiserId: string): Promise<AutopayOffe
   const now = Date.now();
   const grace = !!sub?.expires_at && new Date(sub.expires_at).getTime() <= now && !!sub.grace_until && new Date(sub.grace_until).getTime() > now;
   const activeBusiness = tier === "business" && !!sub?.expires_at && new Date(sub.expires_at).getTime() > now;
-  const price = `₩${plan.monthly_price.toLocaleString()}`;
+  const prices = planPrices(plan);
+  const price = `${won(prices.subscription)}(부가세 포함)`; // 실제 결제 금액
   const cardLabel = card ? [card.card_company, card.card_number].filter(Boolean).join(" ") || "등록 카드" : null;
 
   const when = grace
@@ -50,9 +52,9 @@ export async function getAutopayOffer(advertiserId: string): Promise<AutopayOffe
   return {
     available: true,
     planName: plan.name,
-    price: plan.monthly_price,
+    prices,
     when,
-    cta: card ? "새 카드 등록하기" : grace || !activeBusiness ? `카드 등록하고 ${price} 결제하기` : "카드 등록하고 정기결제 시작",
+    cta: card ? "새 카드 등록하기" : grace || !activeBusiness ? `카드 등록하고 ${won(prices.subscription)} 결제하기` : "카드 등록하고 정기결제 시작",
     cardLabel,
     autoRenewOn: !!sub?.auto_renew && (activeBusiness || grace) && !!card,
   };

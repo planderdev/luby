@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { CheckoutClient } from "./CheckoutClient";
 import { PaymentChooser } from "./PaymentChooser";
 import { getAutopayOffer } from "@/lib/payments/autopay-offer";
+import { planPrices, won } from "@/lib/payments/prices";
 
 export const metadata = { title: "결제 — 루비AI" };
 
@@ -36,7 +37,7 @@ export default async function CheckoutPage() {
   const supabase = await createClient();
   const { data: plan } = await supabase
     .from("plans")
-    .select("name, monthly_price")
+    .select("name, monthly_price, list_price, one_time_amount, subscription_amount")
     .eq("tier", "business")
     .single();
   if (!plan) redirect("/dashboard/billing");
@@ -49,13 +50,13 @@ export default async function CheckoutPage() {
       </h1>
       <p className="mt-2 text-sm text-muted-foreground">
         {offer.available
-          ? `월 ₩${plan.monthly_price.toLocaleString()} · 결제 방식을 골라 주세요 — 매월 자동결제되는 월 구독(정기결제) 또는 한 달씩 결제하는 단건 결제.`
-          : `월 ₩${plan.monthly_price.toLocaleString()} · 결제 즉시 30일간 BUSINESS 혜택이 적용됩니다.`}
+          ? `결제 방식을 골라 주세요 — 매월 자동결제되는 월 구독(정기결제, 할인가 ${won(planPrices(plan).monthly)}/월·부가세 별도) 또는 한 달씩 결제하는 단건 결제(${won(planPrices(plan).oneTime)}·부가세 포함).`
+          : `${won(planPrices(plan).oneTime)}(부가세 포함) · 결제 즉시 30일간 BUSINESS 혜택이 적용됩니다.`}
       </p>
 
       <div className="mt-8 max-w-2xl">
         {offer.available ? (
-          <PaymentChooser offer={offer} clientKey={clientKey} planName={plan.name} price={plan.monthly_price} />
+          <PaymentChooser offer={offer} clientKey={clientKey} />
         ) : (
           <CheckoutClient clientKey={clientKey!} />
         )}

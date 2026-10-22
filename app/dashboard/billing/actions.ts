@@ -43,7 +43,7 @@ export async function createBusinessOrder(): Promise<OrderResult> {
     supabase.from("profiles").select("role, name, email").eq("id", user.id).single(),
     supabase
       .from("plans")
-      .select("id, name, monthly_price")
+      .select("id, name, monthly_price, one_time_amount")
       .eq("tier", "business")
       .single(),
   ]);
@@ -55,14 +55,16 @@ export async function createBusinessOrder(): Promise<OrderResult> {
 
   // orderId: 토스 규격 (6-64자, 영문/숫자/-/_)
   const orderId = `ruby_${crypto.randomUUID().replace(/-/g, "")}`;
-  const orderName = `루비AI ${plan.name} 플랜 (1개월)`;
+  const orderName = `루비AI ${plan.name} 플랜 단건 (1개월)`;
+  // 단건 결제 금액(부가세 포함) — 정기결제와 다르다(lib/payments/prices.ts)
+  const amount = plan.one_time_amount ?? plan.monthly_price;
 
   const { error } = await supabase.from("payments").insert({
     advertiser_id: user.id,
     plan_id: plan.id,
     order_id: orderId,
     order_name: orderName,
-    amount: plan.monthly_price,
+    amount,
     status: "ready",
   });
   if (error) return { ok: false, error: dbErrorWith("주문 생성 실패", error) };
@@ -71,7 +73,7 @@ export async function createBusinessOrder(): Promise<OrderResult> {
     ok: true,
     orderId,
     orderName,
-    amount: plan.monthly_price,
+    amount,
     customerKey: user.id,
     customerEmail: profile.email,
     customerName: profile.name,
@@ -103,7 +105,7 @@ export async function confirmBusinessPayment(params: {
   // 1. 본인 주문 조회 (RLS: payments_self_read)
   const { data: order } = await supabase
     .from("payments")
-    .select("id, order_id, plan_id, status, advertiser_id")
+    .select("id, order_id, plan_id, status, advertiser_id, kind")
     .eq("order_id", params.orderId)
     .maybeSingle();
   if (!order || order.advertiser_id !== user.id) return { status: "error", error: "주문을 찾을 수 없습니다." };

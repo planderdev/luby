@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   const admin = getAdminSupabase();
   const { data: order } = await admin
     .from("payments")
-    .select("id, order_id, plan_id, status, advertiser_id, payment_key")
+    .select("id, order_id, plan_id, status, advertiser_id, payment_key, kind")
     .eq("order_id", orderId)
     .maybeSingle();
   if (!order) return NextResponse.json({ ok: true, ignored: "unknown order" });
