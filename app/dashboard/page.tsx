@@ -27,7 +27,7 @@ export default async function DashboardPage() {
         .eq("advertiser_id", profile.id),
       supabase
         .from("subscriptions")
-        .select("status, started_at, expires_at, plan_id")
+        .select("status, started_at, expires_at, plan_id, auto_renew, grace_until")
         .eq("advertiser_id", profile.id)
         .maybeSingle(),
     ]);
@@ -104,8 +104,10 @@ export default async function DashboardPage() {
       contactPhone: advRow?.contact_phone ?? profile.phone ?? null,
     });
     const expiresAt = subscription?.expires_at ? new Date(subscription.expires_at).getTime() : null;
+    // 자동결제가 켜져 있으면 만료 임박 할 일로 띄우지 않는다(유예 중 = 결제 실패면 띄움)
+    const autoRenewing = !!subscription?.auto_renew && !subscription.grace_until;
     const daysToExpire =
-      expiresAt && plan && plan.tier !== "free"
+      expiresAt && plan && plan.tier !== "free" && !autoRenewing
         ? Math.ceil((expiresAt - now) / (24 * 60 * 60 * 1000))
         : null;
 

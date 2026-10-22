@@ -968,10 +968,57 @@ export type Database = {
         Update: { id?: number; actor_id?: string | null; action?: string; target_type?: string; target_id?: string | null; target_label?: string | null; meta?: Json; created_at?: string }
         Relationships: []
       }
+      billing_methods: {
+        Row: {
+          activated_at: string | null
+          advertiser_id: string
+          billing_key: string | null
+          card_company: string | null
+          card_number: string | null
+          card_type: string | null
+          created_at: string
+          customer_key: string
+          id: string
+          owner_type: string | null
+          removed_at: string | null
+          status: string
+        }
+        Insert: {
+          activated_at?: string | null
+          advertiser_id: string
+          billing_key?: string | null
+          card_company?: string | null
+          card_number?: string | null
+          card_type?: string | null
+          created_at?: string
+          customer_key: string
+          id?: string
+          owner_type?: string | null
+          removed_at?: string | null
+          status?: string
+        }
+        Update: {
+          activated_at?: string | null
+          advertiser_id?: string
+          billing_key?: string | null
+          card_company?: string | null
+          card_number?: string | null
+          card_type?: string | null
+          created_at?: string
+          customer_key?: string
+          id?: string
+          owner_type?: string | null
+          removed_at?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           id: string
           advertiser_id: string
+          billing_method_id: string | null
+          kind: string
           plan_id: string
           order_id: string
           order_name: string
@@ -992,6 +1039,8 @@ export type Database = {
         Insert: {
           id?: string
           advertiser_id: string
+          billing_method_id?: string | null
+          kind?: string
           plan_id: string
           order_id: string
           order_name: string
@@ -1012,6 +1061,8 @@ export type Database = {
         Update: {
           id?: string
           advertiser_id?: string
+          billing_method_id?: string | null
+          kind?: string
           plan_id?: string
           order_id?: string
           order_name?: string
@@ -1452,6 +1503,11 @@ export type Database = {
       subscriptions: {
         Row: {
           advertiser_id: string
+          auto_renew: boolean
+          grace_until: string | null
+          renew_attempts: number
+          renew_last_attempt_at: string | null
+          renew_last_error: string | null
           created_at: string
           expires_at: string | null
           id: string
@@ -1462,6 +1518,11 @@ export type Database = {
         }
         Insert: {
           advertiser_id: string
+          auto_renew?: boolean
+          grace_until?: string | null
+          renew_attempts?: number
+          renew_last_attempt_at?: string | null
+          renew_last_error?: string | null
           created_at?: string
           expires_at?: string | null
           id?: string
@@ -1472,6 +1533,11 @@ export type Database = {
         }
         Update: {
           advertiser_id?: string
+          auto_renew?: boolean
+          grace_until?: string | null
+          renew_attempts?: number
+          renew_last_attempt_at?: string | null
+          renew_last_error?: string | null
           created_at?: string
           expires_at?: string | null
           id?: string

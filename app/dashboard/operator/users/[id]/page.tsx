@@ -32,7 +32,7 @@ export default async function OperatorMemberDetailPage({ params }: { params: Pro
     isInf ? supabase.from("influencers").select("bio, region_id, total_points, public_profile, regions(name, flag)").eq("profile_id", id).maybeSingle() : Promise.resolve({ data: null }),
     isInf ? supabase.from("influencer_channels").select("url, handle, followers, channel_types(name)").eq("influencer_id", id) : Promise.resolve({ data: [] }),
     isInf ? supabase.from("influencer_categories").select("categories(name, emoji)").eq("influencer_id", id) : Promise.resolve({ data: [] }),
-    isAdv ? supabase.from("subscriptions").select("status, expires_at, plans(name, tier)").eq("advertiser_id", id).maybeSingle() : Promise.resolve({ data: null }),
+    isAdv ? supabase.from("subscriptions").select("status, expires_at, auto_renew, grace_until, plans(name, tier)").eq("advertiser_id", id).maybeSingle() : Promise.resolve({ data: null }),
     isAdv ? supabase.from("campaigns").select("id, title, status, recruit_end, point_amount, created_at").eq("advertiser_id", id).order("created_at", { ascending: false }).limit(20) : Promise.resolve({ data: [] }),
     isInf ? supabase.from("applications").select("id, status, created_at, campaigns(id, title, point_amount)").eq("influencer_id", id).order("created_at", { ascending: false }).limit(20) : Promise.resolve({ data: [] }),
     isInf ? supabase.from("point_withdrawals").select("amount, status, requested_at").eq("influencer_id", id).order("requested_at", { ascending: false }).limit(10) : Promise.resolve({ data: [] }),
@@ -116,7 +116,7 @@ export default async function OperatorMemberDetailPage({ params }: { params: Pro
               <div><dt className="text-xs text-muted-foreground">세금계산서 이메일</dt><dd>{adv.tax_email ?? p.email}</dd></div>
               <div><dt className="text-xs text-muted-foreground">웹사이트</dt><dd>{adv.website ? <a href={adv.website.startsWith("http") ? adv.website : `https://${adv.website}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 underline underline-offset-2">{adv.website} <ExternalLink className="size-3" /></a> : "—"}</dd></div>
               <div><dt className="text-xs text-muted-foreground">소개</dt><dd className="text-muted-foreground">{adv.description ?? "—"}</dd></div>
-              <div><dt className="text-xs text-muted-foreground">플랜</dt><dd>{plan?.name ?? "FREE"}{sub?.expires_at ? ` · ${d(sub.expires_at)} 만료` : ""}</dd></div>
+              <div><dt className="text-xs text-muted-foreground">플랜</dt><dd>{plan?.name ?? "FREE"}{sub?.expires_at ? ` · ${d(sub.expires_at)} 만료` : ""}{sub?.auto_renew ? " · 자동결제 켜짐" : ""}{sub?.grace_until ? ` · 결제 실패(유예 ${d(sub.grace_until)}까지)` : ""}</dd></div>
               <div className="pt-1"><Link href={`/dashboard/advertisers/${p.id}`} className="text-xs underline underline-offset-2">공개 프로필 보기</Link></div>
             </dl>
           )}

@@ -11,6 +11,7 @@ const STATUS_META: Record<string, { label: string; tone: string }> = {
   paid: { label: "결제 완료", tone: "bg-success-soft text-success" },
   ready: { label: "대기중", tone: "bg-warning-soft text-warning" },
   waiting: { label: "입금 대기", tone: "bg-warning-soft text-warning" },
+  checking: { label: "결제 확인 중", tone: "bg-warning-soft text-warning" },
   failed: { label: "실패", tone: "bg-danger-soft text-danger" },
   cancelled: { label: "취소", tone: "bg-muted text-muted-foreground" },
 };
@@ -37,7 +38,7 @@ export default async function OperatorPaymentsPage() {
     supabase
       .from("payments")
       .select(
-        "id, advertiser_id, plan_id, order_id, order_name, amount, status, payment_key, method, fail_reason, approved_at, created_at, tax_invoice_requested_at, tax_invoice_issued_at"
+        "id, advertiser_id, plan_id, order_id, order_name, amount, status, payment_key, kind, method, fail_reason, approved_at, created_at, tax_invoice_requested_at, tax_invoice_issued_at"
       )
       .order("created_at", { ascending: false })
       .limit(100),
@@ -102,7 +103,7 @@ export default async function OperatorPaymentsPage() {
       <div className="mt-8 space-y-2">
         {payments.map((p) => {
           const buyer = profileById.get(p.advertiser_id);
-          const meta = STATUS_META[p.status === "ready" && p.payment_key ? "waiting" : p.status] ?? STATUS_META.ready;
+          const meta = STATUS_META[p.status === "ready" && p.kind !== "one_time" ? "checking" : p.status === "ready" && p.payment_key ? "waiting" : p.status] ?? STATUS_META.ready;
           return (
             <div key={p.id} className="rounded-2xl glass-card p-4 lg:p-5">
               <div className="flex flex-wrap items-center gap-3">
@@ -112,6 +113,7 @@ export default async function OperatorPaymentsPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2 text-sm">
                     <span className="font-semibold">{p.order_name}</span>
+                    {p.kind !== "one_time" && <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-medium text-accent-ink">자동결제</span>}
                     <span className="text-xs text-muted-foreground">
                       {planById.get(p.plan_id) ?? ""}
                     </span>

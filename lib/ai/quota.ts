@@ -1,4 +1,5 @@
 import { getAdminSupabase } from "@/lib/supabase/admin";
+import { isSubscriptionActive } from "@/lib/plans/active";
 
 /**
  * 계정별 월간 AI 호출 한도 (사장님 결정 2026-08-22: BUSINESS 월 300회, 초과 시 안내).
@@ -25,11 +26,11 @@ export async function resolveAiTier(userId: string): Promise<AiQuota["tier"]> {
   const admin = getAdminSupabase();
   const [{ data: profile }, { data: sub }] = await Promise.all([
     admin.from("profiles").select("role").eq("id", userId).maybeSingle(),
-    admin.from("subscriptions").select("status, expires_at, plans(tier)").eq("advertiser_id", userId).maybeSingle(),
+    admin.from("subscriptions").select("status, expires_at, grace_until, plans(tier)").eq("advertiser_id", userId).maybeSingle(),
   ]);
   if (profile?.role === "operator") return "operator";
   const tier = (sub?.plans as { tier: string } | null)?.tier;
-  const active = sub?.status === "active" && (!sub.expires_at || new Date(sub.expires_at).getTime() > Date.now());
+  const active = isSubscriptionActive(sub);
   if (active && tier === "enterprise") return "enterprise";
   if (active && tier === "business") return "business";
   return "free";

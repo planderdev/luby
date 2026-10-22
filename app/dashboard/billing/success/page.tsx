@@ -4,6 +4,7 @@ import { CheckCircle2, XCircle, ArrowRight, Clock } from "lucide-react";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { confirmBusinessPayment } from "../actions";
 import { trackServer } from "@/lib/analytics-server";
+import { ResultShell } from "../ResultShell";
 
 export const metadata = { title: "결제 완료 — 루비AI" };
 
@@ -116,33 +117,5 @@ export default async function PaymentSuccessPage({
         구독 현황 보기
       </Link>
     </ResultShell>
-  );
-}
-
-function ResultShell({
-  icon,
-  title,
-  desc,
-  detail,
-  children,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  desc: string;
-  detail?: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="mx-auto max-w-lg py-12 text-center">
-      <div className="mx-auto flex size-16 items-center justify-center rounded-3xl bg-accent-soft">
-        {icon}
-      </div>
-      <h1 className="display mt-6 text-3xl font-semibold">{title}</h1>
-      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{desc}</p>
-      {detail && <div className="mt-6 flex justify-center">{detail}</div>}
-      <div className="mt-8 flex flex-col items-center justify-center gap-2 sm:flex-row">
-        {children}
-      </div>
-    </div>
   );
 }

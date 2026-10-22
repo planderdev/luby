@@ -37,30 +37,41 @@ export type TossConfirmResult =
   | { ok: true; payment: TossPayment }
   | { ok: false; error: TossError; status: number };
 
-function getSecretKey(): string {
-  const key = process.env.TOSS_SECRET_KEY;
+/** widget = 결제위젯 키(단건 결제), billing = API 개별 연동 키(자동결제 계약 MID — 빌링키 발급·자동결제 승인) */
+type KeyKind = "widget" | "billing";
+
+function getSecretKey(kind: KeyKind): string {
+  const key = kind === "billing" ? process.env.TOSS_BILLING_SECRET_KEY : process.env.TOSS_SECRET_KEY;
   if (!key) {
     throw new Error(
-      "TOSS_SECRET_KEY is not configured. " +
+      `${kind === "billing" ? "TOSS_BILLING_SECRET_KEY" : "TOSS_SECRET_KEY"} is not configured. ` +
         "토스페이먼츠 개발자센터 → API 키의 시크릿 키를 환경변수로 등록하세요."
     );
   }
   return key;
 }
 
-function authHeader(): string {
-  return `Basic ${Buffer.from(`${getSecretKey()}:`).toString("base64")}`;
+/** 자동결제는 결제위젯 키로는 안 되고 'API 개별 연동 키' 쌍이 있어야 켜진다 */
+export function isBillingConfigured(): boolean {
+  return !!process.env.NEXT_PUBLIC_TOSS_BILLING_CLIENT_KEY && !!process.env.TOSS_BILLING_SECRET_KEY;
 }
 
+type TossResult<T> = { ok: true; data: T } | { ok: false; error: TossError; status: number };
+
 /** 토스 API 호출 공통 — 네트워크 오류·JSON 아닌 응답도 예외 대신 실패 결과로 돌려준다(status 0 = 응답 못 받음). */
-async function tossRequest(path: string, init: { method: "GET" | "POST"; body?: unknown }): Promise<TossConfirmResult> {
+async function tossCall<T>(
+  path: string,
+  init: { method: "GET" | "POST" | "DELETE"; body?: unknown; key?: KeyKind; idempotencyKey?: string },
+): Promise<TossResult<T>> {
   let res: Response;
   try {
     res = await fetch(`${TOSS_API_BASE}${path}`, {
       method: init.method,
       headers: {
-        Authorization: authHeader(),
+        Authorization: `Basic ${Buffer.from(`${getSecretKey(init.key ?? "widget")}:`).toString("base64")}`,
         ...(init.body ? { "Content-Type": "application/json" } : {}),
+        // 같은 키로 다시 보내면 토스가 첫 결과를 돌려준다(15일) — 응답 유실 뒤 재요청해도 이중 결제 없음
+        ...(init.idempotencyKey ? { "Idempotency-Key": init.idempotencyKey } : {}),
       },
       body: init.body ? JSON.stringify(init.body) : undefined,
       // 결제 승인·조회는 절대 캐시되면 안 됨
@@ -82,7 +93,12 @@ async function tossRequest(path: string, init: { method: "GET" | "POST"; body?: 
       },
     };
   }
-  return { ok: true, payment: body as TossPayment };
+  return { ok: true, data: body as T };
+}
+
+async function tossRequest(path: string, init: Parameters<typeof tossCall>[1]): Promise<TossConfirmResult> {
+  const r = await tossCall<TossPayment>(path, init);
+  return r.ok ? { ok: true, payment: r.data } : r;
 }
 
 /**
@@ -104,4 +120,36 @@ export function confirmTossPayment(params: {
  */
 export function getTossPayment(paymentKey: string): Promise<TossConfirmResult> {
   return tossRequest(`/payments/${encodeURIComponent(paymentKey)}`, { method: "GET" });
+}
+
+export type TossBillingAuth = {
+  billingKey: string;
+  customerKey: string;
+  cardCompany: string | null;
+  cardNumber: string | null;
+  card?: { cardType?: string | null; ownerType?: string | null } | null;
+  [key: string]: unknown;
+};
+
+/** 카드 등록창 성공 리다이렉트의 authKey 로 빌링키 발급 — 발급된 빌링키는 다시 조회할 수 없으니 바로 저장 */
+export function issueBillingKey(params: { authKey: string; customerKey: string }): Promise<TossResult<TossBillingAuth>> {
+  return tossCall<TossBillingAuth>("/billing/authorizations/issue", { method: "POST", body: params, key: "billing" });
+}
+
+/** 빌링키로 자동결제 승인 — orderId 를 멱등키로 써서 같은 주문이 두 번 결제되지 않게 한다 */
+export function chargeBillingKey(
+  billingKey: string,
+  body: { customerKey: string; amount: number; orderId: string; orderName: string; customerEmail?: string; customerName?: string },
+): Promise<TossConfirmResult> {
+  return tossRequest(`/billing/${encodeURIComponent(billingKey)}`, { method: "POST", body, key: "billing", idempotencyKey: body.orderId });
+}
+
+/** 자동결제 주문 조회(응답을 못 받은 결제 확인용) — 자동결제 MID 의 키로 조회 */
+export function getBillingPaymentByOrderId(orderId: string): Promise<TossConfirmResult> {
+  return tossRequest(`/payments/orders/${encodeURIComponent(orderId)}`, { method: "GET", key: "billing" });
+}
+
+/** 더 쓰지 않는 빌링키 삭제(카드 변경·삭제 시) */
+export function deleteBillingKey(billingKey: string): Promise<TossResult<{ billingKey: string }>> {
+  return tossCall<{ billingKey: string }>(`/billing/${encodeURIComponent(billingKey)}`, { method: "DELETE", key: "billing" });
 }

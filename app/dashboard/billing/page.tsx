@@ -3,6 +3,10 @@ import { Check, Sparkles } from "lucide-react";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { TaxInvoiceButton } from "./TaxInvoiceButton";
+import { AutopayPanel } from "./AutopayPanel";
+import { getAdminSupabase } from "@/lib/supabase/admin";
+import { isBillingConfigured } from "@/lib/payments/toss";
+import { isSubscriptionActive } from "@/lib/plans/active";
 
 export const metadata = { title: "구독·결제 — 루비AI" };
 
@@ -52,17 +56,30 @@ export default async function BillingPage() {
   const [{ data: subscription }, { data: plans }, { data: paymentRows }] = await Promise.all([
     supabase
       .from("subscriptions")
-      .select("id, status, started_at, expires_at, plan_id")
+      .select("id, status, started_at, expires_at, plan_id, auto_renew, grace_until, renew_last_error")
       .eq("advertiser_id", profile.id)
       .maybeSingle(),
     supabase.from("plans").select("id, name, tier, monthly_price").order("monthly_price"),
-    supabase.from("payments").select("id, order_name, amount, status, payment_key, approved_at, created_at, tax_invoice_requested_at, tax_invoice_issued_at").eq("advertiser_id", profile.id).order("created_at", { ascending: false }).limit(24),
+    supabase.from("payments").select("id, order_name, amount, status, payment_key, kind, approved_at, created_at, tax_invoice_requested_at, tax_invoice_issued_at").eq("advertiser_id", profile.id).order("created_at", { ascending: false }).limit(24),
   ]);
 
   // 결제창만 열고 끝난 주문(ready·결제 키 없음)은 숨기고, 가상계좌 입금 대기(ready·결제 키 있음)는 보여준다
-  const historyRows = (paymentRows ?? []).filter((p) => p.status !== "ready" || p.payment_key);
-  const currentPlan = (plans ?? []).find((p) => p.id === subscription?.plan_id);
+  const historyRows = (paymentRows ?? []).filter((p) => p.status !== "ready" || p.payment_key || p.kind !== "one_time");
+  // 만료된 구독은 FREE 로 보인다(자동결제 실패 유예 중이면 유지)
+  const subActive = isSubscriptionActive(subscription);
+  const currentPlan = (plans ?? []).find((p) => (subActive ? p.id === subscription?.plan_id : p.tier === "free"));
   const currentTier = currentPlan?.tier ?? "free";
+
+  // 자동결제 — 카드(빌링키) 테이블은 service_role 전용이라 본인 것만 서버에서 조회
+  const billingEnabled = isBillingConfigured();
+  const { data: card } = billingEnabled
+    ? await getAdminSupabase().from("billing_methods").select("card_company, card_number").eq("advertiser_id", profile.id).eq("status", "active").maybeSingle()
+    : { data: null };
+  const nowMs = Date.now();
+  const inGrace = !!subscription?.expires_at && new Date(subscription.expires_at).getTime() <= nowMs && !!subscription.grace_until && new Date(subscription.grace_until).getTime() > nowMs;
+  const businessActive = currentTier === "business" && !!subscription?.expires_at && new Date(subscription.expires_at).getTime() > nowMs;
+  const autoRenewOn = !!subscription?.auto_renew && (businessActive || inGrace);
+  const businessPrice = (plans ?? []).find((p) => p.tier === "business")?.monthly_price ?? 0;
   const sortedPlans = [...(plans ?? [])].sort(
     (a, b) => TIER_ORDER.indexOf(a.tier) - TIER_ORDER.indexOf(b.tier)
   );
@@ -86,10 +103,10 @@ export default async function BillingPage() {
                 {currentPlan?.name ?? "FREE"}
               </span>
               <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent-ink">
-                {subscription?.status === "active" ? "사용중" : subscription?.status ?? "active"}
+                {inGrace ? "결제 확인 필요" : "사용중"}
               </span>
             </div>
-            {subscription?.started_at && (
+            {subActive && currentTier !== "free" && subscription?.started_at && (
               <p className="mt-2 text-xs text-muted-foreground">
                 시작일: {new Date(subscription.started_at).toLocaleDateString("ko-KR")}
                 {subscription.expires_at &&
@@ -183,7 +200,26 @@ export default async function BillingPage() {
                   </li>
                 ))}
               </ul>
-              {isCurrent && plan.tier === "business" ? (
+              {isCurrent && plan.tier === "business" && billingEnabled && autoRenewOn ? (
+                <a
+                  href="#autopay"
+                  className="mt-8 block w-full rounded-full bg-background px-6 py-3 text-center text-sm font-medium text-foreground transition-colors hover:bg-background/90"
+                >
+                  자동결제 이용 중
+                </a>
+              ) : plan.tier === "business" && billingEnabled ? (
+                <div className="mt-8 space-y-2">
+                  <a
+                    href="/dashboard/billing/autopay"
+                    className="block w-full rounded-full bg-background px-6 py-3 text-center text-sm font-medium text-foreground transition-colors hover:bg-background/90"
+                  >
+                    {isCurrent ? "자동결제로 이어서 쓰기" : "자동결제로 구독하기"}
+                  </a>
+                  <a href="/dashboard/billing/checkout" className="block text-center text-xs text-background/70 underline underline-offset-2 hover:text-background">
+                    {isCurrent ? "1개월만 연장하기 (+30일)" : "1개월만 결제하기"}
+                  </a>
+                </div>
+              ) : isCurrent && plan.tier === "business" ? (
                 <a
                   href="/dashboard/billing/checkout"
                   className="mt-8 block w-full rounded-full bg-background px-6 py-3 text-center text-sm font-medium text-foreground transition-colors hover:bg-background/90"
@@ -218,6 +254,18 @@ export default async function BillingPage() {
         })}
       </div>
 
+      {billingEnabled && (card || subscription?.auto_renew) && (
+        <AutopayPanel
+          cardLabel={card ? [card.card_company, card.card_number].filter(Boolean).join(" ") || "등록 카드" : null}
+          autoRenew={autoRenewOn}
+          businessActive={businessActive}
+          expiresAt={subscription?.expires_at ?? null}
+          graceUntil={inGrace ? subscription!.grace_until : null}
+          lastError={subscription?.renew_last_error ?? null}
+          price={businessPrice}
+        />
+      )}
+
       {/* 결제 내역 + 세금계산서 요청 */}
       {historyRows.length > 0 && (
         <section className="mt-10">
@@ -229,7 +277,7 @@ export default async function BillingPage() {
                 <div className="min-w-0">
                   <div className="font-medium">{p.order_name}</div>
                   <div className="text-xs text-muted-foreground">
-                    {new Date(p.approved_at ?? p.created_at).toLocaleDateString("ko-KR")} · {p.status === "paid" ? "결제 완료" : p.status === "failed" ? "실패" : p.status === "cancelled" ? "취소" : "입금 대기"}
+                    {new Date(p.approved_at ?? p.created_at).toLocaleDateString("ko-KR")} · {p.status === "paid" ? "결제 완료" : p.status === "failed" ? "실패" : p.status === "cancelled" ? "취소" : p.kind !== "one_time" ? "확인 중" : "입금 대기"}{p.kind !== "one_time" ? " · 자동결제" : ""}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">

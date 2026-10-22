@@ -1,6 +1,7 @@
 import { NextResponse, after } from "next/server";
 import { getAdminSupabase } from "@/lib/supabase/admin";
 import { summarizeCampaignReport, type ReportSummaryInput } from "@/lib/ai/report-summary";
+import { isSubscriptionActive } from "@/lib/plans/active";
 
 /**
  * 캠페인 완료 시 AI 요약 자동 생성 (DB 트리거 → pg_net → 이 라우트).
@@ -43,11 +44,11 @@ async function generateForCompletedCampaign(campaignId: string) {
   // BUSINESS 이상만 (쿠키 없는 컨텍스트라 entitlements 를 직접 조회)
   const { data: sub } = await admin
     .from("subscriptions")
-    .select("status, expires_at, plans(tier)")
+    .select("status, expires_at, grace_until, plans(tier)")
     .eq("advertiser_id", camp.advertiser_id)
     .maybeSingle();
   const tier = (sub?.plans as { tier: string } | null)?.tier;
-  const active = sub?.status === "active" && (!sub.expires_at || new Date(sub.expires_at).getTime() > Date.now());
+  const active = isSubscriptionActive(sub);
   if (!active || !(tier === "business" || tier === "enterprise")) return;
 
   const { data: reportJson } = await admin.rpc("build_campaign_report", { p_campaign_id: campaignId });
