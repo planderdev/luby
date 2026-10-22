@@ -42,6 +42,8 @@ export type FinalizeDeps = {
   ) => Promise<{ transitioned: boolean; expiresAt: string | null } | { error: string }>;
   /** ready 인 행만 failed 로 — 이미 paid 인 행은 건드리지 않는다 */
   markFailed: (orderRowId: string, fields: { paymentKey: string | null; reason: string; raw?: TossPayment }) => Promise<void>;
+  /** 결제 완료 건이 토스에서 전액 취소됨(상점관리자 환불 등) → paid 행만 cancelled 로. 구독은 바꾸지 않는다(운영자 판단) */
+  markCancelled?: (orderRowId: string, payment: TossPayment) => Promise<void>;
   /** 가상계좌 입금 대기 — 상태는 ready 그대로 두고 결제 키·계좌 정보만 기록 */
   markWaiting: (orderRowId: string, payment: TossPayment) => Promise<void>;
   currentExpiry: (advertiserId: string) => Promise<string | null>;
@@ -116,6 +118,10 @@ export async function applyTossPayment(
     case "PARTIAL_CANCELED":
     case "ABORTED":
     case "EXPIRED":
+      if (order.status === "paid") {
+        if (payment.status === "CANCELED") await deps.markCancelled?.(order.id, payment);
+        return err(CLOSED_MESSAGES[payment.status]);
+      }
       await deps.markFailed(order.id, { paymentKey: payment.paymentKey, reason: payment.status, raw: payment });
       return err(CLOSED_MESSAGES[payment.status]);
     default:
@@ -201,6 +207,13 @@ export function adminFinalizeDeps(admin: any, toss: Pick<FinalizeDeps, "confirm"
         .update({ status: "failed", payment_key: f.paymentKey, fail_reason: f.reason, ...(f.raw ? { raw: snapshot(f.raw) } : {}) })
         .eq("id", orderRowId)
         .eq("status", "ready");
+    },
+    markCancelled: async (orderRowId, payment) => {
+      await admin
+        .from("payments")
+        .update({ status: "cancelled", cancelled_at: new Date().toISOString(), cancel_reason: "토스에서 취소됨(상점관리자 등)", raw: snapshot(payment) })
+        .eq("id", orderRowId)
+        .eq("status", "paid");
     },
     markWaiting: async (orderRowId, payment) => {
       await admin

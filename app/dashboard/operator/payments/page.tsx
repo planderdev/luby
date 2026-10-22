@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { ExportCsvButton } from "@/components/dashboard/ExportCsvButton";
 import { TaxInvoiceAction } from "./TaxInvoiceAction";
+import { RefundAction } from "./RefundAction";
 import { CreditCard, CheckCircle2, Clock, XCircle } from "lucide-react";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
@@ -13,7 +14,7 @@ const STATUS_META: Record<string, { label: string; tone: string }> = {
   waiting: { label: "입금 대기", tone: "bg-warning-soft text-warning" },
   checking: { label: "결제 확인 중", tone: "bg-warning-soft text-warning" },
   failed: { label: "실패", tone: "bg-danger-soft text-danger" },
-  cancelled: { label: "취소", tone: "bg-muted text-muted-foreground" },
+  cancelled: { label: "취소(환불)", tone: "bg-muted text-muted-foreground" },
 };
 
 function fmtDateTime(iso: string) {
@@ -38,7 +39,7 @@ export default async function OperatorPaymentsPage() {
     supabase
       .from("payments")
       .select(
-        "id, advertiser_id, plan_id, order_id, order_name, amount, status, payment_key, kind, method, fail_reason, approved_at, created_at, tax_invoice_requested_at, tax_invoice_issued_at"
+        "id, advertiser_id, plan_id, order_id, order_name, amount, status, payment_key, kind, method, fail_reason, approved_at, created_at, tax_invoice_requested_at, tax_invoice_issued_at, cancelled_at, cancel_reason, receipt_url:raw->receipt->>url"
       )
       .order("created_at", { ascending: false })
       .limit(100),
@@ -127,6 +128,12 @@ export default async function OperatorPaymentsPage() {
                   {p.fail_reason && (
                     <div className="mt-1 text-xs text-accent-ink">⚠ {p.fail_reason}</div>
                   )}
+                  {p.status === "cancelled" && p.cancelled_at && (
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      환불 {fmtDateTime(p.cancelled_at)}
+                      {p.cancel_reason ? ` · ${p.cancel_reason}` : ""}
+                    </div>
+                  )}
                 </div>
                 <div className="shrink-0 text-right">
                   <div className="display text-lg font-semibold tabular-nums">
@@ -135,9 +142,17 @@ export default async function OperatorPaymentsPage() {
                   <div className="text-[11px] text-muted-foreground">
                     {p.approved_at ? `승인 ${fmtDateTime(p.approved_at)}` : `주문 ${fmtDateTime(p.created_at)}`}
                   </div>
+                  {typeof p.receipt_url === "string" && p.receipt_url && (p.status === "paid" || p.status === "cancelled") && (
+                    <a href={p.receipt_url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block text-[11px] underline underline-offset-2">
+                      매출전표
+                    </a>
+                  )}
                   {p.status === "paid" && (
-                    <div className="mt-2">
+                    <div className="mt-2 flex flex-col items-end gap-1.5">
                       <TaxInvoiceAction paymentId={p.id} requestedAt={p.tax_invoice_requested_at} issuedAt={p.tax_invoice_issued_at} taxEmail={advTaxById.get(p.advertiser_id)?.tax_email ?? buyer?.email ?? null} />
+                      {profile.is_super_operator && (
+                        <RefundAction paymentId={p.id} amount={p.amount} taxIssued={!!p.tax_invoice_issued_at} virtualAccount={p.method === "가상계좌"} />
+                      )}
                     </div>
                   )}
                 </div>

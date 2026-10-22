@@ -526,6 +526,40 @@ export async function setMemberPlan(
   return { ok: true, planName: r.plan_name ?? input.tier.toUpperCase(), expiresAt: r.expires_at ?? null };
 }
 
+/**
+ * 총운영관리자: 결제 전액 환불(토스 결제 취소). 토스 취소가 성공해야만 '취소'로 기록하고, 선택 시 FREE 전환·정기결제 해지,
+ * 운영 기록(payment_refunded)·광고주 알림까지 record_payment_refund 가 한다. 흐름은 lib/payments/refund.ts
+ */
+export async function refundPaymentAction(
+  paymentId: string,
+  input: { reason: string; downgrade: boolean },
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const guard = await ensureOperator();
+  if (!guard.ok) return { ok: false, error: guard.error };
+  const { data: isSuper } = await guard.supabase.rpc("is_super_operator");
+  if (isSuper !== true) return { ok: false, error: "총운영관리자만 환불할 수 있습니다." };
+  // 서버 전용 모듈은 동적 import(이 파일을 렌더 시험이 불러올 때 깨지지 않게)
+  const [{ getAdminSupabase }, { cancelTossPayment }, { refundPayment }] = await Promise.all([
+    import("@/lib/supabase/admin"),
+    import("@/lib/payments/toss"),
+    import("@/lib/payments/refund"),
+  ]);
+  const admin = getAdminSupabase();
+  const r = await refundPayment(paymentId, input, {
+    load: async (id) => (await admin.from("payments").select("id, status, payment_key, kind, method, amount").eq("id", id).maybeSingle()).data,
+    cancel: cancelTossPayment,
+    record: async (id, reason, raw, downgrade) => {
+      const { error } = await admin.rpc("record_payment_refund", { p_payment_id: id, p_actor: guard.user.id, p_reason: reason, p_raw: raw as import("@/lib/database.types").Json | null, p_downgrade: downgrade });
+      return error ? { error: error.message } : {};
+    },
+  });
+  if (r.ok) {
+    revalidatePath("/dashboard/operator/payments");
+    revalidatePath("/dashboard/operator/audit");
+  }
+  return r;
+}
+
 /** 운영자: 세금계산서 발행 완료 처리 (홈택스/API 로 발행 후 표시 → 광고주 알림·감사 로그) */
 export async function markTaxInvoiceIssued(paymentId: string, note?: string) {
   const guard = await ensureOperator();

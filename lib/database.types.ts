@@ -1743,6 +1743,16 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      record_payment_refund: {
+        Args: {
+          p_payment_id: string
+          p_actor: string
+          p_reason: string
+          p_raw: Json | null
+          p_downgrade?: boolean
+        }
+        Returns: Json
+      }
       operator_set_plan: {
         Args: {
           p_advertiser: string

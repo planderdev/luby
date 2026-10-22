@@ -61,7 +61,7 @@ export default async function BillingPage() {
       .eq("advertiser_id", profile.id)
       .maybeSingle(),
     supabase.from("plans").select("id, name, tier, monthly_price, list_price, one_time_amount, subscription_amount").order("monthly_price"),
-    supabase.from("payments").select("id, order_name, amount, status, payment_key, kind, approved_at, created_at, tax_invoice_requested_at, tax_invoice_issued_at").eq("advertiser_id", profile.id).order("created_at", { ascending: false }).limit(24),
+    supabase.from("payments").select("id, order_name, amount, status, payment_key, kind, cancelled_at, receipt_url:raw->receipt->>url, approved_at, created_at, tax_invoice_requested_at, tax_invoice_issued_at").eq("advertiser_id", profile.id).order("created_at", { ascending: false }).limit(24),
   ]);
 
   // 결제창만 열고 끝난 주문(ready·결제 키 없음)은 숨기고, 가상계좌 입금 대기(ready·결제 키 있음)는 보여준다
@@ -290,11 +290,16 @@ export default async function BillingPage() {
                 <div className="min-w-0">
                   <div className="font-medium">{p.order_name}</div>
                   <div className="text-xs text-muted-foreground">
-                    {new Date(p.approved_at ?? p.created_at).toLocaleDateString("ko-KR")} · {p.status === "paid" ? "결제 완료" : p.status === "failed" ? "실패" : p.status === "cancelled" ? "취소" : p.kind !== "one_time" ? "확인 중" : "입금 대기"}{p.kind !== "one_time" ? " · 자동결제" : ""}
+                    {new Date(p.approved_at ?? p.created_at).toLocaleDateString("ko-KR")} · {p.status === "paid" ? "결제 완료" : p.status === "failed" ? "실패" : p.status === "cancelled" ? "취소(환불)" : p.kind !== "one_time" ? "확인 중" : "입금 대기"}{p.kind !== "one_time" ? " · 자동결제" : ""}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="font-semibold tabular-nums">₩{p.amount.toLocaleString()}</span>
+                  {typeof p.receipt_url === "string" && p.receipt_url && (p.status === "paid" || p.status === "cancelled") && (
+                    <a href={p.receipt_url} target="_blank" rel="noopener noreferrer" className="text-xs underline underline-offset-2">
+                      매출전표
+                    </a>
+                  )}
                   {p.status === "paid" && <TaxInvoiceButton paymentId={p.id} requestedAt={p.tax_invoice_requested_at} issuedAt={p.tax_invoice_issued_at} />}
                 </div>
               </li>

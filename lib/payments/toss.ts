@@ -153,3 +153,20 @@ export function getBillingPaymentByOrderId(orderId: string): Promise<TossConfirm
 export function deleteBillingKey(billingKey: string): Promise<TossResult<{ billingKey: string }>> {
   return tossCall<{ billingKey: string }>(`/billing/${encodeURIComponent(billingKey)}`, { method: "DELETE", key: "billing" });
 }
+
+/**
+ * 결제 취소(전액 환불) — 결제를 처리한 MID 의 키로(단건 = 결제위젯 키, 정기결제 = API 개별 연동 키).
+ * 멱등키로 같은 환불 요청이 두 번 나가도 한 번만 취소된다.
+ */
+export function cancelTossPayment(
+  paymentKey: string,
+  cancelReason: string,
+  opts: { billing: boolean; idempotencyKey: string },
+): Promise<TossConfirmResult> {
+  return tossRequest(`/payments/${encodeURIComponent(paymentKey)}/cancel`, {
+    method: "POST",
+    body: { cancelReason },
+    key: opts.billing ? "billing" : "widget",
+    idempotencyKey: opts.idempotencyKey,
+  });
+}
