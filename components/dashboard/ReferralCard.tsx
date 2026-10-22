@@ -2,8 +2,14 @@
 
 import { useState } from "react";
 import { Check, Copy, Gift, Share2 } from "lucide-react";
+import { dashboardDict } from "@/lib/i18n/app/dashboard";
+import type { Locale } from "@/lib/i18n/config";
 
-/** 크리에이터 홈 — 내 추천 링크(/creators?ref=) 복사·공유 + 추천 현황 */
+/**
+ * 크리에이터 홈 — 내 추천 링크(/creators?ref=) 복사·공유 + 추천 현황.
+ * 문구 묶음에는 함수(stats·month)가 있어 서버 컴포넌트가 props 로 넘기면 RSC 직렬화 오류로 대시보드 전체가 깨진다
+ * (2026-10-13 운영 오류) — 다른 클라이언트 컴포넌트처럼 locale 문자열만 받고 사전은 여기서 읽는다.
+ */
 type ReferralLabels = { title: string; desc: string; stats: (total: number, rewarded: number, points: string) => string; monthCap: string; month: (n: number) => string; copy: string; copied: string; share: string; shareTitle: string; shareText: string };
 const KO: ReferralLabels = {
   title: "친구 초대하고 500P", desc: "내 링크로 가입한 친구가 첫 체험을 완료하면 500P (월 5명까지).",
@@ -12,7 +18,8 @@ const KO: ReferralLabels = {
   copy: "복사", copied: "복사됨", share: "공유", shareTitle: "루비AI 크리에이터", shareText: "내 채널로 체험하고 포인트로 정산받는 루비AI, 같이 해요!",
 };
 
-export function ReferralCard({ profileId, total, rewarded, rewardPoints, monthRewarded, labels = KO }: { profileId: string; total: number; rewarded: number; rewardPoints: number; monthRewarded: number; labels?: ReferralLabels }) {
+export function ReferralCard({ profileId, total, rewarded, rewardPoints, monthRewarded, locale = "ko" }: { profileId: string; total: number; rewarded: number; rewardPoints: number; monthRewarded: number; locale?: Locale }) {
+  const labels: ReferralLabels = dashboardDict[locale]?.overview?.referral ?? KO;
   const [copied, setCopied] = useState(false);
   // 서버/클라이언트 동일 값(빌드 상수) — window 분기는 하이드레이션 불일치를 만든다
   const link = `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://luby.im"}/creators?ref=${profileId}`;

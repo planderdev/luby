@@ -204,7 +204,7 @@ export function InfluencerOverview({
       </div>
 
       {approved && profileId && referralStats && (
-        <ReferralCard profileId={profileId} {...referralStats} labels={t.referral} />
+        <ReferralCard profileId={profileId} {...referralStats} locale={locale} />
       )}
 
       {completeness && completeness.percent < 100 && (
