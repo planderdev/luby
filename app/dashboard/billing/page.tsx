@@ -56,9 +56,11 @@ export default async function BillingPage() {
       .eq("advertiser_id", profile.id)
       .maybeSingle(),
     supabase.from("plans").select("id, name, tier, monthly_price").order("monthly_price"),
-    supabase.from("payments").select("id, order_name, amount, status, approved_at, created_at, tax_invoice_requested_at, tax_invoice_issued_at").eq("advertiser_id", profile.id).order("created_at", { ascending: false }).limit(24),
+    supabase.from("payments").select("id, order_name, amount, status, payment_key, approved_at, created_at, tax_invoice_requested_at, tax_invoice_issued_at").eq("advertiser_id", profile.id).order("created_at", { ascending: false }).limit(24),
   ]);
 
+  // 결제창만 열고 끝난 주문(ready·결제 키 없음)은 숨기고, 가상계좌 입금 대기(ready·결제 키 있음)는 보여준다
+  const historyRows = (paymentRows ?? []).filter((p) => p.status !== "ready" || p.payment_key);
   const currentPlan = (plans ?? []).find((p) => p.id === subscription?.plan_id);
   const currentTier = currentPlan?.tier ?? "free";
   const sortedPlans = [...(plans ?? [])].sort(
@@ -217,17 +219,17 @@ export default async function BillingPage() {
       </div>
 
       {/* 결제 내역 + 세금계산서 요청 */}
-      {(paymentRows ?? []).length > 0 && (
+      {historyRows.length > 0 && (
         <section className="mt-10">
           <h2 className="display text-2xl font-semibold">결제 내역</h2>
           <p className="mt-1 text-xs text-muted-foreground">카드 결제는 카드 매출전표가 적격증빙이에요. 세금계산서가 필요하면 요청해 주세요 — 설정의 세금계산서 정보(대표자·주소·수신 이메일)로 발행됩니다.</p>
           <ul className="mt-4 divide-y divide-border rounded-3xl glass-card">
-            {(paymentRows ?? []).map((p) => (
+            {historyRows.map((p) => (
               <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 text-sm">
                 <div className="min-w-0">
                   <div className="font-medium">{p.order_name}</div>
                   <div className="text-xs text-muted-foreground">
-                    {new Date(p.approved_at ?? p.created_at).toLocaleDateString("ko-KR")} · {p.status === "paid" ? "결제 완료" : p.status === "failed" ? "실패" : p.status}
+                    {new Date(p.approved_at ?? p.created_at).toLocaleDateString("ko-KR")} · {p.status === "paid" ? "결제 완료" : p.status === "failed" ? "실패" : p.status === "cancelled" ? "취소" : "입금 대기"}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">

@@ -1655,6 +1655,17 @@ export type Database = {
         Args: { p_email: string }
         Returns: boolean
       }
+      finalize_paid_payment: {
+        Args: {
+          p_payment_id: string
+          p_payment_key: string
+          p_method: string | null
+          p_approved_at: string | null
+          p_raw: Json
+          p_days?: number
+        }
+        Returns: { transitioned: boolean; expires_at: string | null }[]
+      }
       is_demo_account: {
         Args: { p_profile: string }
         Returns: boolean

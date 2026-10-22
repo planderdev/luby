@@ -52,28 +52,26 @@ function authHeader(): string {
   return `Basic ${Buffer.from(`${getSecretKey()}:`).toString("base64")}`;
 }
 
-/**
- * 결제 승인 — 위젯에서 성공 리다이렉트로 받은 paymentKey/orderId/amount를
- * 토스에 최종 승인 요청. 이 호출이 성공해야 실제로 돈이 결제됨.
- */
-export async function confirmTossPayment(params: {
-  paymentKey: string;
-  orderId: string;
-  amount: number;
-}): Promise<TossConfirmResult> {
-  const res = await fetch(`${TOSS_API_BASE}/payments/confirm`, {
-    method: "POST",
-    headers: {
-      Authorization: authHeader(),
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(params),
-    // 결제 승인은 절대 캐시되면 안 됨
-    cache: "no-store",
-  });
+/** 토스 API 호출 공통 — 네트워크 오류·JSON 아닌 응답도 예외 대신 실패 결과로 돌려준다(status 0 = 응답 못 받음). */
+async function tossRequest(path: string, init: { method: "GET" | "POST"; body?: unknown }): Promise<TossConfirmResult> {
+  let res: Response;
+  try {
+    res = await fetch(`${TOSS_API_BASE}${path}`, {
+      method: init.method,
+      headers: {
+        Authorization: authHeader(),
+        ...(init.body ? { "Content-Type": "application/json" } : {}),
+      },
+      body: init.body ? JSON.stringify(init.body) : undefined,
+      // 결제 승인·조회는 절대 캐시되면 안 됨
+      cache: "no-store",
+    });
+  } catch (e) {
+    return { ok: false, status: 0, error: { code: "NETWORK_ERROR", message: e instanceof Error ? e.message : String(e) } };
+  }
 
-  const body = await res.json();
-  if (!res.ok) {
+  const body = await res.json().catch(() => null);
+  if (!res.ok || !body) {
     return {
       ok: false,
       status: res.status,
@@ -85,4 +83,25 @@ export async function confirmTossPayment(params: {
     };
   }
   return { ok: true, payment: body as TossPayment };
+}
+
+/**
+ * 결제 승인 — 위젯에서 성공 리다이렉트로 받은 paymentKey/orderId/amount를
+ * 토스에 최종 승인 요청. 이 호출이 성공해야 실제로 돈이 결제됨.
+ */
+export function confirmTossPayment(params: {
+  paymentKey: string;
+  orderId: string;
+  amount: number;
+}): Promise<TossConfirmResult> {
+  return tossRequest("/payments/confirm", { method: "POST", body: params });
+}
+
+/**
+ * 결제 키로 결제 조회 — 토스가 기록한 실제 상태(승인 완료·입금 대기·취소 등).
+ * 중복 승인(ALREADY_PROCESSED_PAYMENT)·응답 유실·웹훅 수신 때 이 결과를 기준으로 맞춘다.
+ * (주문번호 조회 /payments/orders/{orderId} 는 문서용 테스트 키에서 NOT_FOUND_MERCHANT 라 쓰지 않음)
+ */
+export function getTossPayment(paymentKey: string): Promise<TossConfirmResult> {
+  return tossRequest(`/payments/${encodeURIComponent(paymentKey)}`, { method: "GET" });
 }
