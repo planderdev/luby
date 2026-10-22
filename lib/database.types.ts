@@ -1137,6 +1137,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          is_demo: boolean
           approved: boolean
           approved_at: string | null
           approved_by: string | null
@@ -1156,6 +1157,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          is_demo?: boolean
           approved?: boolean
           approved_at?: string | null
           approved_by?: string | null
@@ -1175,6 +1177,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          is_demo?: boolean
           approved?: boolean
           approved_at?: string | null
           approved_by?: string | null
@@ -1606,7 +1609,7 @@ export type Database = {
         Args: { p_ids?: string[] | null }
         Returns: { id: string; created_at: string; invited_at: string | null }[]
       }
-      /** 데모 광고주(@ruby-ai.kr) id 목록 — 실계정 목록에서 데모 캠페인 필터용 */
+      /** 데모 광고주(profiles.is_demo) id 목록 — 실계정 목록에서 데모 캠페인 필터용 */
       demo_advertiser_ids: {
         Args: Record<string, never>
         Returns: string[]
@@ -1647,6 +1650,10 @@ export type Database = {
       send_open_campaign_nudges: {
         Args: { p_dry_run?: boolean; p_cooldown_days?: number }
         Returns: { rule: string; targets: number }[]
+      }
+      is_demo_email: {
+        Args: { p_email: string }
+        Returns: boolean
       }
       is_demo_account: {
         Args: { p_profile: string }

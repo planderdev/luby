@@ -582,10 +582,10 @@ export async function changeMemberEmail(
 
   const { getAdminSupabase } = await import("@/lib/supabase/admin");
   const admin = getAdminSupabase();
-  const { data: target } = await admin.from("profiles").select("id, email, role, name").eq("id", profileId).maybeSingle();
+  const { data: target } = await admin.from("profiles").select("id, email, role, name, is_demo").eq("id", profileId).maybeSingle();
   if (!target) return { ok: false, error: "회원을 찾을 수 없어요." };
   if (target.role === "operator") return { ok: false, error: "운영자 계정의 이메일은 여기서 바꿀 수 없어요." };
-  if ((target.email ?? "").endsWith("@ruby-ai.kr") || email.endsWith("@ruby-ai.kr")) return { ok: false, error: "데모 계정 주소는 바꿀 수 없어요." };
+  if (target.is_demo || email.endsWith("@ruby-ai.kr")) return { ok: false, error: "데모 계정 주소는 바꿀 수 없어요." };
   if ((target.email ?? "").toLowerCase() === email) return { ok: false, error: "지금 주소와 같아요." };
 
   const { getSuppression } = await import("@/lib/resend-suppressions");

@@ -34,6 +34,8 @@ export type RelayInput = {
   link: string | null;
   /** email_suppressions 에 있는 주소(하드 바운스·스팸 신고) */
   suppressed: boolean;
+  /** profiles.is_demo — 데모 광고주는 대신 전달하지 않는다 */
+  demo?: boolean;
 };
 
 export type RelayDeps = {
@@ -64,7 +66,7 @@ export async function relayForUnreachableAdvertiser(input: RelayInput, deps: Rel
   if (input.role !== "advertiser") return { relayed: 0, skipped: "not advertiser" };
   if (!input.type || !RELAY_TYPES.has(input.type)) return { relayed: 0, skipped: "type not relayed" };
   const domain = input.email.split("@")[1]?.toLowerCase() ?? "";
-  if (INTERNAL_DOMAINS.includes(domain)) return { relayed: 0, skipped: "internal domain" };
+  if (input.demo || INTERNAL_DOMAINS.includes(domain)) return { relayed: 0, skipped: "internal domain" };
 
   let reason: string | null = null;
   if (input.suppressed) {
@@ -106,7 +108,7 @@ export function adminRelayDeps(admin: any): RelayDeps {
         .select("id")
         .eq("role", "operator")
         .eq("approved", true)
-        .not("email", "like", "%@ruby-ai.kr");
+        .eq("is_demo", false);
       return ((data ?? []) as { id: string }[]).map((r) => r.id);
     },
     recentRelayExists: async (link, body, sinceIso) => {

@@ -60,7 +60,7 @@ export default async function CreatorProfilePage({
   // 공개 프로필을 켠 크리에이터면 공유 가능한 /p/[id] 링크 표시 (RLS: 승인 크리에이터의 influencers 행은 조회 가능)
   const { data: pubRow } = await supabase.from("influencers").select("public_profile").eq("profile_id", id).maybeSingle();
   const hasPublic = !!pubRow?.public_profile;
-  // 데모 계정(@ruby-ai.kr)의 채널은 실제로 존재하지 않는 주소다(핸들에 한글이 섞여 있어 플랫폼이 오류를 낸다).
+  // 데모 계정(profiles.is_demo)의 채널은 실제로 존재하지 않는 주소다(핸들에 한글이 섞여 있어 플랫폼이 오류를 낸다).
   // 링크로 만들지 않고 텍스트로만 보여준다.
   const { data: demo } = await supabase.rpc("is_demo_account", { p_profile: id });
   const isDemo = demo === true;

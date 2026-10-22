@@ -47,7 +47,7 @@ export default async function OperatorUsersPage({
     await Promise.all([
       supabase
         .from("profiles")
-        .select("id, email, name, phone, role, approved, created_at, operator_tags")
+        .select("id, email, name, phone, role, approved, created_at, operator_tags, is_demo")
         .order("created_at", { ascending: false }),
       supabase
         .from("advertisers")
@@ -83,9 +83,9 @@ export default async function OperatorUsersPage({
   const bounced = new Set((bouncedRows ?? []) as string[]);
   // 인플루언서 탭: 모집 중 캠페인 안내 발송 미리보기 (운영자 전용 RPC, 발송하지 않음)
   const nudgePreview = filter === "influencer" ? ((await supabase.rpc("operator_open_campaign_nudge_preview")).data?.[0] ?? null) : null;
-  // 데모 계정(@ruby-ai.kr)은 재초대 대상이 아니다 — 포함하면 400명이 넘어 숫자가 무의미해지고,
+  // 데모 계정(profiles.is_demo)은 재초대 대상이 아니다 — 포함하면 400명이 넘어 숫자가 무의미해지고,
   // 일괄 재발송이 실존하지 않는 주소로 나가 발신 평판을 깎을 수 있다
-  const demoIds = new Set(all.filter((p) => (p.email ?? "").endsWith("@ruby-ai.kr")).map((p) => p.id));
+  const demoIds = new Set(all.filter((p) => p.is_demo).map((p) => p.id));
   const neverSignedIn = new Set(
     ((neverRows ?? []) as { id: string }[]).map((r) => r.id).filter((id) => !demoIds.has(id))
   );

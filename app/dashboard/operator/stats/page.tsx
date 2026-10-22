@@ -62,7 +62,7 @@ export default async function OperatorStatsPage() {
     .from("profiles")
     .select("role, signup_source, created_at")
     .neq("role", "operator")
-    .not("email", "like", "%@ruby-ai.kr")
+    .eq("is_demo", false)
     .gte("created_at", new Date(Date.now() - 30 * 24 * 3600_000).toISOString());
   const channelAggMap = new Map<string, { total: number; creators: number; advertisers: number }>();
   for (const r of signupRows ?? []) {

@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   const admin = getAdminSupabase();
   const { data: profile } = await admin
     .from("profiles")
-    .select("email, name, email_prefs, locale, role")
+    .select("email, name, email_prefs, locale, role, is_demo")
     .eq("id", payload.user_id)
     .maybeSingle();
 
@@ -77,6 +77,7 @@ export async function POST(request: Request) {
       body: payload.body ?? null,
       link: payload.link ?? null,
       suppressed: !!suppression,
+      demo: !!profile.is_demo,
     },
     adminRelayDeps(admin),
   ).catch((e) => ({ relayed: 0, skipped: `relay error: ${e instanceof Error ? e.message : String(e)}` }));
@@ -112,8 +113,8 @@ export async function POST(request: Request) {
   const skipDomains = (process.env.NOTIFY_SKIP_DOMAINS ?? "ruby-ai.kr,luby.im")
     .split(",").map((d) => d.trim().toLowerCase()).filter(Boolean);
   const domain = profile.email.split("@")[1]?.toLowerCase() ?? "";
-  if (skipDomains.includes(domain)) {
-    return NextResponse.json({ push, relay, email: { skipped: true, reason: `skip domain ${domain}` } });
+  if (skipDomains.includes(domain) || profile.is_demo) {
+    return NextResponse.json({ push, relay, email: { skipped: true, reason: profile.is_demo ? "demo account" : `skip domain ${domain}` } });
   }
   // Resend 차단 목록(하드 바운스·스팸 신고)에 있는 주소는 보내도 'suppressed' 로 버려진다 — 한도만 쓰므로 건너뛴다
   if (suppression) {

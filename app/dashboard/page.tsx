@@ -216,7 +216,7 @@ export default async function DashboardPage() {
     }[] = [];
     if (profile.approved) {
       // 실계정에게는 데모 광고주 캠페인을 추천하지 않는다 (목록 페이지와 같은 규칙)
-      const demoIds = profile.email.endsWith("@ruby-ai.kr")
+      const demoIds = profile.is_demo
         ? []
         : ((await supabase.rpc("demo_advertiser_ids")).data ?? []);
       let openQuery = supabase
