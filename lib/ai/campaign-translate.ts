@@ -70,11 +70,14 @@ export async function loadCampaignSource(client: SupabaseClient<Database>, campa
   };
 }
 
-type Result = { ok: true; skipped: boolean; locales: TranslationLocale[]; model?: string } | { ok: false; error: string };
+type Result = { ok: true; skipped: boolean; locales: TranslationLocale[]; model?: string; reason?: string } | { ok: false; error: string };
+
+// 번역(비동기) 도중 캠페인이 지워진 경우 — 시험 정리·광고주 삭제 등 정상 흐름이라 오류로 남기지 않는다
+const DELETED: Result = { ok: true, skipped: true, locales: [], reason: "campaign deleted" };
 
 export async function translateCampaign(admin: SupabaseClient<Database>, campaignId: string, opts: { force?: boolean } = {}): Promise<Result> {
   const loaded = await loadCampaignSource(admin, campaignId);
-  if (!loaded) return { ok: false, error: "campaign not found" };
+  if (!loaded) return DELETED;
   if (!["open", "closed", "completed"].includes(loaded.status)) return { ok: true, skipped: true, locales: [] }; // 비공개 상태는 번역하지 않는다
   const { src } = loaded;
   const hash = hashSource(src);
@@ -127,7 +130,7 @@ ${JSON.stringify(src)}`;
         updated_at: now,
       };
       const { error } = await admin.from("campaign_translations").upsert(row, { onConflict: "campaign_id,locale" });
-      if (error) return { ok: false, error: error.message };
+      if (error) return error.code === "23503" ? DELETED : { ok: false, error: error.message }; // 23503 = 그 사이 캠페인 삭제
     }
     return { ok: true, skipped: false, locales: ["en", "zh"], model: r.model };
   } catch (e) {

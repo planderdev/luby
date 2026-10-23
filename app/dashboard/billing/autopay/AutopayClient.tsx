@@ -35,8 +35,19 @@ export function AutopayClient({ cta, changing }: { cta: string; changing: boolea
       });
       // 성공하면 successUrl 로 이동하므로 여기 도달하지 않음
     } catch (e) {
-      setError(e instanceof Error ? e.message : "카드 등록창을 열지 못했어요.");
+      const msg = e instanceof Error ? e.message : "카드 등록창을 열지 못했어요.";
+      setError(msg);
       setBusy(false);
+      // 진단: 토스 SDK 가 등록창을 열지 못한 이유(키 종류·계약 등)를 오류 기록에 남긴다. 사용자가 창을 닫은 경우는 제외
+      const code = (e as { code?: string } | null)?.code;
+      if (code !== "USER_CANCEL" && code !== "PAY_PROCESS_CANCELED") {
+        void fetch("/api/errors/client", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ message: `[autopay] ${code ? `${code}: ` : ""}${msg}`.slice(0, 500), path: location.pathname }),
+          keepalive: true,
+        }).catch(() => {});
+      }
     }
   }
 

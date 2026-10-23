@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { XCircle, ArrowRight } from "lucide-react";
+import { logError } from "@/lib/error-log";
+import { getCurrentProfile } from "@/lib/supabase/queries";
 
 export const metadata = { title: "결제 실패 — 루비AI" };
 
@@ -13,6 +15,18 @@ export default async function PaymentFailPage({
   const code = params.code;
   // 자동결제 카드 등록창에서 실패·취소하면 from=autopay 로 온다
   const autopay = params.from === "autopay";
+  // 진단: 구매자 취소(PAY_PROCESS_CANCELED)가 아닌 실패는 오류 기록에 남긴다 — 카드 등록·결제가 왜 막혔는지 운영자가 볼 수 있게
+  if (code && code !== "PAY_PROCESS_CANCELED") {
+    const me = await getCurrentProfile().catch(() => null);
+    await logError({
+      source: "server",
+      message: `[billing/fail] ${autopay ? "정기결제 카드 등록" : "단건 결제"} ${code}: ${message}`.slice(0, 500),
+      path: "/dashboard/billing/fail",
+      userId: me?.id ?? null,
+    });
+  } else if (code) {
+    console.info("[billing/fail] canceled by buyer", autopay ? "autopay" : "one_time");
+  }
 
   return (
     <div className="mx-auto max-w-lg py-12 text-center">
