@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Switch } from "@/components/Switch";
 import { Globe, Link2, Check, Loader2, ExternalLink } from "lucide-react";
 import { setPublicProfile } from "./actions";
 import { dashboardDict } from "@/lib/i18n/app/dashboard";
@@ -43,17 +44,7 @@ export function PublicProfileToggle({ userId, initial, approved, locale = "ko" }
             {t.desc}
           </p>
         </div>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={on}
-          aria-label={t.title}
-          onClick={toggle}
-          disabled={pending || !approved}
-          className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${on ? "bg-accent" : "bg-muted"} disabled:opacity-50`}
-        >
-          <span className={`absolute top-0.5 size-5 rounded-full bg-background shadow transition-transform ${on ? "translate-x-5" : "translate-x-0.5"}`} />
-        </button>
+        <Switch checked={on} onChange={() => toggle()} label={t.title} disabled={pending || !approved} />
       </div>
       {!approved && <p className="mt-3 text-xs text-muted-foreground">{t.afterApproval}</p>}
       {on && (

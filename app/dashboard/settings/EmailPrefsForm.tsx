@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Switch } from "@/components/Switch";
 import { Loader2, Mail } from "lucide-react";
 import { updateEmailPrefs } from "./actions";
 import { dashboardDict } from "@/lib/i18n/app/dashboard";
@@ -57,21 +58,7 @@ export function EmailPrefsForm({ initial, showDigest, locale = "ko" }: { initial
               <div className="text-sm font-medium">{cat(c).label}</div>
               <div className="text-xs text-muted-foreground">{cat(c).desc}</div>
             </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={prefs[c]}
-              aria-label={cat(c).label}
-              onClick={() => toggle(c)}
-              disabled={pending}
-              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${prefs[c] ? "bg-accent" : "bg-muted"}`}
-            >
-              <span
-                className={`absolute top-0.5 size-5 rounded-full bg-background shadow transition-transform ${
-                  prefs[c] ? "translate-x-5" : "translate-x-0.5"
-                }`}
-              />
-            </button>
+            <Switch checked={prefs[c]} onChange={() => toggle(c)} label={cat(c).label} disabled={pending} />
           </li>
         ))}
       </ul>
