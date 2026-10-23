@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, type DragEvent } from "react";
 import { dbErrorWith } from "@/lib/db-errors";
 import Image from "next/image";
-import { Upload, X, Loader2, ImageIcon, AlertCircle } from "lucide-react";
+import { Upload, X, Loader2, AlertCircle, UserRound } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { prepareImage, RESIZE_PRESET, fmtBytes } from "@/lib/image-resize";
 
@@ -208,8 +208,23 @@ export function ImageUpload({
     ? "size-28 rounded-full"
     : "aspect-[16/9] w-full rounded-2xl";
 
+  // 원형(프로필): 원·버튼·안내를 한 축으로 가운데 정렬하고, 삭제 버튼은 원 밖(오른쪽 위)에 둬 잘리지 않게 한다
+  const removeButton = (
+    <button
+      type="button"
+      onClick={clear}
+      className={`absolute flex size-8 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80 ${
+        isCircle ? "-right-1 -top-1 z-10 ring-2 ring-background" : "right-2 top-2"
+      }`}
+      aria-label={t.remove}
+    >
+      <X className="size-4" />
+    </button>
+  );
+
   return (
-    <div className={className}>
+    <div className={`${isCircle ? "flex flex-col items-center text-center" : ""} ${className ?? ""}`.trim() || undefined}>
+      <div className={isCircle ? "relative" : undefined}>
       <div
         onDragEnter={() => setDragActive(true)}
         onDragOver={(e) => {
@@ -234,14 +249,7 @@ export function ImageUpload({
               alt="uploaded"
               className="size-full object-cover"
             />
-            <button
-              type="button"
-              onClick={clear}
-              className="absolute right-2 top-2 flex size-8 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80"
-              aria-label={t.remove}
-            >
-              <X className="size-4" />
-            </button>
+            {!isCircle && removeButton}
           </>
         ) : (
           <button
@@ -258,13 +266,13 @@ export function ImageUpload({
               </>
             ) : (
               <>
-                <div className="flex size-10 items-center justify-center rounded-xl bg-background">
-                  {isCircle ? (
-                    <ImageIcon className="size-5 text-muted-foreground" />
-                  ) : (
+                {isCircle ? (
+                  <UserRound className="size-10 text-muted-foreground/60" strokeWidth={1.5} />
+                ) : (
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-background">
                     <Upload className="size-5 text-muted-foreground" />
-                  )}
-                </div>
+                  </div>
+                )}
                 {!isCircle && (
                   <>
                     <span className="text-sm font-medium">{t.clickOrDrag}</span>
@@ -284,6 +292,8 @@ export function ImageUpload({
           className="hidden"
           onChange={(e) => handleFile(e.target.files?.[0])}
         />
+      </div>
+      {isCircle && value && removeButton}
       </div>
 
       {/* For circle: show button below */}

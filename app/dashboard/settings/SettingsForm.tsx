@@ -97,8 +97,8 @@ export function SettingsForm({
 
   return (
     <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
-      {/* Avatar column */}
-      <div className="rounded-3xl glass-card p-6">
+      {/* Avatar column — 옆 기본 정보 카드 높이로 늘어나지 않게 self-start */}
+      <div className="self-start rounded-3xl glass-card p-6">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {t.photo}
         </h3>
