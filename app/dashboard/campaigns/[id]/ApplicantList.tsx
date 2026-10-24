@@ -58,7 +58,7 @@ export async function ApplicantList({
     supabase.from("influencers").select("profile_id, region_id, total_points").in("profile_id", ids),
     supabase
       .from("influencer_channels")
-      .select("influencer_id, channel_type_id, handle, url, followers")
+      .select("influencer_id, channel_type_id, handle, url, followers, verified")
       .in("influencer_id", ids),
     supabase
       .from("submissions")
@@ -125,6 +125,7 @@ export async function ApplicantList({
               channels={(chs ?? []).map((c) => ({
                 handle: c.handle ?? c.url,
                 followers: c.followers,
+                verified: c.verified,
               }))}
               canAiReview={canAiReview}
               aiFit={(a.ai_fit as ApplicantFit | null) ?? null}

@@ -5,11 +5,13 @@
  */
 export type ResizeOptions = { maxWidth: number; maxHeight: number; quality: number };
 
-export const RESIZE_PRESET: Record<"campaign-thumbnails" | "profile-avatars" | "notice-images", ResizeOptions> = {
+export const RESIZE_PRESET: Record<"campaign-thumbnails" | "profile-avatars" | "notice-images" | "channel-proofs", ResizeOptions> = {
   "campaign-thumbnails": { maxWidth: 1600, maxHeight: 1200, quality: 0.82 },
   "profile-avatars": { maxWidth: 512, maxHeight: 512, quality: 0.85 },
   // 공지 팝업은 세로로 긴 이미지가 많아 높이를 넉넉히 둔다
   "notice-images": { maxWidth: 1200, maxHeight: 1800, quality: 0.85 },
+  // 채널 인증 캡처 — 휴대폰 세로 화면이 많고 코드·숫자 글자가 읽혀야 한다
+  "channel-proofs": { maxWidth: 1400, maxHeight: 2600, quality: 0.85 },
 };
 
 export type PreparedImage = { blob: Blob; ext: string; contentType: string; width: number; height: number; optimized: boolean };

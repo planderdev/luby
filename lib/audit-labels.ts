@@ -5,6 +5,8 @@ export const AUDIT_ACTION_LABEL: Record<string, { label: string; tone: string }>
   user_role_changed: { label: "역할 변경", tone: "bg-warning-soft text-warning" },
   plan_overridden: { label: "플랜 강제 설정", tone: "bg-accent-soft text-accent-ink" },
   payment_refunded: { label: "결제 환불", tone: "bg-danger-soft text-danger" },
+  channel_verified: { label: "채널 인증", tone: "bg-success-soft text-success" },
+  channel_verify_rejected: { label: "채널 인증 반려", tone: "bg-warning-soft text-warning" },
   campaign_approved: { label: "캠페인 승인", tone: "bg-success-soft text-success" },
   campaign_rejected: { label: "캠페인 반려", tone: "bg-danger-soft text-danger" },
   campaign_cancelled_by_operator: { label: "캠페인 취소(운영)", tone: "bg-danger-soft text-danger" },
@@ -30,6 +32,8 @@ export function auditExtra(action: string, meta: Record<string, unknown>): strin
     const amt = typeof meta.amount === "number" ? `₩${meta.amount.toLocaleString("ko-KR")}` : "";
     return [amt, meta.downgraded ? "FREE 전환" : "플랜 유지", meta.reason ? String(meta.reason) : ""].filter(Boolean).join(" · ");
   }
+  if (action === "channel_verified") return `${meta.channel ?? ""} ${meta.handle ?? ""} · 팔로워 ${typeof meta.followers === "number" ? meta.followers.toLocaleString("ko-KR") : "-"}`.trim();
+  if (action === "channel_verify_rejected") return `${meta.channel ?? ""} ${meta.handle ?? ""} · ${meta.reason ?? ""}`.trim();
   if (action.startsWith("campaign_") && meta.from) return `${meta.from} → ${meta.to}`;
   return "";
 }

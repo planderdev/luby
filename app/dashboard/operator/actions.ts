@@ -560,6 +560,93 @@ export async function refundPaymentAction(
   return r;
 }
 
+/**
+ * 운영자: 채널 본인 인증 승인 — 캡처에서 인증 코드·팔로워를 확인한 뒤. 팔로워 수는 운영자가 확인한 값으로 확정('운영자 확인').
+ * 신뢰 칸은 DB 트리거가 크리에이터 쓰기를 막아 service_role 로 쓴다. 운영 기록 + 크리에이터 알림.
+ */
+export async function approveChannelVerification(channelId: string, followers: number): Promise<{ ok: true } | { ok: false; error: string }> {
+  const guard = await ensureOperator();
+  if (!guard.ok) return { ok: false, error: guard.error };
+  const { getAdminSupabase } = await import("@/lib/supabase/admin");
+  const admin = getAdminSupabase();
+  const n = Math.min(2_000_000_000, Math.max(0, Math.floor(Number(followers) || 0)));
+  const now = new Date().toISOString();
+  const { data: ch, error } = await admin
+    .from("influencer_channels")
+    .update({
+      verified: true,
+      verify_status: "verified",
+      verify_method: "operator",
+      verified_at: now,
+      verified_by: guard.user.id,
+      verify_note: null,
+      followers: n,
+      stats_source: "operator",
+      stats_updated_at: now,
+    })
+    .eq("id", channelId)
+    .eq("verify_status", "pending")
+    .select("influencer_id, handle, url, channel_types(name)")
+    .maybeSingle();
+  if (error) return { ok: false, error: dbErrorMessage(error) };
+  if (!ch) return { ok: false, error: "이미 처리된 요청이에요." };
+  const typeName = (ch.channel_types as unknown as { name: string } | null)?.name ?? "채널";
+  await auditChannel(admin, guard.user.id, "channel_verified", ch.influencer_id, { channel: typeName, handle: ch.handle ?? ch.url, followers: n });
+  await admin.from("notifications").insert({
+    user_id: ch.influencer_id,
+    type: "channel_verified",
+    title: "채널 인증이 완료됐어요 ✓",
+    body: `${typeName} 채널이 운영자 확인으로 인증됐어요. 광고주에게 ‘확인’ 표시로 보여요.`,
+    link: "/dashboard/settings#channels",
+  });
+  revalidatePath("/dashboard/operator/users");
+  revalidatePublicCreator(ch.influencer_id);
+  return { ok: true };
+}
+
+/** 운영자: 채널 본인 인증 반려 — 사유는 크리에이터에게 알림으로 간다(코드가 안 보임·팔로워가 다름 등) */
+export async function rejectChannelVerification(channelId: string, reason: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const guard = await ensureOperator();
+  if (!guard.ok) return { ok: false, error: guard.error };
+  const why = reason.trim().slice(0, 200);
+  if (why.length < 2) return { ok: false, error: "반려 사유를 적어 주세요." };
+  const { getAdminSupabase } = await import("@/lib/supabase/admin");
+  const admin = getAdminSupabase();
+  const { data: ch, error } = await admin
+    .from("influencer_channels")
+    .update({ verify_status: "rejected", verify_note: why })
+    .eq("id", channelId)
+    .eq("verify_status", "pending")
+    .select("influencer_id, handle, url, channel_types(name)")
+    .maybeSingle();
+  if (error) return { ok: false, error: dbErrorMessage(error) };
+  if (!ch) return { ok: false, error: "이미 처리된 요청이에요." };
+  const typeName = (ch.channel_types as unknown as { name: string } | null)?.name ?? "채널";
+  await auditChannel(admin, guard.user.id, "channel_verify_rejected", ch.influencer_id, { channel: typeName, handle: ch.handle ?? ch.url, reason: why });
+  await admin.from("notifications").insert({
+    user_id: ch.influencer_id,
+    type: "channel_verify_rejected",
+    title: "채널 인증이 반려됐어요",
+    body: `${typeName} 채널 — 사유: ${why}. 설정에서 다시 요청할 수 있어요.`,
+    link: "/dashboard/settings#channels",
+  });
+  revalidatePath("/dashboard/operator/users");
+  return { ok: true };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function auditChannel(admin: any, actor: string, action: string, influencerId: string, meta: Record<string, unknown>) {
+  const { data: p } = await admin.from("profiles").select("name, email").eq("id", influencerId).maybeSingle();
+  await admin.from("operator_audit_log").insert({
+    actor_id: actor,
+    action,
+    target_type: "profile",
+    target_id: influencerId,
+    target_label: `${p?.name ?? ""} <${p?.email ?? ""}>`.slice(0, 120),
+    meta,
+  });
+}
+
 /** 운영자: 세금계산서 발행 완료 처리 (홈택스/API 로 발행 후 표시 → 광고주 알림·감사 로그) */
 export async function markTaxInvoiceIssued(paymentId: string, note?: string) {
   const guard = await ensureOperator();

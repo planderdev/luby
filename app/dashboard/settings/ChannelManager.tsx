@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 import { Plus, Trash2, Loader2, ExternalLink } from "lucide-react";
 import { addChannel, deleteChannel } from "./actions";
+import { ChannelVerify } from "./ChannelVerify";
+import { trustLevel } from "@/lib/channels/verify";
 import { channelHint } from "@/lib/channel-hints";
 import { dashboardDict } from "@/lib/i18n/app/dashboard";
 import type { Locale } from "@/lib/i18n/config";
@@ -14,6 +16,10 @@ export type ChannelRow = {
   handle: string | null;
   followers: number;
   verified: boolean;
+  verify_status?: string;
+  verify_note?: string | null;
+  stats_source?: string;
+  stats_updated_at?: string | null;
 };
 
 type ChannelType = { id: string; slug: string; name: string };
@@ -101,12 +107,13 @@ export function ChannelManager({
         {channels.map((ch) => (
           <div
             key={ch.id}
-            className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-muted/30 px-4 py-3"
+            className="relative flex flex-wrap items-start gap-x-3 gap-y-2 rounded-2xl border border-border bg-muted/30 py-3 pl-4 pr-12"
           >
             <span className="rounded-full bg-background px-3 py-1 text-xs font-medium">
               {typeNameById.get(ch.channel_type_id) ?? "채널"}
             </span>
-            <div className="min-w-0 flex-1">
+            {/* 좁은 화면에서 채널 이름이 길면(샤오홍슈 등) 내용이 다음 줄로 넘어가게 basis 를 준다 */}
+            <div className="min-w-0 flex-1 basis-[13rem]">
               <div className="flex items-center gap-1.5 text-sm font-medium">
                 <span className="truncate">{ch.handle || ch.url}</span>
                 <a
@@ -119,16 +126,17 @@ export function ChannelManager({
                   <ExternalLink className="size-3.5" />
                 </a>
               </div>
-              <div className="text-xs text-muted-foreground">
-                {t.followers(ch.followers.toLocaleString())}
-                {ch.verified && <span className="ml-2 text-accent-ink">{t.verified}</span>}
+              <div className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+                <span>{t.followers(ch.followers.toLocaleString())}</span>
+                <TrustBadge ch={ch} locale={locale} />
               </div>
+              <ChannelVerify channelId={ch.id} status={ch.verified ? "verified" : ch.verify_status ?? "none"} note={ch.verify_note ?? null} followers={ch.followers} locale={locale} />
             </div>
             <button
               type="button"
               onClick={() => remove(ch.id)}
               disabled={pending}
-              className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+              className="absolute right-2 top-2 inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
               aria-label={t.remove}
             >
               {pending ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
@@ -231,4 +239,18 @@ export function ChannelManager({
       )}
     </div>
   );
+}
+
+/** 신뢰 표시 — 자동 확인(유튜브 API) · 운영자 확인 · 확인 중 · 반려 · 미인증 */
+function TrustBadge({ ch, locale }: { ch: ChannelRow; locale: Locale }) {
+  const v = dashboardDict[locale].settings.channels.verify;
+  const level = trustLevel(ch);
+  if (level === "api") {
+    const d = ch.stats_updated_at ? new Date(ch.stats_updated_at).toLocaleDateString(locale === "ko" ? "ko-KR" : locale === "zh" ? "zh-CN" : "en-US") : null;
+    return <span className="font-medium text-success">{v.api}{d ? ` · ${v.asOf(d)}` : ""}</span>;
+  }
+  if (level === "operator") return <span className="font-medium text-success">{v.operator}</span>;
+  if (ch.verify_status === "pending") return <span className="rounded-full bg-warning-soft px-2 py-0.5 text-[10px] font-medium text-warning">{v.pending}</span>;
+  if (ch.verify_status === "rejected") return <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-medium text-accent-ink">{v.rejected}</span>;
+  return <span className="rounded-full bg-muted px-2 py-0.5 text-[10px]">{v.self}</span>;
 }

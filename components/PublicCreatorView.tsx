@@ -23,7 +23,7 @@ export type PublicCreator = {
   bio: string | null;
   region: { name: string; flag: string } | null;
   categories: { name: string; emoji: string }[];
-  channels: { type: string; slug: string; handle: string | null; url: string; followers: number }[];
+  channels: { type: string; slug: string; handle: string | null; url: string; followers: number; verified?: boolean }[];
   stats: { selected: number; completed: number };
   recent_collabs: { title: string; business_name: string; category_emoji: string | null; category_name: string | null; completed_at: string }[];
   joined_at: string;
@@ -164,6 +164,7 @@ export async function PublicCreatorView({ id, locale = "ko", ownerPreview = fals
                     <div className="truncate text-sm">{ch.handle ?? ch.url}</div>
                   </div>
                   <div className="flex shrink-0 items-center gap-3 text-xs text-muted-foreground">
+                    {ch.verified && <span className="font-medium text-success">{t.channelVerified}</span>}
                     {ch.followers > 0 && <span>{fmtN(ch.followers)}</span>}
                     {isDemo ? (
                       <span className="rounded-full bg-muted px-2 py-0.5 text-[11px]">demo</span>

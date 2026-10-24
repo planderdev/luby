@@ -9,6 +9,7 @@
  * 한국어 템플릿을 DB 에서 바꾸면 여기 정규식도 같이 고칠 것 (검증: scripts/.local/smoke-notification-i18n.mts).
  */
 import type { Locale } from "@/lib/i18n/config";
+import { translateRejectReason } from "@/lib/channels/reject-reasons";
 
 export type NotificationLike = { type?: string | null; title: string; body?: string | null };
 type L = "en" | "zh";
@@ -24,6 +25,8 @@ function apply(rules: Rule[], text: string, locale: L): string | null {
 }
 
 const TITLE: Record<string, Rule[]> = {
+  channel_verified: [{ re: /^채널 인증이 완료됐어요 ✓$/, en: () => "Your channel is verified ✓", zh: () => "频道认证已完成 ✓" }],
+  channel_verify_rejected: [{ re: /^채널 인증이 반려됐어요$/, en: () => "Channel verification was not approved", zh: () => "频道认证未通过" }],
   welcome: [{ re: /^가입을 환영해요 🎉$/, en: () => "Welcome to Luby AI 🎉", zh: () => "欢迎加入 Luby AI 🎉" }],
   nudge_register_channel: [{ re: /^승인을 받으려면 채널 등록이 필요해요$/, en: () => "Add a channel to get approved", zh: () => "登记频道才能通过审核" }],
   nudge_complete_profile: [{ re: /^프로필을 채우면 추천이 시작돼요$/, en: () => "Complete your profile to start getting recommendations", zh: () => "完善资料即可开始获得推荐" }],
@@ -62,6 +65,12 @@ const TITLE: Record<string, Rule[]> = {
 };
 
 const BODY: Record<string, Rule[]> = {
+  channel_verified: [{ re: /^(.+) 채널이 운영자 확인으로 인증됐어요\. 광고주에게 ‘확인’ 표시로 보여요\.$/,
+    en: (m) => `Your ${m[1]} channel was verified by the Luby team. Advertisers will see it as verified.`,
+    zh: (m) => `您的 ${m[1]} 频道已通过运营确认认证，广告主将看到「已确认」标识。` }],
+  channel_verify_rejected: [{ re: /^(.+?) 채널 — 사유: ([\s\S]+)\. 설정에서 다시 요청할 수 있어요\.$/,
+    en: (m) => `${m[1]} channel — reason: ${translateRejectReason(m[2], "en")}. You can request again in Settings.`,
+    zh: (m) => `${m[1]} 频道 —— 原因：${translateRejectReason(m[2], "zh")}。可在设置中重新申请。` }],
   welcome: [{ re: /^운영자가 프로필을 검수하고 있어요\(보통 24시간 이내\)\. 그동안 설정에서 채널과 전문 분야를 채워두면 승인 즉시 맞춤 캠페인 추천이 시작됩니다\.$/,
     en: () => "Our team is reviewing your profile (usually within 24 hours). Meanwhile, add your channels and specialties in Settings so personalized recommendations start the moment you're approved.",
     zh: () => "运营团队正在审核您的资料（通常 24 小时内）。期间请在设置中登记频道和擅长领域，审核通过后即可立即收到个性化活动推荐。" }],

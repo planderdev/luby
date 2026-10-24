@@ -57,7 +57,7 @@ export default async function SettingsPage() {
     isInfluencer
       ? supabase
           .from("influencer_channels")
-          .select("id, channel_type_id, url, handle, followers, verified")
+          .select("id, channel_type_id, url, handle, followers, verified, verify_status, verify_note, stats_source, stats_updated_at")
           .eq("influencer_id", profile.id)
           .order("created_at")
       : Promise.resolve({ data: [] }),

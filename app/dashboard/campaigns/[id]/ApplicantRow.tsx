@@ -65,7 +65,7 @@ export function ApplicantRow({
   name: string;
   region: string;
   points: number;
-  channels: { handle: string; followers: number }[];
+  channels: { handle: string; followers: number; verified?: boolean }[];
   submission?: SubmissionInfo;
   canAiReview?: boolean;
   aiFit?: ApplicantFit | null;
@@ -169,7 +169,7 @@ export function ApplicantRow({
             <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
               {channels.map((c, i) => (
                 <span key={i}>
-                  {c.handle} ({c.followers.toLocaleString()})
+                  {c.handle} ({c.followers.toLocaleString()}){c.verified && <span className="ml-0.5 font-medium text-success" title="인증된 채널(운영자·자동 확인)">✓</span>}
                 </span>
               ))}
             </div>

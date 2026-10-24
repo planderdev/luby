@@ -29,6 +29,9 @@ type Portfolio = {
     url: string;
     followers: number;
     verified: boolean;
+    /** api 자동 확인(유튜브) · operator 운영자 확인 · self 미인증 */
+    trust?: "api" | "operator" | "self";
+    stats_updated_at?: string | null;
   }[];
   stats: { applied: number; selected: number; completed: number };
   recent_collabs: {
@@ -183,8 +186,17 @@ export default async function CreatorProfilePage({
                 {c.verified && <BadgeCheck className="size-3.5 text-accent-ink" />}
               </div>
               <div className="mt-1 truncate text-sm font-medium">{c.handle}</div>
-              <div className="mt-0.5 text-xs text-muted-foreground">
-                팔로워 {fmtFollowers(c.followers ?? 0)}
+              <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
+                <span>팔로워 {fmtFollowers(c.followers ?? 0)}</span>
+                {c.trust === "api" ? (
+                  <span className="font-medium text-success">
+                    · 자동 확인{c.stats_updated_at ? ` (${new Date(c.stats_updated_at).toLocaleDateString("ko-KR")} 기준)` : ""}
+                  </span>
+                ) : c.trust === "operator" || c.verified ? (
+                  <span className="font-medium text-success">· 운영자 확인</span>
+                ) : (
+                  <span>· 미인증(본인 입력)</span>
+                )}
               </div>
             </div>
           );

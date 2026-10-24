@@ -10,6 +10,7 @@ import { BulkInvitePanel } from "./BulkInvitePanel";
 import { BulkConfirmPanel } from "./BulkConfirmPanel";
 import { OpenCampaignNudgePanel } from "./OpenCampaignNudgePanel";
 import { BouncedPanel } from "./BouncedPanel";
+import { ChannelVerifyQueue } from "./ChannelVerifyQueue";
 import { undeliverableReasons } from "@/lib/email-deliverability";
 
 export const metadata = { title: "회원 관리 — 루비AI" };
@@ -196,6 +197,9 @@ export default async function OperatorUsersPage({
           </Link>
         ))}
       </div>
+
+      {/* 채널 본인 인증 요청(캡처 확인) — 요청이 있을 때만 */}
+      <ChannelVerifyQueue />
 
       {/* 반송 주소는 보내도 Resend 가 버린다 — 일괄 발송 대상에서 빼고 따로 안내 */}
       {filter === "never" && members.some((p) => unconfirmed.has(p.id) && !blocked(p)) && (

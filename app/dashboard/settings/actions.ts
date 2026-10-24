@@ -127,14 +127,20 @@ export async function addChannel(payload: ChannelPayload, locale: Locale = "ko")
     return { ok: false, error: E(locale).domain(ct.name, h.urlPlaceholder) };
   }
 
-  const { error } = await supabase.from("influencer_channels").insert({
-    influencer_id: user.id,
-    channel_type_id: payload.channel_type_id,
-    url,
-    handle: payload.handle?.trim() || null,
-    followers: Math.max(0, payload.followers || 0),
-  });
+  const { data: inserted, error } = await supabase
+    .from("influencer_channels")
+    .insert({
+      influencer_id: user.id,
+      channel_type_id: payload.channel_type_id,
+      url,
+      handle: payload.handle?.trim() || null,
+      followers: Math.max(0, payload.followers || 0),
+    })
+    .select("id")
+    .single();
   if (error) return { ok: false, error: locale === "ko" ? dbErrorWith("채널 추가 실패", error) : E(locale).addFailed };
+  // 유튜브: 키가 있으면 구독자·조회수·영상 수를 공개 통계로 바로 채운다(본인 인증은 별도). 실패해도 채널 추가는 그대로
+  if (ct.slug === "youtube" && inserted) await refreshYouTubeStats(inserted.id, url).catch(() => undefined);
 
   revalidatePath("/dashboard/settings");
   revalidatePublicCreator(user.id);
@@ -271,4 +277,147 @@ export async function countPushSubscriptions(): Promise<number> {
   if (!user) return 0;
   const { count } = await supabase.from("push_subscriptions").select("id", { count: "exact", head: true }).eq("user_id", user.id);
   return count ?? 0;
+}
+
+// ---------- 채널 본인 인증(2026-10-24) — 흐름은 lib/channels/verify.ts ----------
+// 신뢰 칸(verified·verify_*·stats_*)은 DB 트리거가 크리에이터 쓰기를 막으므로 확인을 마친 뒤 service_role 로 쓴다.
+// 서버 전용 모듈은 동적 import(렌더 시험이 이 파일을 불러올 때 깨지지 않게).
+
+type VerifyStart = { ok: true; code: string; auto: boolean } | { ok: false; error: string };
+
+async function myChannel(channelId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data } = await supabase
+    .from("influencer_channels")
+    .select("id, url, handle, verify_code, verify_status, channel_types(slug, name)")
+    .eq("id", channelId)
+    .eq("influencer_id", user.id)
+    .maybeSingle();
+  if (!data) return null;
+  const type = data.channel_types as unknown as { slug: string; name: string } | null;
+  return { user, ch: data, slug: type?.slug ?? "", typeName: type?.name ?? "" };
+}
+
+async function refreshYouTubeStats(channelId: string, url: string) {
+  const [{ getAdminSupabase }, { fetchYouTubeChannel }] = await Promise.all([import("@/lib/supabase/admin"), import("@/lib/channels/youtube")]);
+  const r = await fetchYouTubeChannel(url);
+  if (!r.ok) return r;
+  const c = r.channel;
+  await getAdminSupabase()
+    .from("influencer_channels")
+    .update({
+      ...(c.subscribers !== null ? { followers: c.subscribers } : {}),
+      stats: { subscribers: c.subscribers, views: c.views, videos: c.videos, title: c.title },
+      stats_source: "api",
+      stats_updated_at: new Date().toISOString(),
+      external_id: c.id,
+    })
+    .eq("id", channelId);
+  return r;
+}
+
+/** 인증 시작 — 채널별 코드(처음 한 번 만들고 계속 같은 코드)와 자동 확인 가능 여부 */
+export async function startChannelVerification(channelId: string, locale: Locale = "ko"): Promise<VerifyStart> {
+  const v = dashboardDict[locale].settings.channels.verify;
+  const own = await myChannel(channelId);
+  if (!own) return { ok: false, error: v.errNotOwner };
+  const [{ getAdminSupabase }, { youtubeConfigured }, { generateVerifyCode }] = await Promise.all([
+    import("@/lib/supabase/admin"),
+    import("@/lib/channels/youtube"),
+    import("@/lib/channels/verify"),
+  ]);
+  let code = own.ch.verify_code;
+  if (!code) {
+    code = generateVerifyCode();
+    const { error } = await getAdminSupabase().from("influencer_channels").update({ verify_code: code }).eq("id", channelId).is("verify_code", null);
+    if (error) return { ok: false, error: v.errFailed };
+    // 동시에 두 번 눌렀으면 먼저 저장된 코드를 쓴다
+    const { data } = await getAdminSupabase().from("influencer_channels").select("verify_code").eq("id", channelId).single();
+    code = data?.verify_code ?? code;
+  }
+  return { ok: true, code, auto: own.slug === "youtube" && youtubeConfigured() };
+}
+
+/** 유튜브 자동 확인 — 채널 설명에 코드가 있으면 바로 인증 + 구독자 수 반영 */
+export async function checkYouTubeVerification(channelId: string, locale: Locale = "ko"): Promise<ActionResult> {
+  const v = dashboardDict[locale].settings.channels.verify;
+  const own = await myChannel(channelId);
+  if (!own) return { ok: false, error: v.errNotOwner };
+  if (own.slug !== "youtube") return { ok: false, error: v.errFailed };
+  if (!own.ch.verify_code) return { ok: false, error: v.errNoCode };
+  const [{ getAdminSupabase }, { fetchYouTubeChannel }, { codeInText }] = await Promise.all([
+    import("@/lib/supabase/admin"),
+    import("@/lib/channels/youtube"),
+    import("@/lib/channels/verify"),
+  ]);
+  const r = await fetchYouTubeChannel(own.ch.url);
+  if (!r.ok) return { ok: false, error: r.error === "unsupported_url" ? v.errYtUrl : r.error === "not_found" ? v.errYtNotFound : v.errFailed };
+  if (!codeInText(r.channel.description, own.ch.verify_code)) return { ok: false, error: v.errCodeNotFound };
+  const c = r.channel;
+  const now = new Date().toISOString();
+  const { error } = await getAdminSupabase()
+    .from("influencer_channels")
+    .update({
+      verified: true,
+      verify_status: "verified",
+      verify_method: "youtube_api",
+      verified_at: now,
+      verified_by: null,
+      verify_note: null,
+      proof_path: null,
+      ...(c.subscribers !== null ? { followers: c.subscribers } : {}),
+      stats: { subscribers: c.subscribers, views: c.views, videos: c.videos, title: c.title },
+      stats_source: "api",
+      stats_updated_at: now,
+      external_id: c.id,
+    })
+    .eq("id", channelId);
+  if (error) return { ok: false, error: v.errFailed };
+  revalidatePath("/dashboard/settings");
+  revalidatePublicCreator(own.user.id);
+  return { ok: true };
+}
+
+/** 캡처로 인증 요청 — 운영자가 코드·팔로워를 확인한다. 운영자(데모 제외)에게 알림 */
+export async function requestChannelVerification(
+  channelId: string,
+  input: { proofPath: string; followers: number },
+  locale: Locale = "ko",
+): Promise<ActionResult> {
+  const v = dashboardDict[locale].settings.channels.verify;
+  const own = await myChannel(channelId);
+  if (!own) return { ok: false, error: v.errNotOwner };
+  if (!own.ch.verify_code) return { ok: false, error: v.errNoCode };
+  const [{ getAdminSupabase }, { isOwnProofPath }] = await Promise.all([import("@/lib/supabase/admin"), import("@/lib/channels/verify")]);
+  if (!input.proofPath || !isOwnProofPath(input.proofPath, own.user.id)) return { ok: false, error: v.errProof };
+  const followers = Math.min(2_000_000_000, Math.max(0, Math.floor(Number(input.followers) || 0)));
+  const admin = getAdminSupabase();
+  const { error } = await admin
+    .from("influencer_channels")
+    .update({ verify_status: "pending", verify_requested_at: new Date().toISOString(), proof_path: input.proofPath, followers, stats_source: "self", verify_note: null })
+    .eq("id", channelId)
+    .neq("verify_status", "verified");
+  if (error) return { ok: false, error: v.errFailed };
+
+  const { data: me } = await admin.from("profiles").select("name, is_demo").eq("id", own.user.id).single();
+  if (me && !me.is_demo) {
+    const { data: ops } = await admin.from("profiles").select("id").eq("role", "operator").eq("approved", true).eq("is_demo", false);
+    if (ops?.length) {
+      await admin.from("notifications").insert(
+        ops.map((o) => ({
+          user_id: o.id,
+          type: "channel_verify_request",
+          title: `채널 인증 요청 — ${me.name ?? "크리에이터"}`,
+          body: `${own.typeName} ${own.ch.handle || own.ch.url} · 팔로워 ${followers.toLocaleString("ko-KR")} 신고. 캡처에서 인증 코드와 팔로워 수를 확인해 주세요.`,
+          link: "/dashboard/operator/users#channel-verify",
+        })),
+      );
+    }
+  }
+  revalidatePath("/dashboard/settings");
+  return { ok: true };
 }

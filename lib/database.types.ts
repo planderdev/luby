@@ -697,6 +697,18 @@ export type Database = {
           updated_at: string
           url: string
           verified: boolean
+          verify_status: string
+          verify_method: string | null
+          verify_code: string | null
+          verify_requested_at: string | null
+          verified_at: string | null
+          verified_by: string | null
+          verify_note: string | null
+          proof_path: string | null
+          stats_source: string
+          stats: Json | null
+          stats_updated_at: string | null
+          external_id: string | null
         }
         Insert: {
           channel_type_id: string
@@ -708,6 +720,18 @@ export type Database = {
           updated_at?: string
           url: string
           verified?: boolean
+          verify_status?: string
+          verify_method?: string | null
+          verify_code?: string | null
+          verify_requested_at?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          verify_note?: string | null
+          proof_path?: string | null
+          stats_source?: string
+          stats?: Json | null
+          stats_updated_at?: string | null
+          external_id?: string | null
         }
         Update: {
           channel_type_id?: string
@@ -719,6 +743,18 @@ export type Database = {
           updated_at?: string
           url?: string
           verified?: boolean
+          verify_status?: string
+          verify_method?: string | null
+          verify_code?: string | null
+          verify_requested_at?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          verify_note?: string | null
+          proof_path?: string | null
+          stats_source?: string
+          stats?: Json | null
+          stats_updated_at?: string | null
+          external_id?: string | null
         }
         Relationships: [
           {
