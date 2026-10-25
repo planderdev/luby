@@ -25,7 +25,7 @@ export type FitApplicant = {
   region: string | null;
   categories: string[];
   bio: string | null;
-  channels: { channel: string; handle: string | null; followers: number | null }[];
+  channels: { channel: string; handle: string | null; followers: number | null; verified?: boolean }[];
   completedCampaigns: number;
   message: string | null;
 };
@@ -69,7 +69,7 @@ export async function scoreApplicants(campaign: FitCampaign, applicants: FitAppl
 1. 채널 일치 — 캠페인이 요구하는 채널을 실제로 운영하는가 (미등록 채널만 있으면 큰 감점)
 2. 분야·업종 일치 — 전문 분야가 캠페인 업종/키워드와 맞는가
 3. 지역 — 방문형이면 활동 지역이 캠페인 지역과 같은가 (배송형·온라인은 영향 적음)
-4. 도달 — 팔로워 규모가 보상(포인트) 수준과 균형이 맞는가 (과도하게 크거나 작은지)
+4. 도달 — 팔로워 규모가 보상(포인트) 수준과 균형이 맞는가 (과도하게 크거나 작은지). '인증' 채널은 계정·팔로워가 확인된 것이고 '미인증'은 본인 입력이라, 미인증 숫자만으로 큰 가점을 주지 말 것
 5. 응모 메시지 — 미션을 이해했는지, 구체적인 계획이 있는지 (없으면 중립)
 6. 경험 — 체험 완료 이력
 
@@ -94,7 +94,7 @@ ${applicants
   .map(
     (a) => `id: ${a.id}
 이름: ${a.name} · 지역: ${a.region ?? "-"} · 분야: ${a.categories.join(", ") || "-"} · 체험 완료 ${a.completedCampaigns}건
-채널: ${a.channels.map((c) => `${c.channel}${c.handle ? ` @${c.handle.replace(/^@/, "")}` : ""} (${(c.followers ?? 0).toLocaleString()})`).join(", ") || "(미등록)"}
+채널: ${a.channels.map((c) => `${c.channel}${c.handle ? ` @${c.handle.replace(/^@/, "")}` : ""} (${(c.followers ?? 0).toLocaleString()}${c.verified ? ", 인증" : ", 미인증"})`).join(", ") || "(미등록)"}
 소개: ${(a.bio ?? "").slice(0, 200) || "-"}
 응모 메시지: ${(a.message ?? "").slice(0, 400) || "-"}`
   )

@@ -49,6 +49,7 @@ export function CreatorFilters({
 
   const activeChannel = params.get("channel") ?? "";
   const publicOnly = params.get("public") === "1";
+  const verifiedOnly = params.get("verified") === "1";
 
   return (
     <div className="mt-8">
@@ -80,6 +81,17 @@ export function CreatorFilters({
             title="공개 프로필을 켠 크리에이터만 — 팀·클라이언트에 링크 공유 가능"
           >
             공개 프로필 있음
+          </button>
+          <button
+            type="button"
+            onClick={() => setParam("verified", verifiedOnly ? "" : "1")}
+            aria-pressed={verifiedOnly}
+            className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+              verifiedOnly ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:bg-muted"
+            }`}
+            title="본인 인증된 채널(운영자 확인·유튜브 자동 확인)이 있는 크리에이터만 — 채널 필터와 함께 쓰면 그 채널이 인증된 사람만"
+          >
+            ✓ 인증 채널
           </button>
       </div>
       <div className="flex flex-wrap items-center gap-2">

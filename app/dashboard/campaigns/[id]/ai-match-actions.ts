@@ -82,14 +82,14 @@ async function matchInfluencersInner(campaignId: string): Promise<MatchResult> {
     supabase.from("profiles").select("id, name").in("id", ids).eq("approved", true),
     supabase
       .from("influencer_channels")
-      .select("influencer_id, channel_type_id, handle, followers")
+      .select("influencer_id, channel_type_id, handle, followers, verified")
       .in("influencer_id", ids),
   ]);
 
   const profileById = new Map((profilesRes.data ?? []).map((p) => [p.id, p]));
   const channelsByInfluencer = new Map<
     string,
-    { channel_type_id: string; handle: string | null; followers: number }[]
+    { channel_type_id: string; handle: string | null; followers: number; verified: boolean }[]
   >();
   for (const c of channelsRes.data ?? []) {
     const arr = channelsByInfluencer.get(c.influencer_id) ?? [];
@@ -97,6 +97,7 @@ async function matchInfluencersInner(campaignId: string): Promise<MatchResult> {
       channel_type_id: c.channel_type_id,
       handle: c.handle,
       followers: c.followers ?? 0,
+      verified: !!c.verified,
     });
     channelsByInfluencer.set(c.influencer_id, arr);
   }
@@ -129,7 +130,7 @@ async function matchInfluencersInner(campaignId: string): Promise<MatchResult> {
           : chs
               .map(
                 (c) =>
-                  `${channelNameById.get(c.channel_type_id) ?? "?"}: ${c.handle ?? ""} (${c.followers.toLocaleString()}명)`
+                  `${channelNameById.get(c.channel_type_id) ?? "?"}: ${c.handle ?? ""} (${c.followers.toLocaleString()}명, ${c.verified ? "인증" : "미인증"})`
               )
               .join(", ");
       const region = inf.region_id ? regionNameById.get(inf.region_id) ?? "" : "";
@@ -158,6 +159,7 @@ ${influencerSummaries}
 - 지역 적합성
 - 카테고리·업종 적합성 (bio 참고)
 - 팔로워 규모와 캠페인 모집 인원의 균형 (작은 캠페인엔 마이크로/나노 인플루언서가 더 적합)
+- 채널 인증 — '인증' 채널은 본인 계정·팔로워 수가 확인된 것. 다른 조건이 비슷하면 인증 채널을 우선하고, '미인증' 팔로워 수는 본인 입력이라 그대로 믿지 말 것
 
 각 인플루언서마다 0~100 점수와 추천 이유 (한국어, 80자 이내)를 작성해주세요.
 풀에 인플루언서가 5명 미만이면 그 만큼만 반환하세요.`;

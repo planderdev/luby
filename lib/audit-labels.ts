@@ -7,6 +7,7 @@ export const AUDIT_ACTION_LABEL: Record<string, { label: string; tone: string }>
   payment_refunded: { label: "결제 환불", tone: "bg-danger-soft text-danger" },
   channel_verified: { label: "채널 인증", tone: "bg-success-soft text-success" },
   channel_verify_rejected: { label: "채널 인증 반려", tone: "bg-warning-soft text-warning" },
+  channel_verify_nudge_sent: { label: "채널 인증 안내 발송", tone: "bg-muted text-muted-foreground" },
   campaign_approved: { label: "캠페인 승인", tone: "bg-success-soft text-success" },
   campaign_rejected: { label: "캠페인 반려", tone: "bg-danger-soft text-danger" },
   campaign_cancelled_by_operator: { label: "캠페인 취소(운영)", tone: "bg-danger-soft text-danger" },

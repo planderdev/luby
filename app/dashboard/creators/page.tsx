@@ -34,6 +34,7 @@ export default async function CreatorsDirectoryPage({
     sort?: string;
     page?: string;
     public?: string;
+    verified?: string;
   }>;
 }) {
   const profile = await getCurrentProfile();
@@ -61,6 +62,7 @@ export default async function CreatorsDirectoryPage({
       p_limit: PAGE_SIZE,
       p_offset: (page - 1) * PAGE_SIZE,
       p_public: sp.public === "1" ? true : null,
+      p_verified: sp.verified === "1" ? true : null,
     }),
     fetchUICatalog(),
     profile.role === "advertiser" ? getEntitlements(profile.id) : Promise.resolve(null),
@@ -154,7 +156,7 @@ export default async function CreatorsDirectoryPage({
 
       <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {creators.map((c) => {
-          const channels = (c.channels as { type: string; slug: string; followers: number }[]) ?? [];
+          const channels = (c.channels as { type: string; slug: string; followers: number; verified?: boolean }[]) ?? [];
           const cats = (c.categories as { name: string; emoji: string | null }[]) ?? [];
           return (
             <div key={c.id} className="flex flex-col rounded-2xl glass-card p-5">
@@ -196,8 +198,9 @@ export default async function CreatorsDirectoryPage({
                   </span>
                 ))}
                 {channels.slice(0, 3).map((ch, i) => (
-                  <span key={i} className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
+                  <span key={i} className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground" title={ch.verified ? "인증된 채널(운영자·자동 확인)" : "미인증(본인 입력)"}>
                     {ch.type} {fmtFollowers(ch.followers ?? 0)}
+                    {ch.verified && <span className="ml-0.5 font-semibold text-success">✓</span>}
                   </span>
                 ))}
               </div>

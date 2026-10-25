@@ -38,7 +38,7 @@ export async function evaluatePendingApplicants(
     supabase.from("campaign_channels").select("channel_type_id").eq("campaign_id", campaignId),
     supabase.from("profiles").select("id, name").in("id", infIds),
     supabase.from("influencers").select("profile_id, region_id, bio").in("profile_id", infIds),
-    supabase.from("influencer_channels").select("influencer_id, channel_type_id, handle, followers").in("influencer_id", infIds),
+    supabase.from("influencer_channels").select("influencer_id, channel_type_id, handle, followers, verified").in("influencer_id", infIds),
     supabase.from("influencer_categories").select("influencer_id, category_id").in("influencer_id", infIds),
     supabase.from("applications").select("influencer_id").in("influencer_id", infIds).eq("status", "completed"),
   ]);
@@ -66,7 +66,7 @@ export async function evaluatePendingApplicants(
       bio: inf?.bio ?? null,
       channels: (channels.data ?? [])
         .filter((c) => c.influencer_id === a.influencer_id)
-        .map((c) => ({ channel: chName.get(c.channel_type_id) ?? "채널", handle: c.handle, followers: c.followers })),
+        .map((c) => ({ channel: chName.get(c.channel_type_id) ?? "채널", handle: c.handle, followers: c.followers, verified: !!c.verified })),
       completedCampaigns: completedCount.get(a.influencer_id) ?? 0,
       message: a.message,
     };

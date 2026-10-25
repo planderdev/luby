@@ -1939,6 +1939,7 @@ export type Database = {
           p_limit?: number
           p_offset?: number
           p_public?: boolean | null
+          p_verified?: boolean | null
         }
         Returns: {
           id: string
@@ -1953,7 +1954,12 @@ export type Database = {
           categories: Json
           total_count: number
           public_profile: boolean
+          verified_count: number
         }[]
+      }
+      send_channel_verify_nudges: {
+        Args: { p_dry_run?: boolean; p_cooldown_days?: number }
+        Returns: { targets: number; sample_names: string[] }[]
       }
       is_message_participant: {
         Args: { p_application_id: string }

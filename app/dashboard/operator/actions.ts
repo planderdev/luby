@@ -647,6 +647,26 @@ async function auditChannel(admin: any, actor: string, action: string, influence
   });
 }
 
+/** 운영자: 미인증 채널이 있는 크리에이터에게 '채널 본인 인증' 안내(앱·푸시·이메일 리마인더). 30일 안에 받은 사람·확인 중·데모 제외 */
+export async function sendChannelVerifyNudges(): Promise<{ ok: true; sent: number } | { ok: false; error: string }> {
+  const guard = await ensureOperator();
+  if (!guard.ok) return { ok: false, error: guard.error };
+  const { data, error } = await guard.supabase.rpc("send_channel_verify_nudges", { p_dry_run: false, p_cooldown_days: 30 });
+  if (error) return { ok: false, error: `발송에 실패했어요: ${dbErrorMessage(error)}` };
+  const sent = Number(data?.[0]?.targets ?? 0);
+  const { getAdminSupabase } = await import("@/lib/supabase/admin");
+  await getAdminSupabase().from("operator_audit_log").insert({
+    actor_id: guard.user.id,
+    action: "channel_verify_nudge_sent",
+    target_type: "profile",
+    target_id: null,
+    target_label: `채널 인증 안내 ${sent}명`,
+    meta: { sent },
+  });
+  revalidatePath("/dashboard/operator/users");
+  return { ok: true, sent };
+}
+
 /** 운영자: 세금계산서 발행 완료 처리 (홈택스/API 로 발행 후 표시 → 광고주 알림·감사 로그) */
 export async function markTaxInvoiceIssued(paymentId: string, note?: string) {
   const guard = await ensureOperator();

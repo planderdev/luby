@@ -11,6 +11,7 @@ import { BulkConfirmPanel } from "./BulkConfirmPanel";
 import { OpenCampaignNudgePanel } from "./OpenCampaignNudgePanel";
 import { BouncedPanel } from "./BouncedPanel";
 import { ChannelVerifyQueue } from "./ChannelVerifyQueue";
+import { ChannelVerifyNudgePanel } from "./ChannelVerifyNudgePanel";
 import { undeliverableReasons } from "@/lib/email-deliverability";
 
 export const metadata = { title: "회원 관리 — 루비AI" };
@@ -84,6 +85,7 @@ export default async function OperatorUsersPage({
   const bounced = new Set((bouncedRows ?? []) as string[]);
   // 인플루언서 탭: 모집 중 캠페인 안내 발송 미리보기 (운영자 전용 RPC, 발송하지 않음)
   const nudgePreview = filter === "influencer" ? ((await supabase.rpc("operator_open_campaign_nudge_preview")).data?.[0] ?? null) : null;
+  const verifyNudgePreview = filter === "influencer" ? ((await supabase.rpc("send_channel_verify_nudges", { p_dry_run: true, p_cooldown_days: 30 })).data?.[0] ?? null) : null;
   // 데모 계정(profiles.is_demo)은 재초대 대상이 아니다 — 포함하면 400명이 넘어 숫자가 무의미해지고,
   // 일괄 재발송이 실존하지 않는 주소로 나가 발신 평판을 깎을 수 있다
   const demoIds = new Set(all.filter((p) => p.is_demo).map((p) => p.id));
@@ -232,6 +234,9 @@ export default async function OperatorUsersPage({
 
       {filter === "influencer" && nudgePreview && (
         <OpenCampaignNudgePanel targets={nudgePreview.targets} sampleNames={nudgePreview.sample_names ?? []} sampleBody={nudgePreview.sample_body} />
+      )}
+      {filter === "influencer" && verifyNudgePreview && verifyNudgePreview.targets > 0 && (
+        <ChannelVerifyNudgePanel targets={verifyNudgePreview.targets} sampleNames={verifyNudgePreview.sample_names ?? []} />
       )}
 
       {(() => {

@@ -25,6 +25,7 @@ function apply(rules: Rule[], text: string, locale: L): string | null {
 }
 
 const TITLE: Record<string, Rule[]> = {
+  nudge_verify_channel: [{ re: /^채널 본인 인증을 해 주세요$/, en: () => "Verify your channel ownership", zh: () => "请完成频道本人认证" }],
   channel_verified: [{ re: /^채널 인증이 완료됐어요 ✓$/, en: () => "Your channel is verified ✓", zh: () => "频道认证已完成 ✓" }],
   channel_verify_rejected: [{ re: /^채널 인증이 반려됐어요$/, en: () => "Channel verification was not approved", zh: () => "频道认证未通过" }],
   welcome: [{ re: /^가입을 환영해요 🎉$/, en: () => "Welcome to Luby AI 🎉", zh: () => "欢迎加入 Luby AI 🎉" }],
@@ -65,6 +66,9 @@ const TITLE: Record<string, Rule[]> = {
 };
 
 const BODY: Record<string, Rule[]> = {
+  nudge_verify_channel: [{ re: /^인증된 채널은 광고주에게 ‘확인’ 표시로 보여 선정에 유리해요\. 설정 → 채널에서 ‘본인 인증’을 누르고 코드를 소개란에 넣으면 돼요\(유튜브는 바로, 그 밖은 캡처로 확인\)\.$/,
+    en: () => "Verified channels show a ‘verified’ mark to advertisers, which helps you get selected. In Settings → Channels, press ‘Verify ownership’ and add the code to your bio (YouTube is checked instantly, others via a screenshot).",
+    zh: () => "认证后的频道会以「已确认」标识展示给广告主，更容易入选。在 设置 → 渠道 中点击「账号本人认证」，把认证码填入简介即可（YouTube 即时确认，其他平台通过截图确认）。" }],
   channel_verified: [{ re: /^(.+) 채널이 운영자 확인으로 인증됐어요\. 광고주에게 ‘확인’ 표시로 보여요\.$/,
     en: (m) => `Your ${m[1]} channel was verified by the Luby team. Advertisers will see it as verified.`,
     zh: (m) => `您的 ${m[1]} 频道已通过运营确认认证，广告主将看到「已确认」标识。` }],
