@@ -7,11 +7,12 @@ import { ExternalLink } from "lucide-react";
 import { getStaticSupabase } from "@/lib/supabase/static";
 import { PrintButton } from "./PrintButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { ReviewReportView, type ReviewReportData } from "@/components/reports/ReviewReportView";
 
 // 토큰 링크 — 검색엔진 제외, 열 때마다 최신 수치
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "캠페인 성과 리포트",
+  title: "성과 리포트",
   robots: { index: false, follow: false },
 };
 
@@ -91,9 +92,16 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
   if (!/^[0-9a-f-]{36}$/.test(token)) notFound();
 
   const supabase = getStaticSupabase();
-  const { data } = await supabase.rpc("get_campaign_report", { p_token: token });
+  // 같은 /r/<token> 주소를 캠페인 성과 리포트와 결과 보고서(리뷰 링크 엑셀)가 나눠 쓴다 — 토큰은 둘 다 uuid
+  const [{ data }, { data: review }] = await Promise.all([
+    supabase.rpc("get_campaign_report", { p_token: token }),
+    supabase.rpc("get_review_report", { p_token: token }),
+  ]);
   const report = data as Report | null;
-  if (!report) notFound();
+  if (!report) {
+    if (review) return <ReviewReportView data={review as ReviewReportData} />;
+    notFound();
+  }
 
   const { campaign: c, metrics: m, contents, channels } = report;
   const fillRate = c.recruit_count > 0 ? Math.min(100, Math.round((m.selected / c.recruit_count) * 100)) : 0;

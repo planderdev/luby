@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import Link from "next/link";
 import { FileSpreadsheet, Loader2, Trash2, ExternalLink, Upload } from "lucide-react";
 import type { ExternalResultRow } from "@/lib/external-results-import";
 import { previewExternalResults, commitExternalResults, deleteExternalResult } from "./external-results-actions";
@@ -74,6 +75,10 @@ export function ExternalResultsPanel({ campaignId, items }: { campaignId: string
           <div>
             <h3 className="text-lg font-semibold tracking-tight">외부 채널 체험단 결과</h3>
             <p className="mt-0.5 text-sm text-muted-foreground">샤오홍슈 등 루비 밖에서 운영한 체험단의 방문·게시 기록을 엑셀로 올리면 결과 보고서에 실립니다.</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              리뷰 링크만 모은 엑셀로 바로 보고서 페이지를 만들려면{" "}
+              <Link href={`/dashboard/reports/new?campaign=${campaignId}`} className="font-medium text-accent-ink underline underline-offset-2">결과 보고서 만들기 →</Link>
+            </p>
           </div>
         </div>
         {items.length > 0 && (

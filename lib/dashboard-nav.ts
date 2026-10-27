@@ -17,7 +17,9 @@ import {
   UserSearch,
   Mail,
   BarChart3,
- ScrollText } from "lucide-react";
+  FileBarChart,
+  ScrollText,
+} from "lucide-react";
 import type { UserRole } from "@/lib/supabase/queries";
 import { dashboardDict } from "@/lib/i18n/app/dashboard";
 import type { Locale } from "@/lib/i18n/config";
@@ -43,6 +45,7 @@ export const dashboardNav: Record<UserRole, NavItem[]> = {
     { href: "/dashboard/applications", label: "응모자", icon: Inbox, primary: true },
     { href: "/dashboard/creators", label: "크리에이터 찾기", short: "찾기", icon: UserSearch },
     { href: "/dashboard/messages", label: "메시지", icon: MessageSquare, primary: true },
+    { href: "/dashboard/reports", label: "결과 보고서", short: "보고서", icon: FileBarChart },
     { href: "/dashboard/billing", label: "구독·결제", short: "구독", icon: CreditCard },
     { href: "/dashboard/settings", label: "설정", icon: Settings, primary: true },
   ],
@@ -62,6 +65,7 @@ export const dashboardNav: Record<UserRole, NavItem[]> = {
     { href: "/dashboard/creators", label: "크리에이터 풀", short: "크리에이터", icon: UserSearch },
     { href: "/dashboard/campaigns", label: "캠페인 풀", short: "캠페인", icon: Megaphone },
     { href: "/dashboard/operator/campaigns", label: "캠페인 검수", short: "검수", icon: ShieldCheck, primary: true },
+    { href: "/dashboard/reports", label: "결과 보고서", short: "보고서", icon: FileBarChart },
     { href: "/dashboard/operator/payments", label: "결제 내역", short: "결제", icon: CreditCard },
     { href: "/dashboard/operator/withdrawals", label: "정산 관리", short: "정산", icon: Banknote, primary: true },
     { href: "/dashboard/operator/stats", label: "통계", icon: BarChart3, primary: true },

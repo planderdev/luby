@@ -1508,6 +1508,128 @@ export type Database = {
         }
         Relationships: []
       }
+      review_report_rows: {
+        Row: {
+          channel: string
+          comments: number | null
+          created_at: string
+          creator_name: string | null
+          creator_url: string | null
+          followers: number | null
+          id: string
+          likes: number | null
+          note: string | null
+          post_url: string
+          posted_at: string | null
+          report_id: string
+          seq: number
+          views: number | null
+        }
+        Insert: {
+          channel?: string
+          comments?: number | null
+          created_at?: string
+          creator_name?: string | null
+          creator_url?: string | null
+          followers?: number | null
+          id?: string
+          likes?: number | null
+          note?: string | null
+          post_url: string
+          posted_at?: string | null
+          report_id: string
+          seq: number
+          views?: number | null
+        }
+        Update: {
+          channel?: string
+          comments?: number | null
+          created_at?: string
+          creator_name?: string | null
+          creator_url?: string | null
+          followers?: number | null
+          id?: string
+          likes?: number | null
+          note?: string | null
+          post_url?: string
+          posted_at?: string | null
+          report_id?: string
+          seq?: number
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_report_rows_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "review_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      review_reports: {
+        Row: {
+          business_name: string
+          campaign_id: string | null
+          created_at: string
+          id: string
+          is_public: boolean
+          memo: string | null
+          owner_id: string
+          period_end: string | null
+          period_start: string | null
+          recruit_count: number | null
+          title: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          business_name?: string
+          campaign_id?: string | null
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          memo?: string | null
+          owner_id: string
+          period_end?: string | null
+          period_start?: string | null
+          recruit_count?: number | null
+          title: string
+          token?: string
+          updated_at?: string
+        }
+        Update: {
+          business_name?: string
+          campaign_id?: string | null
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          memo?: string | null
+          owner_id?: string
+          period_end?: string | null
+          period_start?: string | null
+          recruit_count?: number | null
+          title?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_reports_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_reports_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       server_errors: {
         Row: {
           created_at: string
@@ -1855,6 +1977,10 @@ export type Database = {
         Returns: boolean
       }
       get_campaign_report: {
+        Args: { p_token: string }
+        Returns: Json
+      }
+      get_review_report: {
         Args: { p_token: string }
         Returns: Json
       }
