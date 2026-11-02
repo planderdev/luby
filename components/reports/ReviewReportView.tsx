@@ -197,7 +197,7 @@ export function ReviewReportView({ data }: { data: ReviewReportData }) {
                     {anyFollowers && <th className="pb-2 pr-3 font-medium">팔로워</th>}
                     <th className="pb-2 pr-3 font-medium">리뷰</th>
                     {anyReactions && <th className="pb-2 pr-3 font-medium">반응</th>}
-                    {anyNote && <th className="pb-2 font-medium">비고</th>}
+                    {anyNote && <th className="min-w-[7rem] pb-2 font-medium">비고</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -222,7 +222,7 @@ export function ReviewReportView({ data }: { data: ReviewReportData }) {
                         <a href={x.post_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-0.5 text-[11px] font-medium text-success">
                           게시 완료 <ExternalLink className="size-3" />
                         </a>
-                        <div className="mt-0.5 max-w-[220px] truncate text-[11px] text-muted-foreground print:max-w-none print:whitespace-normal print:break-all" title={x.post_url}>
+                        <div className="mt-0.5 max-w-[180px] truncate text-[11px] text-muted-foreground print:max-w-none print:whitespace-normal print:break-all" title={x.post_url}>
                           {x.post_url.replace(/^https?:\/\//, "")}
                         </div>
                       </td>
@@ -235,7 +235,7 @@ export function ReviewReportView({ data }: { data: ReviewReportData }) {
                           ].filter(Boolean).join(" · ") || "—"}
                         </td>
                       )}
-                      {anyNote && <td className="py-2.5 text-xs text-muted-foreground">{x.note ?? ""}</td>}
+                      {anyNote && <td className="min-w-[7rem] py-2.5 text-xs leading-snug text-muted-foreground">{x.note ?? ""}</td>}
                     </tr>
                   ))}
                 </tbody>
