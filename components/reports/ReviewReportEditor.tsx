@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Check, Copy, ExternalLink, FileSpreadsheet, Link2, Loader2, Trash2, Upload } from "lucide-react";
 import type { ReviewImportRow } from "@/lib/review-report-import";
 import { channelLabel, hostOf } from "@/lib/review-channels";
+import { countryLabel } from "@/lib/review-countries";
 import {
   createReviewReport,
   deleteReviewReport,
@@ -30,6 +31,7 @@ export type ExistingRow = {
   comments: number | null;
   views: number | null;
   note: string | null;
+  country: string | null;
 };
 
 type Preview = { sheets: string[]; sheet: string; mode: "header" | "links"; rows: ReviewImportRow[] };
@@ -37,7 +39,7 @@ type Preview = { sheets: string[]; sheet: string; mode: "header" | "links"; rows
 const INPUT = "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent";
 const LABEL = "block text-xs font-medium text-muted-foreground";
 const fmt = (n: number | null) => (n == null ? "—" : n >= 10000 ? `${(n / 10000).toFixed(1).replace(/\.0$/, "")}만` : n.toLocaleString());
-const TEMPLATE_CSV = "﻿이름,채널,리뷰 링크,팔로워,좋아요,게시일,비고\n김하늘,인스타그램,https://www.instagram.com/p/XXXX/,12000,350,2026-10-21,릴스\n";
+const TEMPLATE_CSV = "﻿이름,국가,채널,리뷰 링크,팔로워,좋아요,게시일,비고\n김하늘,한국,인스타그램,https://www.instagram.com/p/XXXX/,12000,350,2026-10-21,릴스\n王小美,중국,샤오홍슈,https://www.xiaohongshu.com/explore/XXXX,25000,1200,2026-10-22,노트\n";
 
 /**
  * 결과 보고서 편집기 — 만들기(create)·편집(edit) 공용.
@@ -83,6 +85,8 @@ export function ReviewReportEditor({
 
   const url = token ? `${siteUrl}/r/${token}` : null;
   const validRows = preview ? preview.rows.filter((r) => r.errors.length === 0) : [];
+  const previewHasCountry = preview ? preview.rows.some((r) => r.country) : false;
+  const existingHasCountry = existingRows.some((r) => r.country);
   const invalid = preview ? preview.rows.length - validRows.length : 0;
 
   function toInput(): ReviewReportInput {
@@ -199,7 +203,7 @@ export function ReviewReportEditor({
         <div>
           <h2 className="text-lg font-semibold tracking-tight">{mode === "create" ? "리뷰 링크 엑셀" : "리뷰 링크 교체"}</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            리뷰(게시물) 링크가 든 시트를 올리세요. 열 이름이 있으면 이름·채널·팔로워·좋아요·게시일·비고까지 읽고, 없으면 링크만으로도 만듭니다.
+            리뷰(게시물) 링크가 든 시트를 올리세요. 열 이름이 있으면 이름·국가·채널·팔로워·좋아요·게시일·비고까지 읽고, 없으면 링크만으로도 만듭니다.
           </p>
         </div>
       </div>
@@ -213,7 +217,7 @@ export function ReviewReportEditor({
         </a>
       </div>
       <p className="mt-2 text-[11px] text-muted-foreground">
-        열 이름 자동 인식: 이름 · 채널 · 리뷰 링크(URL) · 계정 링크 · 팔로워 · 좋아요 · 댓글 · 조회수 · 게시일 · 비고 (한/중/영 표기 모두 가능, 최대 500행)
+        열 이름 자동 인식: 이름 · 국가 · 채널 · 리뷰 링크(URL) · 계정 링크 · 팔로워 · 좋아요 · 댓글 · 조회수 · 게시일 · 비고 (한/중/영 표기 모두 가능, 최대 500행). 국가는 한국·일본·중국·Japan·韩国 같은 표기를 깃발로 바꿔 보여줍니다.
       </p>
 
       {preview && (
@@ -245,13 +249,14 @@ export function ReviewReportEditor({
             <table className="w-full min-w-[720px]">
               <thead>
                 <tr className="text-left text-[11px] uppercase tracking-wider text-muted-foreground">
-                  <th className="pb-1 pr-3">#</th><th className="pb-1 pr-3">채널</th><th className="pb-1 pr-3">크리에이터</th><th className="pb-1 pr-3">리뷰 링크</th><th className="pb-1 pr-3">팔로워</th><th className="pb-1 pr-3">좋아요</th><th className="pb-1 pr-3">게시일</th><th className="pb-1">비고</th>
+                  <th className="pb-1 pr-3">#</th>{previewHasCountry && <th className="pb-1 pr-3">국가</th>}<th className="pb-1 pr-3">채널</th><th className="pb-1 pr-3">크리에이터</th><th className="pb-1 pr-3">리뷰 링크</th><th className="pb-1 pr-3">팔로워</th><th className="pb-1 pr-3">좋아요</th><th className="pb-1 pr-3">게시일</th><th className="pb-1">비고</th>
                 </tr>
               </thead>
               <tbody>
                 {preview.rows.map((r, i) => (
                   <tr key={`${r.seq}-${i}`} className={`border-t border-border/60 ${r.errors.length ? "text-danger" : ""}`}>
                     <td className="py-1 pr-3 tabular-nums">{r.seq}</td>
+                    {previewHasCountry && <td className="py-1 pr-3 whitespace-nowrap">{countryLabel(r.country) || "—"}</td>}
                     <td className="py-1 pr-3 whitespace-nowrap">{channelLabel(r.channel)}</td>
                     <td className="py-1 pr-3 max-w-[160px] truncate">{r.creator_name ?? (r.creator_url ? hostOf(r.creator_url) : "—")}</td>
                     <td className="py-1 pr-3 max-w-[220px] truncate" title={r.post_url ?? ""}>{r.post_url ? r.post_url.replace(/^https?:\/\//, "") : r.errors.join(", ")}</td>
@@ -380,13 +385,14 @@ export function ReviewReportEditor({
                   <table className="w-full min-w-[640px] text-sm">
                     <thead>
                       <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
-                        <th className="pb-2 pr-3 font-medium">#</th><th className="pb-2 pr-3 font-medium">채널</th><th className="pb-2 pr-3 font-medium">크리에이터</th><th className="pb-2 pr-3 font-medium">리뷰</th><th className="pb-2 pr-3 font-medium">팔로워</th><th className="pb-2 pr-3 font-medium">좋아요</th><th className="pb-2 pr-3 font-medium">게시일</th><th className="pb-2 font-medium"></th>
+                        <th className="pb-2 pr-3 font-medium">#</th>{existingHasCountry && <th className="pb-2 pr-3 font-medium">국가</th>}<th className="pb-2 pr-3 font-medium">채널</th><th className="pb-2 pr-3 font-medium">크리에이터</th><th className="pb-2 pr-3 font-medium">리뷰</th><th className="pb-2 pr-3 font-medium">팔로워</th><th className="pb-2 pr-3 font-medium">좋아요</th><th className="pb-2 pr-3 font-medium">게시일</th><th className="pb-2 font-medium"></th>
                       </tr>
                     </thead>
                     <tbody>
                       {existingRows.map((r) => (
                         <tr key={r.id} className="border-b border-border/60 last:border-0">
                           <td className="py-2 pr-3 tabular-nums text-muted-foreground">{r.seq}</td>
+                          {existingHasCountry && <td className="py-2 pr-3 whitespace-nowrap">{countryLabel(r.country) || "—"}</td>}
                           <td className="py-2 pr-3 whitespace-nowrap">{channelLabel(r.channel)}</td>
                           <td className="py-2 pr-3 max-w-[160px] truncate">
                             {r.creator_url ? <a href={r.creator_url} target="_blank" rel="noreferrer" className="underline underline-offset-2">{r.creator_name ?? hostOf(r.creator_url)}</a> : (r.creator_name ?? "—")}

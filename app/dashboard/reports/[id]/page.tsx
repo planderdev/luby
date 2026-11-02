@@ -34,7 +34,7 @@ export default async function EditReviewReportPage({
       .maybeSingle(),
     supabase
       .from("review_report_rows")
-      .select("id, seq, channel, creator_name, creator_url, post_url, posted_at, followers, likes, comments, views, note")
+      .select("id, seq, channel, creator_name, creator_url, post_url, posted_at, followers, likes, comments, views, note, country")
       .eq("report_id", id)
       .order("seq"),
   ]);

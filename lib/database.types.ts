@@ -1512,6 +1512,7 @@ export type Database = {
         Row: {
           channel: string
           comments: number | null
+          country: string | null
           created_at: string
           creator_name: string | null
           creator_url: string | null
@@ -1528,6 +1529,7 @@ export type Database = {
         Insert: {
           channel?: string
           comments?: number | null
+          country?: string | null
           created_at?: string
           creator_name?: string | null
           creator_url?: string | null
@@ -1544,6 +1546,7 @@ export type Database = {
         Update: {
           channel?: string
           comments?: number | null
+          country?: string | null
           created_at?: string
           creator_name?: string | null
           creator_url?: string | null

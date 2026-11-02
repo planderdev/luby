@@ -4,6 +4,7 @@ import { ExternalLink } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PrintButton } from "@/app/r/[token]/PrintButton";
 import { channelLabel, hostOf } from "@/lib/review-channels";
+import { countryLabel } from "@/lib/review-countries";
 
 /** get_review_report(p_token) 응답 */
 export type ReviewReportData = {
@@ -43,6 +44,8 @@ export type ReviewReportData = {
     comments: number | null;
     views: number | null;
     note: string | null;
+    /** 2자 코드(KR·JP·CN…) 또는 원문 */
+    country: string | null;
   }[];
   totals: {
     posts: number;
@@ -52,6 +55,8 @@ export type ReviewReportData = {
     comments: number;
     views: number;
     by_channel: { channel: string; posts: number; followers: number; likes: number }[];
+    /** 국가 칸이 있는 행만 — 팀(크리에이터) 수·게시 수·팔로워(크리에이터별 1회) */
+    by_country?: { country: string; posts: number; creators: number; followers: number }[];
   } | null;
   generated_at: string;
 };
@@ -70,6 +75,7 @@ const pct = (num: number, den: number) => (den > 0 ? Math.min(100, Math.round((n
 export function ReviewReportView({ data }: { data: ReviewReportData }) {
   const { report: r, rows, author, campaign } = data;
   const t = data.totals ?? { posts: 0, creators: 0, followers: 0, likes: 0, comments: 0, views: 0, by_channel: [] };
+  const byCountry = t.by_country ?? [];
   const hasFollowers = t.followers > 0;
   const reactions = t.likes + t.comments;
   const hasReactions = reactions > 0 || t.views > 0;
@@ -83,6 +89,7 @@ export function ReviewReportView({ data }: { data: ReviewReportData }) {
   const anyReactions = rows.some((x) => x.likes != null || x.comments != null || x.views != null);
   const anyDate = rows.some((x) => x.posted_at);
   const anyNote = rows.some((x) => x.note);
+  const anyCountry = rows.some((x) => x.country);
 
   const kpis = [
     {
@@ -100,6 +107,46 @@ export function ReviewReportView({ data }: { data: ReviewReportData }) {
         ? { l: "좋아요 · 댓글", v: fmtNum(reactions), s: `좋아요 ${fmtNum(t.likes)}${t.comments > 0 ? ` · 댓글 ${fmtNum(t.comments)}` : ""}${t.views > 0 ? ` · 조회 ${fmtNum(t.views)}` : ""}` }
         : { l: "좋아요 · 댓글", v: "—", s: "반응 수치 미입력" },
   ];
+
+  // 운영 요약 옆에 세우는 집계 카드 — 국가별(국가 칸이 2개국 이상일 때)·채널별(2채널 이상일 때)
+  const countryCard =
+    byCountry.length > 1 ? (
+      <div key="country" className="rounded-3xl glass-card p-6 print:border print:border-border print:shadow-none">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">국가별 참여</h2>
+        <ul className="mt-4 space-y-2">
+          {byCountry.map((c) => (
+            <li key={c.country} className="flex items-center justify-between rounded-xl bg-muted/50 px-3 py-2 text-sm">
+              <span>{countryLabel(c.country)}</span>
+              <span className="tabular-nums text-muted-foreground">
+                <b className="font-semibold text-foreground">{c.creators}팀</b>
+                {c.posts !== c.creators ? ` · 리뷰 ${c.posts}건` : ""}
+                {c.followers > 0 ? ` · 팔로워 ${fmtNum(c.followers)}` : ""}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ) : null;
+  const channelCard =
+    t.by_channel.length > 1 ? (
+      <div key="channel" className="rounded-3xl glass-card p-6 print:border print:border-border print:shadow-none">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">채널별 게시</h2>
+        <ul className="mt-4 space-y-2">
+          {t.by_channel.map((c) => (
+            <li key={c.channel} className="flex items-center justify-between rounded-xl bg-muted/50 px-3 py-2 text-sm">
+              <span>{channelLabel(c.channel)}</span>
+              <span className="tabular-nums text-muted-foreground">
+                <b className="font-semibold text-foreground">{c.posts}건</b>
+                {c.followers > 0 ? ` · 팔로워 ${fmtNum(c.followers)}` : ""}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ) : null;
+  const sideCards = [countryCard, channelCard].filter(Boolean);
+  const summaryCols =
+    r.memo && sideCards.length ? "md:grid-cols-[1.4fr_1fr] print:grid-cols-[1.4fr_1fr]" : !r.memo && sideCards.length === 2 ? "md:grid-cols-2 print:grid-cols-2" : "";
 
   return (
     <main className="min-h-dvh bg-canvas text-foreground print:bg-white">
@@ -133,7 +180,7 @@ export function ReviewReportView({ data }: { data: ReviewReportData }) {
               <span className="text-foreground">{author.kind === "advertiser" ? (author.advertiser_kind === "agency" ? "운영 대행사" : "광고주") : "작성"}</span> {author.name}
             </div>
             {period && <div><span className="text-foreground">진행 기간</span> {period}</div>}
-            <div><span className="text-foreground">참여 · 게시</span> {t.creators}명 · 리뷰 {t.posts}건{r.recruit_count ? ` (모집 ${r.recruit_count}명)` : ""}</div>
+            <div><span className="text-foreground">참여 · 게시</span> {t.creators}명 · 리뷰 {t.posts}건{r.recruit_count ? ` (모집 ${r.recruit_count}명)` : ""}{byCountry.length > 1 ? ` · ${byCountry.length}개국` : ""}</div>
             <div><span className="text-foreground">작성일</span> {fmtDate(r.updated_at)}</div>
           </div>
         </header>
@@ -149,31 +196,16 @@ export function ReviewReportView({ data }: { data: ReviewReportData }) {
           ))}
         </section>
 
-        {/* 운영 메모 + 채널별 집계 */}
-        {(r.memo || t.by_channel.length > 1) && (
-          <section className={`mt-6 grid gap-4 ${r.memo && t.by_channel.length > 1 ? "md:grid-cols-[1.4fr_1fr] print:grid-cols-[1.4fr_1fr]" : ""}`}>
+        {/* 운영 메모 + 국가별·채널별 집계 */}
+        {(r.memo || sideCards.length > 0) && (
+          <section className={`mt-6 grid items-start gap-4 ${summaryCols}`}>
             {r.memo && (
               <div className="rounded-3xl border border-accent/25 bg-accent-soft/30 p-6 print:border print:border-border print:bg-white">
                 <h2 className="text-[11px] font-semibold uppercase tracking-wider text-accent-ink">운영 요약</h2>
                 <p className="mt-2 whitespace-pre-line text-sm leading-relaxed md:text-[15px]">{r.memo}</p>
               </div>
             )}
-            {t.by_channel.length > 1 && (
-              <div className="rounded-3xl glass-card p-6 print:border print:border-border print:shadow-none">
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">채널별 게시</h2>
-                <ul className="mt-4 space-y-2">
-                  {t.by_channel.map((c) => (
-                    <li key={c.channel} className="flex items-center justify-between rounded-xl bg-muted/50 px-3 py-2 text-sm">
-                      <span>{channelLabel(c.channel)}</span>
-                      <span className="tabular-nums text-muted-foreground">
-                        <b className="font-semibold text-foreground">{c.posts}건</b>
-                        {c.followers > 0 ? ` · 팔로워 ${fmtNum(c.followers)}` : ""}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            {sideCards.length > 0 && (r.memo ? <div className="grid gap-4">{sideCards}</div> : sideCards)}
           </section>
         )}
 
@@ -192,6 +224,7 @@ export function ReviewReportView({ data }: { data: ReviewReportData }) {
                   <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
                     <th className="pb-2 pr-3 font-medium">#</th>
                     {anyDate && <th className="pb-2 pr-3 font-medium">게시일</th>}
+                    {anyCountry && <th className="pb-2 pr-3 font-medium">국가</th>}
                     <th className="pb-2 pr-3 font-medium">채널</th>
                     {anyCreatorInfo && <th className="pb-2 pr-3 font-medium">크리에이터</th>}
                     {anyFollowers && <th className="pb-2 pr-3 font-medium">팔로워</th>}
@@ -205,6 +238,7 @@ export function ReviewReportView({ data }: { data: ReviewReportData }) {
                     <tr key={x.id} className="border-b border-border/60 last:border-0 align-top">
                       <td className="py-2.5 pr-3 tabular-nums text-muted-foreground">{x.seq}</td>
                       {anyDate && <td className="py-2.5 pr-3 tabular-nums whitespace-nowrap">{fmtShort(x.posted_at)}</td>}
+                      {anyCountry && <td className="py-2.5 pr-3 whitespace-nowrap">{countryLabel(x.country) || "—"}</td>}
                       <td className="py-2.5 pr-3 whitespace-nowrap">{channelLabel(x.channel)}</td>
                       {anyCreatorInfo && (
                         <td className="py-2.5 pr-3">

@@ -1,5 +1,6 @@
 import * as XLSX from "xlsx";
 import { detectChannel, isProfileUrl, normalizeChannelText, type ReviewChannel } from "./review-channels";
+import { countryCode, normalizeCountry } from "./review-countries";
 
 /**
  * 결과 보고서용 엑셀 파서 — 리뷰(게시물) 링크가 든 시트를 읽어 보고서 행으로 만든다.
@@ -22,20 +23,23 @@ export type ReviewImportRow = {
   comments: number | null;
   views: number | null;
   note: string | null;
+  /** 국가 — 알려진 나라는 2자 코드(KR·JP·CN…), 아니면 원문 */
+  country: string | null;
   errors: string[];
 };
 
-type Key = "seq" | "posted_at" | "channel" | "followers" | "likes" | "comments" | "views" | "creator_url" | "creator_name" | "post_url" | "note";
+type Key = "seq" | "posted_at" | "channel" | "country" | "followers" | "likes" | "comments" | "views" | "creator_url" | "creator_name" | "post_url" | "note";
 
 /** 우선순위 순서 — 한 칸은 처음 맞는 키 하나에만 배정된다 ('계정 링크' 는 creator_url, '리뷰 링크' 는 post_url) */
 const COLUMN_KEYS: [Key, RegExp][] = [
   ["seq", /^\s*(#|no\.?|순번|번호|序号|顺号|順番|idx)\s*$/i],
   ["posted_at", /일자|날짜|date|日期|방문일|방문|访问|게시일|발행일|업로드일|작성일/i],
   ["channel", /^\s*(채널|플랫폼|매체|platform|channel|渠道|平台|sns)\s*$/i],
+  ["country", /^\s*(국가|나라|국적|country|nation|nationality|国家|國家|国籍|國籍|지역|region|地区|地域)\s*$/i],
   ["followers", /팔로워|팔로우|구독자|粉丝|follower|subscriber/i],
   ["likes", /좋아요|하트|공감|点赞|like/i],
   ["comments", /댓글|评论|comment/i],
-  ["views", /조회|재생|播放|浏览|view/i],
+  ["views", /조회|재생|播放|浏览|(?<!re)view/i], // 'Review URL' 의 view 는 제외
   ["creator_url", /계정|프로필|账号|账户|profile|account|主页|(채널|크리에이터|인플루언서|creator|influencer|리뷰어|blogger|블로거)\s*(링크|url|주소|link)/i],
   ["creator_name", /이름|닉네임|성명|크리에이터|인플루언서|리뷰어|블로거|name|nick|creator|influencer|reviewer|blogger|名称|昵称|达人|博主/i],
   ["post_url", /리뷰|review|업로드|게시|콘텐츠|포스팅|포스트|post|url|링크|link|发布|笔记|链接|주소|영상|video|노트/i],
@@ -173,6 +177,7 @@ export function parseReviewReportFile(buf: ArrayBuffer, sheetName?: string): Par
         comments: toCount(get("comments")),
         views: toCount(get("views")),
         note: text("note") || null,
+        country: normalizeCountry(text("country")),
         errors: [],
       };
       if (!row.post_url) row.errors.push("리뷰 링크가 없습니다");
@@ -189,7 +194,9 @@ export function parseReviewReportFile(buf: ArrayBuffer, sheetName?: string): Par
     if (urls.length === 0) continue;
     const post = urls.find((u) => !isProfileUrl(u)) ?? urls[0];
     const creator = urls.find((u) => u !== post && isProfileUrl(u)) ?? null;
-    const name = cells.find((c) => c && !isUrl(c) && !/^[\d.,\s%만천kK]+$/.test(c) && toDate(c) === null && c.length <= 40 && !normalizeChannelText(c)) ?? null;
+    // 나라 이름 칸 — 영문 2~3자 코드('IT'·'IN'·'CAN')는 일반 글자와 헷갈리니 제외, '일본'·'韩国' 같은 이름은 인식
+    const countryCell = cells.find((c) => c && !isUrl(c) && !/^[a-z]{2,3}$/i.test(c.trim()) && countryCode(c));
+    const name = cells.find((c) => c && !isUrl(c) && !/^[\d.,\s%만천kK]+$/.test(c) && toDate(c) === null && c.length <= 40 && !normalizeChannelText(c) && c !== countryCell) ?? null;
     const channelCell = cells.find((c) => c && !isUrl(c) && normalizeChannelText(c));
     const date = cells.map((c) => (isUrl(c) ? null : c.match(/20\d{2}[.\-/년]/) ? toDate(c) : null)).find(Boolean) ?? null;
     const numbers = r.filter((v) => typeof v === "number" && Number.isFinite(v) && !(v > 40000 && v < 60000 && Number.isInteger(v))) as number[]; // 엑셀 날짜 일련번호 대역 제외
@@ -206,6 +213,7 @@ export function parseReviewReportFile(buf: ArrayBuffer, sheetName?: string): Par
       comments: null,
       views: null,
       note: null,
+      country: countryCell ? countryCode(countryCell) : null,
       errors: [],
     });
   }

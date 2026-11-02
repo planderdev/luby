@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { dbErrorWith } from "@/lib/db-errors";
 import { asUuid } from "@/lib/query-params";
 import type { ReviewImportRow } from "@/lib/review-report-import";
+import { normalizeCountry } from "@/lib/review-countries";
 
 /**
  * 결과 보고서 — 리뷰 링크 엑셀로 '강제' 생성하는 보고서의 서버 액션.
@@ -69,6 +70,7 @@ type RowPayload = {
   comments: number | null;
   views: number | null;
   note: string | null;
+  country: string | null;
 };
 const clampCount = (n: number | null | undefined) => (n == null || !Number.isFinite(n) ? null : Math.max(0, Math.min(2_000_000_000, Math.round(n))));
 const clip = (s: string | null | undefined, max: number) => {
@@ -96,6 +98,7 @@ function cleanRows(rows: ReviewImportRow[]): { ok: true; rows: RowPayload[] } | 
       comments: clampCount(r.comments),
       views: clampCount(r.views),
       note: clip(r.note, 500),
+      country: normalizeCountry(r.country ?? null),
     })),
   };
 }
@@ -181,7 +184,7 @@ export async function replaceReviewReportRows(id: string, rows: ReviewImportRow[
   // 기존 행을 백업해 두고 교체 — 새 행 저장이 실패하면 되돌린다
   const { data: backup } = await g.supabase
     .from("review_report_rows")
-    .select("seq, channel, creator_name, creator_url, post_url, posted_at, followers, likes, comments, views, note")
+    .select("seq, channel, creator_name, creator_url, post_url, posted_at, followers, likes, comments, views, note, country")
     .eq("report_id", rid);
   const { error: delErr } = await g.supabase.from("review_report_rows").delete().eq("report_id", rid);
   if (delErr) return { ok: false as const, error: dbErrorWith("기존 행을 지우지 못했습니다", delErr) };
