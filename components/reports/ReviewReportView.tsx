@@ -218,8 +218,8 @@ export function ReviewReportView({ data }: { data: ReviewReportData }) {
           {rows.length === 0 ? (
             <p className="mt-4 text-sm text-muted-foreground">등록된 리뷰 링크가 없습니다.</p>
           ) : (
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full min-w-[640px] text-sm">
+            <div className="mt-4 overflow-x-auto print:overflow-visible">
+              <table className="w-full min-w-[640px] text-sm print:min-w-0 print:text-[11px] print:[&_td]:pr-2 print:[&_th]:pr-2">
                 <thead>
                   <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
                     <th className="pb-2 pr-3 font-medium">#</th>
@@ -230,7 +230,7 @@ export function ReviewReportView({ data }: { data: ReviewReportData }) {
                     {anyFollowers && <th className="pb-2 pr-3 font-medium">팔로워</th>}
                     <th className="pb-2 pr-3 font-medium">리뷰</th>
                     {anyReactions && <th className="pb-2 pr-3 font-medium">반응</th>}
-                    {anyNote && <th className="min-w-[7rem] pb-2 font-medium">비고</th>}
+                    {anyNote && <th className="min-w-[7rem] pb-2 font-medium print:min-w-0">비고</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -239,7 +239,7 @@ export function ReviewReportView({ data }: { data: ReviewReportData }) {
                       <td className="py-2.5 pr-3 tabular-nums text-muted-foreground">{x.seq}</td>
                       {anyDate && <td className="py-2.5 pr-3 tabular-nums whitespace-nowrap">{fmtShort(x.posted_at)}</td>}
                       {anyCountry && <td className="py-2.5 pr-3 whitespace-nowrap">{countryLabel(x.country) || "—"}</td>}
-                      <td className="py-2.5 pr-3 whitespace-nowrap">{channelLabel(x.channel)}</td>
+                      <td className="py-2.5 pr-3 whitespace-nowrap print:whitespace-normal">{channelLabel(x.channel)}</td>
                       {anyCreatorInfo && (
                         <td className="py-2.5 pr-3">
                           {x.creator_url ? (
@@ -253,15 +253,15 @@ export function ReviewReportView({ data }: { data: ReviewReportData }) {
                       )}
                       {anyFollowers && <td className="py-2.5 pr-3 tabular-nums">{x.followers == null ? "—" : fmtNum(x.followers)}</td>}
                       <td className="py-2.5 pr-3">
-                        <a href={x.post_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-0.5 text-[11px] font-medium text-success">
+                        <a href={x.post_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-success-soft px-2 py-0.5 text-[11px] font-medium text-success print:text-[10px]">
                           게시 완료 <ExternalLink className="size-3" />
                         </a>
-                        <div className="mt-0.5 max-w-[180px] truncate text-[11px] text-muted-foreground print:max-w-none print:whitespace-normal print:break-all" title={x.post_url}>
+                        <div className="mt-0.5 max-w-[180px] truncate text-[11px] text-muted-foreground print:hidden" title={x.post_url}>
                           {x.post_url.replace(/^https?:\/\//, "")}
                         </div>
                       </td>
                       {anyReactions && (
-                        <td className="py-2.5 pr-3 tabular-nums text-xs text-muted-foreground whitespace-nowrap">
+                        <td className="py-2.5 pr-3 tabular-nums text-xs text-muted-foreground whitespace-nowrap print:whitespace-normal print:text-[10px]">
                           {[
                             x.likes != null ? `♥ ${fmtNum(x.likes)}` : null,
                             x.comments != null ? `💬 ${fmtNum(x.comments)}` : null,
@@ -269,7 +269,7 @@ export function ReviewReportView({ data }: { data: ReviewReportData }) {
                           ].filter(Boolean).join(" · ") || "—"}
                         </td>
                       )}
-                      {anyNote && <td className="min-w-[7rem] py-2.5 text-xs leading-snug text-muted-foreground">{x.note ?? ""}</td>}
+                      {anyNote && <td className="min-w-[7rem] py-2.5 text-xs leading-snug text-muted-foreground print:min-w-0 print:text-[10px]">{x.note ?? ""}</td>}
                     </tr>
                   ))}
                 </tbody>
