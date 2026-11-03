@@ -90,7 +90,7 @@ export function OnboardingForm({
                   {advertiserKindsFor(locale).map((k) => {
                     const on = kind === k.value;
                     return (
-                      <button key={k.value} type="button" onClick={() => setKind(k.value)} aria-pressed={on} className={`rounded-2xl border px-4 py-3 text-left ${on ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:bg-muted"}`}>
+                      <button key={k.value} type="button" onClick={() => setKind(k.value)} aria-pressed={on} className={`rounded-2xl border px-4 py-3 text-left ${locale === "zh" ? "" : "break-keep"} ${on ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:bg-muted"}`}>
                         <div className="text-sm font-semibold">{k.label}</div>
                         <div className={`mt-0.5 text-xs ${on ? "text-background/70" : "text-muted-foreground"}`}>{k.desc}</div>
                       </button>

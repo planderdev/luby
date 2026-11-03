@@ -195,7 +195,7 @@ export function SettingsForm({
                         type="button"
                         onClick={() => setAdvertiserKind(k.value)}
                         aria-pressed={on}
-                        className={`rounded-2xl border px-4 py-3 text-left transition-colors ${
+                        className={`break-keep rounded-2xl border px-4 py-3 text-left transition-colors ${
                           on ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:bg-muted"
                         }`}
                       >

@@ -352,7 +352,7 @@ function FormStep({
                     type="button"
                     onClick={() => setAdvertiserKind(k.value)}
                     aria-pressed={on}
-                    className={`rounded-2xl border px-4 py-3 text-left transition-colors ${
+                    className={`rounded-2xl border px-4 py-3 text-left transition-colors ${locale === "zh" ? "" : "break-keep"} ${
                       on
                         ? "border-foreground bg-foreground text-background"
                         : "border-border bg-background hover:bg-muted"
@@ -367,7 +367,7 @@ function FormStep({
               })}
             </div>
             {advertiserKind === "agency" && (
-              <p className="mt-2 text-xs text-muted-foreground">
+              <p className={`mt-2 text-xs text-muted-foreground ${locale === "zh" ? "" : "break-keep"}`}>
                 {t.agencyHint}
               </p>
             )}
