@@ -3,13 +3,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 import { trackedCreate, AI_MODEL_FAST, stopReasonError } from "./client";
 import { parseGuide } from "@/lib/campaign-guide";
+import { EXTRA_CONTENT_LANGS } from "@/lib/i18n/content-langs";
 
 /**
  * 공개 캠페인 페이지(/en, /zh)용 캠페인 본문 번역 — 제목·상호·브리프·미션·제공 내역·키워드·가이드(꼭 담을 것·피할 것)를 영어·중국어(간체)로.
  * 결과는 campaign_translations 에 저장하고 원문 해시가 같으면 다시 번역하지 않는다.
  * 트리거(승인·수정 → /api/ai/translate-campaign)와 백필 스크립트가 같은 함수를 쓴다. 시스템 호출(사용자 한도 없음).
  */
-export type TranslationLocale = "en" | "zh";
+export type TranslationLocale = "en" | "zh" | (typeof EXTRA_CONTENT_LANGS)[number]["code"];
 export type MissionT = { channel: string; source: string; description: string };
 export type OfferingT = { source: string; title: string; description: string | null };
 export type KeywordT = { source: string; keyword: string };
@@ -50,7 +51,23 @@ const LOCALE_SCHEMA = {
   required: ["title", "business_name", "industry_brief", "missions", "offerings", "keywords", "must_include", "avoid"],
   additionalProperties: false,
 } as const;
-const SCHEMA = { type: "object", properties: { en: LOCALE_SCHEMA, zh: LOCALE_SCHEMA }, required: ["en", "zh"], additionalProperties: false } as const;
+/** 한 번의 호출로 묶어 번역하는 언어 묶음 — key 는 응답 JSON 의 키, code 는 저장되는 locale */
+type BatchLang = { code: TranslationLocale; key: string; name: string };
+const MAIN_BATCH: BatchLang[] = [
+  { code: "en", key: "en", name: "natural English" },
+  { code: "zh", key: "zh", name: "Simplified Chinese (zh-CN), mainland reader friendly" },
+];
+// 추가 언어(일본어·번체 중국어·태국어·베트남어·인도네시아어)는 2개씩 나눠 따로 호출한다 —
+// 구조화 출력 스키마에 5개 언어를 한꺼번에 넣으면 "compiled grammar is too large"(400)로 거절된다
+const EXTRA_LANGS: BatchLang[] = EXTRA_CONTENT_LANGS.map((l) => ({ code: l.code, key: l.code.replace("-", "_").toLowerCase(), name: l.english }));
+const EXTRA_BATCHES: BatchLang[][] = [];
+for (let i = 0; i < EXTRA_LANGS.length; i += 2) EXTRA_BATCHES.push(EXTRA_LANGS.slice(i, i + 2));
+const schemaFor = (langs: BatchLang[]) => ({
+  type: "object",
+  properties: Object.fromEntries(langs.map((l) => [l.key, LOCALE_SCHEMA])),
+  required: langs.map((l) => l.key),
+  additionalProperties: false,
+});
 
 export function hashSource(src: Source): string {
   return createHash("sha1").update(JSON.stringify(src)).digest("hex");
@@ -91,19 +108,33 @@ export async function translateCampaign(admin: SupabaseClient<Database>, campaig
   if (!["open", "closed", "completed"].includes(loaded.status)) return { ok: true, skipped: true, locales: [] }; // 비공개 상태는 번역하지 않는다
   const { src } = loaded;
   const hash = hashSource(src);
+  const fresh = new Set<string>();
   if (!opts.force) {
     const { data: existing } = await admin.from("campaign_translations").select("locale, source_hash").eq("campaign_id", campaignId);
-    const fresh = new Set((existing ?? []).filter((r) => r.source_hash === hash).map((r) => r.locale));
-    if (fresh.has("en") && fresh.has("zh")) return { ok: true, skipped: true, locales: [] };
+    for (const r of existing ?? []) if (r.source_hash === hash) fresh.add(r.locale);
   }
+  // 이미 최신인 묶음은 건너뛴다 (예: 영·중은 있고 추가 언어만 없는 기존 캠페인)
+  const batches = [MAIN_BATCH, ...EXTRA_BATCHES].filter((b) => !b.every((l) => fresh.has(l.code)));
+  if (batches.length === 0) return { ok: true, skipped: true, locales: [] };
 
-  const prompt = `You translate a Korean influencer-marketing campaign ("체험단") listing into natural English and Simplified Chinese for creators who will apply to it. Return JSON only.
+  const results = await Promise.all(batches.map((b) => translateBatch(admin, campaignId, src, hash, b)));
+  const failed = results.find((r) => !r.ok);
+  // 영·중이 저장됐으면 추가 언어 실패는 다음 수정·재시도 때 다시 채워진다 — 오류는 그대로 알린다
+  if (failed) return failed;
+  if (results.some((r) => r.ok && r.reason === "campaign deleted")) return DELETED;
+  return { ok: true, skipped: false, locales: results.flatMap((r) => (r.ok ? r.locales : [])), model: results.map((r) => (r.ok ? r.model : undefined)).find(Boolean) };
+}
+
+type Translated = { title: string; business_name: string; industry_brief: string; missions: { description: string }[]; offerings: { title: string; description: string }[]; keywords: string[]; must_include?: string[]; avoid?: string[] };
+
+async function translateBatch(admin: SupabaseClient<Database>, campaignId: string, src: Source, hash: string, langs: BatchLang[]): Promise<Result> {
+  const prompt = `You translate a Korean influencer-marketing campaign ("체험단") listing for creators who will apply to it. Return JSON only, with one object per target language under these keys:
+${langs.map((l) => `- "${l.key}": ${l.name}`).join("\n")}
 Rules:
 - Keep the meaning and marketing tone; do not add or drop facts. Keep brand/product/place names (transliterate when there is no common foreign name, and keep the original in parentheses once in the title if helpful). Keep numbers, dates, URLs, @handles and hashtags as they are; translate hashtag words only when they are generic (e.g. #광고 → #ad / #广告).
 - Platform names stay in their usual form (Instagram, YouTube, Xiaohongshu/小红书, Douyin/抖音, TikTok, Blog, Threads, Lemon8).
 - Translate the arrays item by item in the same order and the same length. industry_brief: empty string when the source is empty. offerings[].description: empty string when the source is empty.
 - must_include / avoid: translate guide.must_include and guide.avoid item by item (short phrases telling the creator what the content must show and what to avoid), same order and length. Return empty arrays when the source has no guide.
-- Chinese: Simplified Chinese (zh-CN), mainland reader friendly.
 
 Source (Korean):
 ${JSON.stringify(src)}`;
@@ -114,7 +145,7 @@ ${JSON.stringify(src)}`;
         model: AI_MODEL_FAST,
         max_tokens: 6000,
         thinking: { type: "adaptive" },
-        output_config: { effort: "low", format: { type: "json_schema", schema: SCHEMA as unknown as Record<string, unknown> } },
+        output_config: { effort: "low", format: { type: "json_schema", schema: schemaFor(langs) as unknown as Record<string, unknown> } },
         messages: [{ role: "user", content: prompt }],
       },
       { feature: "campaign_translate", campaignId }
@@ -122,10 +153,11 @@ ${JSON.stringify(src)}`;
     const stopErr = stopReasonError(r.stop_reason);
     if (stopErr) return { ok: false, error: stopErr };
     const text = r.content.find((b) => b.type === "text")?.text ?? "";
-    const parsed = JSON.parse(text) as Record<TranslationLocale, { title: string; business_name: string; industry_brief: string; missions: { description: string }[]; offerings: { title: string; description: string }[]; keywords: string[]; must_include?: string[]; avoid?: string[] }>;
+    const parsed = JSON.parse(text) as Record<string, Translated>;
     const now = new Date().toISOString();
-    for (const locale of ["en", "zh"] as TranslationLocale[]) {
-      const t = parsed[locale];
+    for (const lang of langs) {
+      const locale = lang.code;
+      const t = parsed[lang.key];
       if (!t?.title) return { ok: false, error: `empty translation (${locale})` };
       const row = {
         campaign_id: campaignId,
@@ -149,7 +181,7 @@ ${JSON.stringify(src)}`;
       const { error } = await admin.from("campaign_translations").upsert(row, { onConflict: "campaign_id,locale" });
       if (error) return error.code === "23503" ? DELETED : { ok: false, error: error.message }; // 23503 = 그 사이 캠페인 삭제
     }
-    return { ok: true, skipped: false, locales: ["en", "zh"], model: r.model };
+    return { ok: true, skipped: false, locales: langs.map((l) => l.code), model: r.model };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : String(e) };
   }

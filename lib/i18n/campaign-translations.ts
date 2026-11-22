@@ -19,7 +19,7 @@ export type TranslationRow = {
 };
 
 const fetchTranslations = unstable_cache(
-  async (ids: string[], locale: "en" | "zh"): Promise<TranslationRow[]> => {
+  async (ids: string[], locale: string): Promise<TranslationRow[]> => {
     if (ids.length === 0) return [];
     const { data } = await getStaticSupabase()
       .from("campaign_translations")
@@ -36,6 +36,24 @@ export async function getTranslationMap(ids: string[], locale: Locale): Promise<
   if (locale === "ko" || ids.length === 0) return new Map();
   const rows = await fetchTranslations([...new Set(ids)].sort(), locale);
   return new Map(rows.map((r) => [r.campaign_id, r]));
+}
+
+/** 추가 언어(ja·zh-TW·th·vi·id 등) 번역본 1건 — locale 은 campaign_translations.locale 값 */
+export async function getTranslationFor(id: string, localeCode: string): Promise<TranslationRow | undefined> {
+  return (await fetchTranslations([id], localeCode))[0];
+}
+
+const fetchLocales = unstable_cache(
+  async (id: string): Promise<string[]> => {
+    const { data } = await getStaticSupabase().from("campaign_translations").select("locale").eq("campaign_id", id);
+    return (data ?? []).map((r) => r.locale);
+  },
+  ["campaign-translation-locales"],
+  { revalidate: 300, tags: ["public-campaigns"] }
+);
+/** 이 캠페인에 번역본이 있는 언어 코드 목록 (en·zh·ja·zh-TW…) — 언어 선택 줄·hreflang 용 */
+export async function getTranslatedLocales(id: string): Promise<string[]> {
+  return fetchLocales(id);
 }
 
 type Card = { id: string; title: string; business_name: string };

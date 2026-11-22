@@ -3,6 +3,7 @@ import { Calendar, Coins, Users, Inbox, CheckCircle2, Sparkles, Eye } from "luci
 import { dashboardDict } from "@/lib/i18n/app/dashboard";
 import { withLang } from "@/lib/i18n/app-locale-shared";
 import type { Locale } from "@/lib/i18n/config";
+import { ShareLinkButton } from "@/app/dashboard/campaigns/[id]/ShareLinkButton";
 
 const STATUS_TONE: Record<string, "success" | "warning" | "danger" | "muted" | "ink"> = {
   draft: "muted",
@@ -45,6 +46,7 @@ export function CampaignCard({
   stats,
   locale = "ko",
   appliedLabel = "응모함",
+  share,
 }: {
   id: string;
   title: string;
@@ -66,14 +68,17 @@ export function CampaignCard({
   locale?: Locale;
   /** '응모함' 배지의 화면 언어 라벨 (스타일 구분용) */
   appliedLabel?: string;
+  /** 카드에서 바로 공유 — 공개 상태 캠페인만. translated: 번역된 언어 코드, refId: 크리에이터 추천 링크 */
+  share?: { label: string; translated?: string[]; refId?: string | null };
 }) {
   const d = dashboardDict[locale];
   const statusInfo = { label: d.status[status] ?? status, tone: STATUS_TONE[status] ?? "muted" };
 
   return (
+    <div className="relative flex">
     <Link
       href={`/dashboard/campaigns/${id}`}
-      className="group flex flex-col overflow-hidden rounded-3xl glass-card transition-colors hover:bg-muted/40"
+      className="group flex min-w-0 flex-1 flex-col overflow-hidden rounded-3xl glass-card transition-colors hover:bg-muted/40"
     >
       <div className="relative aspect-[16/9] w-full bg-muted">
         {thumbnail || ["open", "closed", "completed"].includes(status) ? (
@@ -161,5 +166,14 @@ export function CampaignCard({
         </div>
       </div>
     </Link>
+      {/* 공유 버튼은 링크 밖에 둔다(링크 안의 버튼은 잘못된 중첩) — 썸네일 영역 오른쪽 아래에 겹쳐 놓는다 */}
+      {share && (
+        <div className="pointer-events-none absolute inset-x-0 top-0 aspect-[16/9]">
+          <div className="pointer-events-auto absolute bottom-3 right-3">
+            <ShareLinkButton campaignId={id} title={title} variant="icon" buttonLabel={share.label} translated={share.translated} refId={share.refId ?? null} locale={locale} />
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

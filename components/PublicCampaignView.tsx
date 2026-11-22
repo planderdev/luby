@@ -13,7 +13,8 @@ import { publicCampaignDict, localePrefix } from "@/lib/i18n/public-campaign";
 import type { Locale } from "@/lib/i18n/config";
 import { CampaignCta, CampaignShareButton } from "@/components/public/CampaignCta";
 import { ViewBeacon } from "@/components/ViewBeacon";
-import { getTranslationMap, translateCards, translateCampaignView } from "@/lib/i18n/campaign-translations";
+import { getTranslationMap, getTranslationFor, getTranslatedLocales, translateCards, translateCampaignView } from "@/lib/i18n/campaign-translations";
+import { EXTRA_CONTENT_LANGS, BASE_LANG_NATIVE, type ExtraContentLang } from "@/lib/i18n/content-langs";
 import { withLang } from "@/lib/i18n/app-locale-shared";
 import { fetchUICatalog } from "@/lib/cache/ui-catalog";
 import { categoryLabel, regionLabel, promotionTypeLabel } from "@/lib/i18n/app/catalog";
@@ -83,21 +84,24 @@ async function isDemoCampaign(advertiserId: string | undefined | null): Promise<
   return isDemoAccount(advertiserId);
 }
 
-export async function buildPublicCampaignMetadata(id: string, locale: Locale): Promise<Metadata> {
+export async function buildPublicCampaignMetadata(id: string, locale: Locale, contentLang?: ExtraContentLang): Promise<Metadata> {
   const raw = await fetchPublicCampaign(id);
-  const c = raw ? translateCampaignView(raw, (await getTranslationMap([raw.id], locale)).get(raw.id)) : raw;
+  const tr = raw ? (contentLang ? await getTranslationFor(raw.id, contentLang.code) : undefined) ?? (await getTranslationMap([raw.id], locale)).get(raw.id) : undefined;
+  const c = raw ? translateCampaignView(raw, tr) : raw;
   const t = publicCampaignDict[locale];
   if (!c) return { title: locale === "ko" ? "캠페인을 찾을 수 없어요" : locale === "zh" ? "找不到该活动" : "Campaign not found", robots: { index: false } };
   const fmt = fmtFor(locale);
   const desc = t.metaDesc(c.business_name, c.category?.name ?? "", c.recruit_count, c.point_amount > 0 ? `${c.point_amount.toLocaleString()}P` : t.metaReward, c.channels.join("/"), c.always_open ? t.metaAlways : t.metaUntil(fmt(c.recruit_end)));
   const base = getSiteUrl();
-  const url = `${base}${localePrefix(locale)}/c/${c.id}`;
+  const url = contentLang ? `${base}/c/${c.id}/${contentLang.slug}` : `${base}${localePrefix(locale)}/c/${c.id}`;
+  const have = new Set(await getTranslatedLocales(c.id));
+  const extraAlternates = Object.fromEntries(EXTRA_CONTENT_LANGS.filter((l) => have.has(l.code)).map((l) => [l.code, `${base}/c/${c.id}/${l.slug}`]));
   return {
     title: locale === "ko" ? `${c.title} — ${t.metaSuffix}` : { absolute: `${c.title} — ${t.metaSuffix} · Luby AI` },
     description: desc,
     alternates: {
       canonical: url,
-      languages: { "ko-KR": `${base}/c/${c.id}`, en: `${base}/en/c/${c.id}`, "zh-CN": `${base}/zh/c/${c.id}`, "x-default": `${base}/c/${c.id}` },
+      languages: { "ko-KR": `${base}/c/${c.id}`, en: `${base}/en/c/${c.id}`, "zh-CN": `${base}/zh/c/${c.id}`, ...extraAlternates, "x-default": `${base}/c/${c.id}` },
     },
     robots: c.status === "open" && !(await isDemoCampaign(c.advertiser?.id)) ? { index: true, follow: true } : { index: false, follow: true },
     openGraph: {
@@ -126,13 +130,27 @@ const fetchRelatedCampaigns = unstable_cache(
   { revalidate: 300, tags: ["public-campaigns"] }
 );
 
-export async function PublicCampaignView({ id, locale }: { id: string; locale: Locale }) {
+/**
+ * contentLang: 본문만 번역해 보여주는 추가 언어(/c/<id>/ja 등). 화면 문구는 locale(en·zh) 사전을 빌려 쓴다.
+ * 번역본이 아직 없으면 locale 번역본으로 보여준다.
+ */
+export async function PublicCampaignView({ id, locale, contentLang }: { id: string; locale: Locale; contentLang?: ExtraContentLang }) {
   const [raw, relatedRaw] = await Promise.all([fetchPublicCampaign(id), fetchRelatedCampaigns(id)]);
   if (!raw) notFound();
   // /en, /zh 는 AI 번역본(campaign_translations)으로 본문을 덮어쓴다 — 없으면 한국어 그대로
   const tmap = await getTranslationMap([raw.id, ...relatedRaw.map((r) => r.id)], locale);
-  const c = translateCampaignView(raw, tmap.get(raw.id));
+  const [extraTr, translatedLocales] = await Promise.all([contentLang ? getTranslationFor(raw.id, contentLang.code) : undefined, getTranslatedLocales(raw.id)]);
+  const c = translateCampaignView(raw, extraTr ?? tmap.get(raw.id));
   const related = translateCards(relatedRaw, tmap);
+  // 본문 언어 선택 줄 — 번역본이 있는 언어만 (한국어 원문은 항상)
+  const selfPath = contentLang ? `/c/${raw.id}/${contentLang.slug}` : `${localePrefix(locale)}/c/${raw.id}`;
+  const langLinks = [
+    { code: "ko", label: BASE_LANG_NATIVE.ko, href: `/c/${raw.id}` },
+    ...(translatedLocales.includes("en") ? [{ code: "en", label: BASE_LANG_NATIVE.en, href: `/en/c/${raw.id}` }] : []),
+    ...(translatedLocales.includes("zh") ? [{ code: "zh", label: BASE_LANG_NATIVE.zh, href: `/zh/c/${raw.id}` }] : []),
+    ...EXTRA_CONTENT_LANGS.filter((l) => translatedLocales.includes(l.code)).map((l) => ({ code: l.code, label: l.native, href: `/c/${raw.id}/${l.slug}` })),
+  ];
+  const currentLang = contentLang && extraTr ? contentLang.code : locale;
   const t = publicCampaignDict[locale];
   const fmt = fmtFor(locale);
   const mustInclude = c.guide?.must_include ?? [];
@@ -168,7 +186,7 @@ export async function PublicCampaignView({ id, locale }: { id: string; locale: L
   };
 
   return (
-    <main lang={locale === "zh" ? "zh-CN" : locale} className="lre-offset min-h-dvh bg-canvas">
+    <main lang={contentLang && extraTr ? contentLang.code : locale === "zh" ? "zh-CN" : locale} className="lre-offset min-h-dvh bg-canvas">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <ViewBeacon id={c.id} lang={locale} />
       <LreChrome
@@ -197,8 +215,20 @@ export async function PublicCampaignView({ id, locale }: { id: string; locale: L
             <h1 className="display-lre-title mt-2 break-keep">{c.title}</h1>
             <div className="mt-2 flex flex-wrap items-center gap-3">
               <p className="text-sm text-muted-foreground">{c.business_name}</p>
-              <CampaignShareButton basePath={`${pfx}/c/${c.id}`} title={c.title} label={locale === "ko" ? "공유하기" : locale === "zh" ? "分享" : "Share"} copiedLabel={locale === "ko" ? "링크 복사됨" : locale === "zh" ? "已复制链接" : "Link copied"} />
+              <CampaignShareButton basePath={selfPath} locale={locale} title={c.title} label={locale === "ko" ? "공유하기" : locale === "zh" ? "分享" : "Share"} />
             </div>
+            {langLinks.length > 1 && (
+              <nav aria-label={locale === "ko" ? "본문 언어" : locale === "zh" ? "正文语言" : "Content language"} className="mt-3 flex flex-wrap items-center gap-1.5 text-xs">
+                <Globe className="size-3.5 text-muted-foreground" aria-hidden />
+                {langLinks.map((l) =>
+                  l.code === currentLang ? (
+                    <span key={l.code} aria-current="true" className="rounded-full bg-foreground px-2.5 py-1 font-medium text-background">{l.label}</span>
+                  ) : (
+                    <Link key={l.code} href={l.href} hrefLang={l.code} className="rounded-full border border-border bg-background px-2.5 py-1 text-muted-foreground hover:bg-muted hover:text-foreground">{l.label}</Link>
+                  )
+                )}
+              </nav>
+            )}
             {c.industry_brief && <p className="mt-5 text-sm leading-relaxed lg:text-base">{c.industry_brief}</p>}
 
             <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">

@@ -206,7 +206,7 @@ export default async function CampaignDetailPage({
 
         {isOwner && (
           <div className="flex flex-wrap items-center gap-2">
-            {["open", "closed", "completed"].includes(campaign.status) && <ShareLinkButton campaignId={id} translated={translated} />}
+            {["open", "closed", "completed"].includes(campaign.status) && <ShareLinkButton campaignId={id} title={campaign.title} translated={translated} />}
             {["draft", "pending_approval", "cancelled", "rejected"].includes(campaign.status) && (
               <Link
                 href={`/dashboard/campaigns/${id}/edit`}
@@ -237,7 +237,7 @@ export default async function CampaignDetailPage({
           </Link>
         )}
         {isInfluencer && campaign.status === "open" && (
-          <ShareLinkButton campaignId={id} refId={profile.id} buttonLabel={tc.shareFriends} />
+          <ShareLinkButton campaignId={id} title={shownTitle} refId={profile.id} buttonLabel={tc.shareFriends} translated={translated} variant="outline" locale={locale} />
         )}
         {isInfluencer && campaign.status === "open" && (
           <ApplyButton

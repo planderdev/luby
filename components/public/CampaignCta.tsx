@@ -34,9 +34,9 @@ export function CampaignCta({ dashboardHref, loginHref, labels, showHint, locale
 }
 
 /** 공유 버튼 — 크리에이터가 보면 본인 추천 링크(?ref=)로 공유된다 */
-export function CampaignShareButton({ basePath, title, label, copiedLabel }: { basePath: string; title: string; label: string; copiedLabel: string }) {
+export function CampaignShareButton({ basePath, title, label, locale = "ko" }: { basePath: string; title: string; label: string; locale?: Locale }) {
   const { viewer } = useViewer();
   const refId = useRefParam();
   const ref = viewer?.role === "influencer" ? viewer.id : refId;
-  return <PublicShareButton title={title} path={`${basePath}${ref ? `?ref=${ref}` : ""}`} label={label} copiedLabel={copiedLabel} />;
+  return <PublicShareButton title={title} path={`${basePath}${ref ? `?ref=${ref}` : ""}`} label={label} locale={locale} />;
 }

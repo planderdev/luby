@@ -199,6 +199,14 @@ export default async function CampaignsPage({
 
   // 광고주·운영자: 카드별 응모 집계 (응모/선정 대기/선정/승인) — 한 번의 조회로 메모리 집계
   type CardStats = { applied: number; pending: number; selected: number; approved: number; views?: number };
+  // 카드 공유 메뉴 — 번역본이 있는 언어(공개 상태 캠페인만 조회됨)
+  const translatedById = new Map<string, string[]>();
+  const shareIds = (campaigns ?? []).filter((c) => ["open", "closed", "completed"].includes(c.status)).map((c) => c.id);
+  if (shareIds.length > 0) {
+    const { data: trs } = await supabase.from("campaign_translations").select("campaign_id, locale").in("campaign_id", shareIds);
+    for (const r of trs ?? []) translatedById.set(r.campaign_id, [...(translatedById.get(r.campaign_id) ?? []), r.locale]);
+  }
+  const shareLabel = locale === "zh" ? "分享" : locale === "en" ? "Share" : "공유하기";
   const statsById = new Map<string, CardStats>();
   if (!isInfluencer && (campaigns ?? []).length > 0) {
     const ids = (campaigns ?? []).map((c) => c.id);
@@ -322,6 +330,11 @@ export default async function CampaignsPage({
               categoryName={category ? categoryLabel(category, locale) : ""}
               locale={locale}
               appliedLabel={L.badges["응모함"]}
+              share={
+                isInfluencer
+                  ? c.status === "open" ? { label: shareLabel, translated: translatedById.get(c.id) ?? [], refId: profile.id } : undefined
+                  : ["open", "closed", "completed"].includes(c.status) ? { label: shareLabel, translated: translatedById.get(c.id) ?? [] } : undefined
+              }
             />
           );
         })}
