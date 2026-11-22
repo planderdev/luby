@@ -35,6 +35,8 @@ type PublicCampaign = {
   recruit_count: number;
   point_amount: number;
   industry_brief: string | null;
+  /** 광고주가 답한 가이드 입력값 — 꼭 담을 것·피할 것·참고 링크 */
+  guide?: { reference_url: string | null; must_include: string[]; avoid: string[] } | null;
   region: { name: string; flag: string } | null;
   category: { name: string; emoji: string } | null;
   promotion_type: string | null;
@@ -133,6 +135,9 @@ export async function PublicCampaignView({ id, locale }: { id: string; locale: L
   const related = translateCards(relatedRaw, tmap);
   const t = publicCampaignDict[locale];
   const fmt = fmtFor(locale);
+  const mustInclude = c.guide?.must_include ?? [];
+  const avoid = c.guide?.avoid ?? [];
+  const guideUrl = c.guide?.reference_url && /^https?:\/\//i.test(c.guide.reference_url) ? c.guide.reference_url : null;
   const pfx = localePrefix(locale);
   // /en·/zh: 지역·분야·진행 방식 이름은 공개 RPC 가 한국어로만 주므로 카탈로그(code/slug)로 라벨링 (2026-10-07)
   const catalog = locale === "ko" ? null : await fetchUICatalog();
@@ -214,6 +219,46 @@ export async function PublicCampaignView({ id, locale }: { id: string; locale: L
                     </li>
                   ))}
                 </ul>
+              </section>
+            )}
+
+            {(mustInclude.length > 0 || avoid.length > 0 || guideUrl) && (
+              <section className="mt-10">
+                <div className="grid gap-4 md:grid-cols-2">
+                  {mustInclude.length > 0 && (
+                    <div className="rounded-2xl glass-card p-4">
+                      <h2 className="text-sm font-semibold">{t.mustInclude}</h2>
+                      <ul className="mt-2 space-y-1.5 text-sm leading-relaxed">
+                        {mustInclude.map((x) => (
+                          <li key={x} className="flex gap-2">
+                            <span className="mt-[9px] size-1.5 shrink-0 rounded-full bg-accent" />
+                            {x}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {avoid.length > 0 && (
+                    <div className="rounded-2xl glass-card p-4">
+                      <h2 className="text-sm font-semibold">{t.avoid}</h2>
+                      <ul className="mt-2 space-y-1.5 text-sm leading-relaxed">
+                        {avoid.map((x) => (
+                          <li key={x} className="flex gap-2">
+                            <span className="mt-[9px] size-1.5 shrink-0 rounded-full bg-foreground/40" />
+                            {x}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+                {guideUrl && (
+                  <p className="mt-3 text-sm">
+                    <a href={guideUrl} target="_blank" rel="noopener noreferrer nofollow" className="font-medium underline underline-offset-4">
+                      {t.referenceLink} ↗
+                    </a>
+                  </p>
+                )}
               </section>
             )}
 

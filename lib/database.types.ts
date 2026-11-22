@@ -269,6 +269,7 @@ export type Database = {
           business_name: string
           campaign_id: string
           created_at: string
+          guide: Json | null
           industry_brief: string | null
           keywords: string[]
           locale: string
@@ -283,6 +284,7 @@ export type Database = {
           business_name: string
           campaign_id: string
           created_at?: string
+          guide?: Json | null
           industry_brief?: string | null
           keywords?: string[]
           locale: string
@@ -297,6 +299,7 @@ export type Database = {
           business_name?: string
           campaign_id?: string
           created_at?: string
+          guide?: Json | null
           industry_brief?: string | null
           keywords?: string[]
           locale?: string

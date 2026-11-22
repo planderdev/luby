@@ -21,7 +21,7 @@ import { Skeleton } from "@/components/dashboard/Skeleton";
 import { getAppLocale } from "@/lib/i18n/app-locale";
 import { dashboardDict } from "@/lib/i18n/app/dashboard";
 import { categoryLabel, regionLabel, promotionTypeLabel } from "@/lib/i18n/app/catalog";
-import { getTranslationMap } from "@/lib/i18n/campaign-translations";
+import { getTranslationMap, translateGuideList } from "@/lib/i18n/campaign-translations";
 
 const STATUS_TONE: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
@@ -135,7 +135,14 @@ export default async function CampaignDetailPage({
   // /en·/zh 사용자는 공개 페이지와 같은 AI 번역본으로 본문을 본다(공개 상태 캠페인만 번역이 있다)
   const tr = locale !== "ko" && isPublic ? (await getTranslationMap([id], locale)).get(id) : undefined;
   // 광고주가 직접 답한 가이드 입력값 (꼭 담을 것·피할 것·참고 링크) — 원문 그대로 표시
-  const guide = parseGuide(campaign.guide);
+  const rawGuide = parseGuide(campaign.guide);
+  const guide = {
+    ...rawGuide,
+    must_include: translateGuideList(rawGuide.must_include, tr?.guide?.must_include),
+    avoid: translateGuideList(rawGuide.avoid, tr?.guide?.avoid),
+  };
+  // 번역본이 아직 없을 때만 "광고주가 한국어로 작성" 안내를 붙인다
+  const guideNote = tr?.guide ? "" : tc.guideOriginal;
   const guideUrl = /^https?:\/\//i.test(guide.reference_url) ? guide.reference_url : null;
   const trMission = new Map((tr?.missions ?? []).map((m) => [m.source, m.description]));
   const trOffer = new Map((tr?.offerings ?? []).map((o) => [o.source, o]));
@@ -346,15 +353,15 @@ export default async function CampaignDetailPage({
                   </ul>
                 </Section>
               )}
-              {(guideUrl || (tc.guideOriginal && (guide.must_include.length > 0 || guide.avoid.length > 0))) && (
+              {(guideUrl || (guideNote && (guide.must_include.length > 0 || guide.avoid.length > 0))) && (
                 <p className="text-xs text-muted-foreground md:col-span-2">
                   {guideUrl && (
                     <a href={guideUrl} target="_blank" rel="noopener noreferrer nofollow" className="font-medium text-foreground underline underline-offset-4">
                       {tc.referenceLink} ↗
                     </a>
                   )}
-                  {guideUrl && tc.guideOriginal ? " · " : ""}
-                  {tc.guideOriginal}
+                  {guideUrl && guideNote ? " · " : ""}
+                  {guideNote}
                 </p>
               )}
             </div>

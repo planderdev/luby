@@ -2,9 +2,10 @@ import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 import { trackedCreate, AI_MODEL_FAST, stopReasonError } from "./client";
+import { parseGuide } from "@/lib/campaign-guide";
 
 /**
- * 공개 캠페인 페이지(/en, /zh)용 캠페인 본문 번역 — 제목·상호·브리프·미션·제공 내역·키워드를 영어·중국어(간체)로.
+ * 공개 캠페인 페이지(/en, /zh)용 캠페인 본문 번역 — 제목·상호·브리프·미션·제공 내역·키워드·가이드(꼭 담을 것·피할 것)를 영어·중국어(간체)로.
  * 결과는 campaign_translations 에 저장하고 원문 해시가 같으면 다시 번역하지 않는다.
  * 트리거(승인·수정 → /api/ai/translate-campaign)와 백필 스크립트가 같은 함수를 쓴다. 시스템 호출(사용자 한도 없음).
  */
@@ -12,6 +13,8 @@ export type TranslationLocale = "en" | "zh";
 export type MissionT = { channel: string; source: string; description: string };
 export type OfferingT = { source: string; title: string; description: string | null };
 export type KeywordT = { source: string; keyword: string };
+export type GuideItemT = { source: string; text: string };
+export type GuideT = { must_include: GuideItemT[]; avoid: GuideItemT[] };
 export type CampaignTranslation = {
   title: string;
   business_name: string;
@@ -28,6 +31,8 @@ type Source = {
   missions: { channel: string; description: string }[];
   offerings: { title: string; description: string | null }[];
   keywords: string[];
+  /** 꼭 담을 것·피할 것 — 있을 때만 넣는다(없는 캠페인의 원문 해시가 바뀌어 전부 다시 번역되지 않도록) */
+  guide?: { must_include: string[]; avoid: string[] };
 };
 
 const LOCALE_SCHEMA = {
@@ -39,8 +44,10 @@ const LOCALE_SCHEMA = {
     missions: { type: "array", items: { type: "object", properties: { description: { type: "string" } }, required: ["description"], additionalProperties: false } },
     offerings: { type: "array", items: { type: "object", properties: { title: { type: "string" }, description: { type: "string" } }, required: ["title", "description"], additionalProperties: false } },
     keywords: { type: "array", items: { type: "string" } },
+    must_include: { type: "array", items: { type: "string" } },
+    avoid: { type: "array", items: { type: "string" } },
   },
-  required: ["title", "business_name", "industry_brief", "missions", "offerings", "keywords"],
+  required: ["title", "business_name", "industry_brief", "missions", "offerings", "keywords", "must_include", "avoid"],
   additionalProperties: false,
 } as const;
 const SCHEMA = { type: "object", properties: { en: LOCALE_SCHEMA, zh: LOCALE_SCHEMA }, required: ["en", "zh"], additionalProperties: false } as const;
@@ -51,12 +58,14 @@ export function hashSource(src: Source): string {
 
 export async function loadCampaignSource(client: SupabaseClient<Database>, campaignId: string): Promise<{ status: string; src: Source } | null> {
   const [{ data: c }, { data: missions }, { data: offerings }, { data: keywords }] = await Promise.all([
-    client.from("campaigns").select("id, status, title, business_name, industry_brief").eq("id", campaignId).maybeSingle(),
+    client.from("campaigns").select("id, status, title, business_name, industry_brief, guide").eq("id", campaignId).maybeSingle(),
     client.from("campaign_missions").select("description, channel_types(name)").eq("campaign_id", campaignId),
     client.from("campaign_offerings").select("title, description").eq("campaign_id", campaignId),
     client.from("campaign_keywords").select("keyword").eq("campaign_id", campaignId),
   ]);
   if (!c) return null;
+  const guide = parseGuide(c.guide);
+  const hasGuide = guide.must_include.length > 0 || guide.avoid.length > 0;
   return {
     status: c.status,
     src: {
@@ -66,6 +75,7 @@ export async function loadCampaignSource(client: SupabaseClient<Database>, campa
       missions: (missions ?? []).map((m) => ({ channel: (m.channel_types as unknown as { name: string } | null)?.name ?? "", description: m.description })),
       offerings: (offerings ?? []).map((o) => ({ title: o.title, description: o.description ?? null })),
       keywords: (keywords ?? []).map((k) => k.keyword),
+      ...(hasGuide ? { guide: { must_include: guide.must_include, avoid: guide.avoid } } : {}),
     },
   };
 }
@@ -92,6 +102,7 @@ Rules:
 - Keep the meaning and marketing tone; do not add or drop facts. Keep brand/product/place names (transliterate when there is no common foreign name, and keep the original in parentheses once in the title if helpful). Keep numbers, dates, URLs, @handles and hashtags as they are; translate hashtag words only when they are generic (e.g. #광고 → #ad / #广告).
 - Platform names stay in their usual form (Instagram, YouTube, Xiaohongshu/小红书, Douyin/抖音, TikTok, Blog, Threads, Lemon8).
 - Translate the arrays item by item in the same order and the same length. industry_brief: empty string when the source is empty. offerings[].description: empty string when the source is empty.
+- must_include / avoid: translate guide.must_include and guide.avoid item by item (short phrases telling the creator what the content must show and what to avoid), same order and length. Return empty arrays when the source has no guide.
 - Chinese: Simplified Chinese (zh-CN), mainland reader friendly.
 
 Source (Korean):
@@ -111,7 +122,7 @@ ${JSON.stringify(src)}`;
     const stopErr = stopReasonError(r.stop_reason);
     if (stopErr) return { ok: false, error: stopErr };
     const text = r.content.find((b) => b.type === "text")?.text ?? "";
-    const parsed = JSON.parse(text) as Record<TranslationLocale, { title: string; business_name: string; industry_brief: string; missions: { description: string }[]; offerings: { title: string; description: string }[]; keywords: string[] }>;
+    const parsed = JSON.parse(text) as Record<TranslationLocale, { title: string; business_name: string; industry_brief: string; missions: { description: string }[]; offerings: { title: string; description: string }[]; keywords: string[]; must_include?: string[]; avoid?: string[] }>;
     const now = new Date().toISOString();
     for (const locale of ["en", "zh"] as TranslationLocale[]) {
       const t = parsed[locale];
@@ -125,6 +136,12 @@ ${JSON.stringify(src)}`;
         missions: src.missions.map((m, i) => ({ channel: m.channel, source: m.description, description: t.missions?.[i]?.description || m.description })) satisfies MissionT[],
         offerings: src.offerings.map((o, i) => ({ source: o.title, title: t.offerings?.[i]?.title || o.title, description: o.description ? t.offerings?.[i]?.description || o.description : null })) satisfies OfferingT[],
         keywords: src.keywords.map((k, i) => `${k}\u001f${t.keywords?.[i] || k}`), // "원문␟번역" — text[] 하나로 원문·번역 쌍 보관
+        guide: src.guide
+          ? ({
+              must_include: src.guide.must_include.map((x, i) => ({ source: x, text: t.must_include?.[i] || x })),
+              avoid: src.guide.avoid.map((x, i) => ({ source: x, text: t.avoid?.[i] || x })),
+            } satisfies GuideT)
+          : null,
         source_hash: hash,
         model: r.model,
         updated_at: now,
