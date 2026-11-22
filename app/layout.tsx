@@ -114,6 +114,9 @@ const themeScript = `
   // 부트스트랩 인라인 스크립트가 조각 생성 때 제거되므로 여기서 페인트 전에 복원
   document.documentElement.classList.add('js');
 try{
+  // 2026-11-23 한 번만: 예전에 고른 다크 설정을 지워 모두 라이트로 되돌린다(사장님 지시).
+  // 이후에 토글로 다시 다크를 고르면 그 선택은 유지된다.
+  if(localStorage.getItem('theme-reset')!=='1'){localStorage.removeItem('theme');localStorage.setItem('theme-reset','1');}
   var s=localStorage.getItem('theme');
   var q=new URLSearchParams(location.search).get('theme');
   if(q==='light'||q==='dark')s=q;
