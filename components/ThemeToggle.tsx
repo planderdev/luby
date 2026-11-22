@@ -20,6 +20,7 @@ export function ThemeToggle() {
     const root = document.documentElement;
     if (next === "dark") root.classList.add("dark");
     else root.classList.remove("dark");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", next === "dark" ? "#0a0a0c" : "#fbf8fc");
     try {
       localStorage.setItem("theme", next);
     } catch {}

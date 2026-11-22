@@ -92,10 +92,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fbf8fc" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0c" },
-  ],
+  // 기본 테마가 라이트이므로 기기 다크 모드와 무관하게 밝은 색. 다크로 바꾸면 ThemeToggle 이 갱신한다
+  themeColor: "#fbf8fc",
   width: "device-width",
   initialScale: 1,
 };
@@ -119,7 +117,8 @@ try{
   var s=localStorage.getItem('theme');
   var q=new URLSearchParams(location.search).get('theme');
   if(q==='light'||q==='dark')s=q;
-  var d=s?s==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;
+  // 기본은 라이트 — 기기가 다크 모드여도 따라가지 않는다. 사용자가 토글로 다크를 고른 경우(저장값)만 다크
+  var d=s==='dark';
   if(d)document.documentElement.classList.add('dark');
 }catch(e){}})();
 `;
