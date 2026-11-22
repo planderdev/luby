@@ -505,6 +505,7 @@ export type Database = {
           created_at: string
           experience_end: string | null
           experience_start: string | null
+          guide: Json | null
           id: string
           industry_brief: string | null
           point_amount: number
@@ -539,6 +540,7 @@ export type Database = {
           created_at?: string
           experience_end?: string | null
           experience_start?: string | null
+          guide?: Json | null
           id?: string
           industry_brief?: string | null
           point_amount?: number
@@ -573,6 +575,7 @@ export type Database = {
           created_at?: string
           experience_end?: string | null
           experience_start?: string | null
+          guide?: Json | null
           id?: string
           industry_brief?: string | null
           point_amount?: number

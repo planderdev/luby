@@ -3,6 +3,7 @@ import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { fetchUICatalog } from "@/lib/cache/ui-catalog";
 import { CampaignBuilder } from "../../new/CampaignBuilder";
+import { parseGuide } from "@/lib/campaign-guide";
 import type { CampaignDraft } from "../../new/actions";
 
 export const metadata = { title: "캠페인 수정 — 루비AI" };
@@ -19,7 +20,7 @@ export default async function EditCampaignPage({ params }: { params: Promise<{ i
   const supabase = await createClient();
   let q = supabase
     .from("campaigns")
-    .select("id, advertiser_id, status, title, business_name, industry_brief, thumbnail_url, contact_phone, region_id, promotion_type_id, category_id, recruit_start, recruit_end, experience_start, experience_end, same_day_reservation, always_open, recruit_count, point_amount, review_note")
+    .select("id, advertiser_id, status, title, business_name, industry_brief, thumbnail_url, contact_phone, region_id, promotion_type_id, category_id, recruit_start, recruit_end, experience_start, experience_end, same_day_reservation, always_open, recruit_count, point_amount, review_note, guide")
     .eq("id", id);
   if (!isOperator) q = q.eq("advertiser_id", profile.id);
   const { data: src } = await q.maybeSingle();
@@ -62,6 +63,7 @@ export default async function EditCampaignPage({ params }: { params: Promise<{ i
     keywords: (kw ?? []).map((k) => k.keyword),
     offerings: (of ?? []).map((o) => ({ title: o.title, description: o.description ?? "", estimated_value: o.estimated_value })),
     point_amount: src.point_amount,
+    guide: parseGuide(src.guide),
   };
 
   return (

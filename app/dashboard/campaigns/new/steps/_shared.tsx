@@ -33,12 +33,14 @@ export function TextInput({
   type = "text",
   placeholder,
   required,
+  ariaLabel,
 }: {
   value: string;
   onChange: (v: string) => void;
   type?: string;
   placeholder?: string;
   required?: boolean;
+  ariaLabel?: string;
 }) {
   return (
     <input
@@ -47,6 +49,7 @@ export function TextInput({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       required={required}
+      aria-label={ariaLabel}
       className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none transition-colors focus:border-foreground"
     />
   );
@@ -58,12 +61,14 @@ export function NumberInput({
   min,
   max,
   step,
+  ariaLabel,
 }: {
   value: number;
   onChange: (v: number) => void;
   min?: number;
   max?: number;
   step?: number;
+  ariaLabel?: string;
 }) {
   return (
     <input
@@ -73,6 +78,7 @@ export function NumberInput({
       min={min}
       max={max}
       step={step}
+      aria-label={ariaLabel}
       className="w-full rounded-2xl glass-card px-4 py-3 text-sm outline-none transition-colors focus:border-foreground"
     />
   );

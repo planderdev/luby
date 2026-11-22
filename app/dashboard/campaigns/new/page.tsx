@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getEntitlements } from "@/lib/plans/entitlements";
 import { fetchUICatalog } from "@/lib/cache/ui-catalog";
 import { CampaignBuilder } from "./CampaignBuilder";
+import { parseGuide } from "@/lib/campaign-guide";
 import type { CampaignDraft } from "./actions";
 
 export const metadata = { title: "새 캠페인 — 루비AI" };
@@ -74,7 +75,7 @@ export default async function NewCampaignPage({
     const supabase = await createClient();
     const { data: src } = await supabase
       .from("campaigns")
-      .select("id, advertiser_id, title, business_name, industry_brief, thumbnail_url, contact_phone, region_id, promotion_type_id, category_id, same_day_reservation, always_open, recruit_count, point_amount")
+      .select("id, advertiser_id, title, business_name, industry_brief, thumbnail_url, contact_phone, region_id, promotion_type_id, category_id, same_day_reservation, always_open, recruit_count, point_amount, guide")
       .eq("id", from)
       .eq("advertiser_id", profile.id)
       .maybeSingle();
@@ -106,6 +107,7 @@ export default async function NewCampaignPage({
         keywords: (kw ?? []).map((k) => k.keyword),
         offerings: (of ?? []).map((o) => ({ title: o.title, description: o.description ?? "", estimated_value: o.estimated_value })),
         point_amount: src.point_amount,
+      guide: parseGuide(src.guide),
       };
     }
   }

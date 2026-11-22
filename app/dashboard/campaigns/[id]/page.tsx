@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { parseGuide } from "@/lib/campaign-guide";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Calendar, Users, MapPin, Tag, Coins, Copy, Pencil } from "lucide-react";
@@ -62,7 +63,7 @@ export default async function CampaignDetailPage({
   const { data: campaign } = await supabase
     .from("campaigns")
     .select(
-      "id, advertiser_id, title, business_name, thumbnail_url, status, region_id, category_id, promotion_type_id, recruit_count, recruit_start, recruit_end, experience_start, experience_end, same_day_reservation, always_open, point_amount, review_note, reviewed_at, review_round, report_token, report_summary, report_summary_at"
+      "id, advertiser_id, title, business_name, thumbnail_url, status, region_id, category_id, promotion_type_id, recruit_count, recruit_start, recruit_end, experience_start, experience_end, same_day_reservation, always_open, point_amount, review_note, reviewed_at, review_round, report_token, report_summary, report_summary_at, guide"
     )
     .eq("id", id)
     .maybeSingle();
@@ -133,6 +134,9 @@ export default async function CampaignDetailPage({
 
   // /en·/zh 사용자는 공개 페이지와 같은 AI 번역본으로 본문을 본다(공개 상태 캠페인만 번역이 있다)
   const tr = locale !== "ko" && isPublic ? (await getTranslationMap([id], locale)).get(id) : undefined;
+  // 광고주가 직접 답한 가이드 입력값 (꼭 담을 것·피할 것·참고 링크) — 원문 그대로 표시
+  const guide = parseGuide(campaign.guide);
+  const guideUrl = /^https?:\/\//i.test(guide.reference_url) ? guide.reference_url : null;
   const trMission = new Map((tr?.missions ?? []).map((m) => [m.source, m.description]));
   const trOffer = new Map((tr?.offerings ?? []).map((o) => [o.source, o]));
   const trKeyword = new Map((tr?.keywords ?? []).map((k) => k.split("\u001f") as [string, string]));
@@ -315,6 +319,46 @@ export default async function CampaignDetailPage({
               </div>
             )}
           </Section>
+
+          {(guide.must_include.length > 0 || guide.avoid.length > 0 || guideUrl) && (
+            <div className="grid gap-4 md:grid-cols-2">
+              {guide.must_include.length > 0 && (
+                <Section title={tc.mustInclude}>
+                  <ul className="space-y-1.5 text-sm">
+                    {guide.must_include.map((x) => (
+                      <li key={x} className="flex gap-2">
+                        <span className="mt-[7px] size-1.5 shrink-0 rounded-full bg-accent" />
+                        {x}
+                      </li>
+                    ))}
+                  </ul>
+                </Section>
+              )}
+              {guide.avoid.length > 0 && (
+                <Section title={tc.avoid}>
+                  <ul className="space-y-1.5 text-sm">
+                    {guide.avoid.map((x) => (
+                      <li key={x} className="flex gap-2">
+                        <span className="mt-[7px] size-1.5 shrink-0 rounded-full bg-foreground/40" />
+                        {x}
+                      </li>
+                    ))}
+                  </ul>
+                </Section>
+              )}
+              {(guideUrl || (tc.guideOriginal && (guide.must_include.length > 0 || guide.avoid.length > 0))) && (
+                <p className="text-xs text-muted-foreground md:col-span-2">
+                  {guideUrl && (
+                    <a href={guideUrl} target="_blank" rel="noopener noreferrer nofollow" className="font-medium text-foreground underline underline-offset-4">
+                      {tc.referenceLink} ↗
+                    </a>
+                  )}
+                  {guideUrl && tc.guideOriginal ? " · " : ""}
+                  {tc.guideOriginal}
+                </p>
+              )}
+            </div>
+          )}
 
           <Section title={tc.offerings}>
             {(offerings.data ?? []).length === 0 ? (

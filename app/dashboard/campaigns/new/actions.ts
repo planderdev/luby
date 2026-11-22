@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { revalidatePublicCampaign } from "@/lib/cache/public-revalidate";
 import { createClient } from "@/lib/supabase/server";
 import { getEntitlements } from "@/lib/plans/entitlements";
+import { cleanGuide, type CampaignGuide } from "@/lib/campaign-guide";
 
 export type CampaignDraft = {
   // Step 1
@@ -39,6 +40,9 @@ export type CampaignDraft = {
   // Step 5
   offerings: { title: string; description: string; estimated_value: number | null }[];
   point_amount: number;
+
+  // 가이드 입력값
+  guide: CampaignGuide;
 };
 
 export type CampaignActionResult =
@@ -87,7 +91,7 @@ export async function createCampaign(
   // 서버 측 방어 검증: 빈 문자열 날짜가 timestamptz 컬럼에 들어가면
   // Postgres가 "invalid input syntax for type timestamp" 오류를 낸다.
   if (!draft.recruit_start || !draft.recruit_end) {
-    return { ok: false, error: "모집 기간(시작일·종료일)을 입력해주세요. (STEP 3 체험 일정)" };
+    return { ok: false, error: "모집 기간(시작일·종료일)을 입력해주세요." };
   }
 
   // 1. Insert campaign root
@@ -101,6 +105,7 @@ export async function createCampaign(
       title: draft.title,
       business_name: draft.business_name,
       industry_brief: draft.industry_brief?.trim() || null,
+      guide: cleanGuide(draft.guide),
       thumbnail_url: draft.thumbnail_url || null,
       contact_phone: draft.contact_phone || null,
       recruit_start: draft.recruit_start,
@@ -251,7 +256,7 @@ export async function updateCampaign(
     };
   }
   if (!draft.recruit_start || !draft.recruit_end) {
-    return { ok: false, error: "모집 기간(시작일·종료일)을 입력해주세요. (STEP 3 체험 일정)" };
+    return { ok: false, error: "모집 기간(시작일·종료일)을 입력해주세요." };
   }
 
   const { error: upErr } = await supabase
@@ -263,6 +268,7 @@ export async function updateCampaign(
       title: draft.title,
       business_name: draft.business_name,
       industry_brief: draft.industry_brief?.trim() || null,
+      guide: cleanGuide(draft.guide),
       thumbnail_url: draft.thumbnail_url || null,
       contact_phone: draft.contact_phone || null,
       recruit_start: draft.recruit_start,
