@@ -189,8 +189,8 @@ export function StepOffer({
             <Checkbox
               checked={draft.always_open}
               onChange={(v) => update("always_open", v)}
-              label="요일·시간 제한 없음"
-              desc="언제든 체험할 수 있습니다."
+              label="상시 모집"
+              desc="요일·시간 제한 없이 언제든 체험할 수 있고, 모집 기간이 지나도 자동으로 마감되지 않습니다."
             />
           </div>
           {!draft.always_open && (
