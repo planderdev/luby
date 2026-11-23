@@ -58,6 +58,7 @@ if (!window.__lre_for_creators) { window.__lre_for_creators = true;
         ['통신판매업 신고 2023-제주연동-0223', 'Online sales registration\n2023-Jeju Yeondong-0223', '通信销售备案\n2023-济州莲洞-0223'],
         ['주소 제주특별자치도 제주시 관덕로 44, 제주소통협력센터 404호', 'Address\nRoom 404, Jeju Communication Cooperation Center, 44 Gwandeok-ro, Jeju-si, Jeju-do', '地址\n济州特别自治道济州市观德路44，济州沟通协作中心404号'],
         ['이메일', 'Email', '邮箱'],
+        ['전화', 'Phone', '电话'],
 
         ['GLOBAL CREATOR PLATFORM', 'GLOBAL CREATOR PLATFORM', '全球创作者平台'],
         ['브랜드도,', 'BRANDS,', '品牌，'],

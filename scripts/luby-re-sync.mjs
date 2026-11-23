@@ -50,9 +50,14 @@ const LINKS = [
 const sharedCss = ["reset", "tokens", "common", "motion"]
   .map((n) => `/* ═══ ${n}.css ═══ */\n` + readFileSync(join(SRC, `assets/css/${n}.css`), "utf8"))
   .join("\n\n");
+// 푸터 전화번호 라벨 번역 — 시안 사전(data.js)의 푸터 '이메일' 줄 바로 뒤에 둔다 (addFooterPhone 참고)
+const FOOTER_DICT_ANCHOR = "['이메일', 'Email', '邮箱'],";
+const FOOTER_PHONE_DICT = "['전화', 'Phone', '电话'],";
 const sharedJs = ["data", "i18n", "scroll", "common", "marquee", "counter", "motion"]
   .map((n) => `/* ═══ ${n}.js ═══ */\n` + readFileSync(join(SRC, `assets/js/${n}.js`), "utf8"))
-  .join("\n\n");
+  .join("\n\n")
+  .replace(FOOTER_DICT_ANCHOR, `${FOOTER_DICT_ANCHOR}\n        ${FOOTER_PHONE_DICT}`);
+if (!sharedJs.includes(FOOTER_PHONE_DICT)) console.warn("시안 사전에서 이메일 줄을 못 찾아 '전화' 번역을 넣지 못했다");
 
 const scopeCss = (css) =>
   css
@@ -176,6 +181,27 @@ const addFooterLinks = (html, code) =>
     `<nav class="site-footer__links" aria-label="Legal">` +
       FOOTER_LINKS[code].map(([h, l]) => `<a href="${h}">${l}</a>`).join("") +
       `</nav>\n    <p class="site-footer__copy">`
+  );
+
+// 푸터 전화번호 — 시안 푸터엔 없다(2026-11-23 사장님 지시). 이메일 칸 앞에 같은 모양으로 넣는다.
+// 번호는 모든 언어에서 사장님이 준 표기 그대로, 링크만 해외에서도 걸리게 국가번호로.
+const FOOTER_PHONE = { display: "010-2852-8248", tel: "+821028528248" };
+const FOOTER_PHONE_LABEL = {
+  ko: "전화",
+  en: "Phone",
+  zh: '<span class="hanja" lang="zh-CN" data-cjk-wrap="true">电话</span>',
+};
+const addFooterPhone = (html, code) =>
+  html.replace(/<div class="site-footer__meta">[\s\S]*?<\/div>/g, (meta) =>
+    meta.includes('href="tel:')
+      ? meta
+      : meta.replace(
+          /(\n[ \t]*)(<p[^>]*>(?:(?!<\/p>)[\s\S])*?<a href="mailto:)/,
+          (_, indent, emailP) =>
+            // en·zh 베이크본은 이메일처럼 한국어 키(data-i18n-own)를 달아 클라이언트 언어 전환과 맞춘다
+            `${indent}<p${code === "ko" ? "" : ' data-i18n-own="전화"'}>${FOOTER_PHONE_LABEL[code]}<br>` +
+            `<a href="tel:${FOOTER_PHONE.tel}">${FOOTER_PHONE.display}</a></p>${indent}${emailP}`
+        )
   );
 
 // ── 공개 체험단 페이지(/c·/creators·/p)가 랜딩과 같은 헤더·전체화면 메뉴·푸터를 쓰도록 크롬만 따로 추출한다
@@ -319,7 +345,7 @@ for (const p of PAGES) {
 
   const raw = markLang(headLinks.join("\n") + `\n<div class="lre-root ${bodyClass}">` + body + "</div>", "ko");
   if (p.name === "home") homeParts = { headLinks: headLinks.join("\n"), fragment: raw }; // 베이크는 치환 전 원본으로
-  const fragment = addFooterLinks(linkCompany(relabelCtas(raw, "ko")), "ko");
+  const fragment = addFooterPhone(addFooterLinks(linkCompany(relabelCtas(raw, "ko")), "ko"), "ko");
   if (p.name === "home") chrome.ko = extractChrome(fragment);
   writeFileSync(
     join(ROOT, `components/landing-re/${p.name}-fragment.ts`),
@@ -412,7 +438,7 @@ if (!existsSync(CHROME)) {
     let html = await page.evaluate(() => document.querySelector(".lre-root").outerHTML);
     // 베이크 흔적 제거 — 남겨두면 클라이언트 i18n 이 키를 근거로 한국어로 되돌린다
     html = html.replace(/ data-i18n-key="[^"]*"/g, "").replace(/ data-i18n-attr-[a-z-]+="[^"]*"/g, "");
-    html = addFooterLinks(linkCompany(relabelCtas(markLang(homeParts.headLinks + "\n" + html, locale), locale)), locale);
+    html = addFooterPhone(addFooterLinks(linkCompany(relabelCtas(markLang(homeParts.headLinks + "\n" + html, locale), locale)), locale), locale);
     chrome[locale] = extractChrome(html);
     writeFileSync(
       join(ROOT, `components/landing-re/home-${locale}-fragment.ts`),
