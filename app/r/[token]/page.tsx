@@ -83,9 +83,6 @@ const STATUS_LABEL: Record<Report["campaign"]["status"], string> = {
 
 const fmtDate = (iso: string | null) =>
   iso ? new Date(iso).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric" }) : "—";
-// 모집·체험 기간은 입력한 값 그대로(UTC 저장 — lib/kst.ts)
-const fmtSchedule = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleDateString("ko-KR", { timeZone: "UTC", year: "numeric", month: "long", day: "numeric" }) : "—";
 const fmtNum = (n: number) =>
   n >= 10000 ? `${(n / 10000).toFixed(1).replace(/\.0$/, "")}만` : n.toLocaleString();
 const pct = (num: number, den: number) => (den > 0 ? Math.round((num / den) * 100) : 0);
@@ -153,9 +150,9 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
           <div className="mt-3 grid gap-x-8 gap-y-1.5 text-sm text-muted-foreground sm:grid-cols-2">
             <div><span className="text-foreground">브랜드 · 매장</span> {c.business_name}</div>
             <div><span className="text-foreground">{c.advertiser_kind === "agency" ? "운영 대행사" : "광고주"}</span> {c.company_name}</div>
-            <div><span className="text-foreground">모집 기간</span> {fmtSchedule(c.recruit_start)} ~ {c.always_open ? "상시" : fmtSchedule(c.recruit_end)}</div>
+            <div><span className="text-foreground">모집 기간</span> {fmtDate(c.recruit_start)} ~ {c.always_open ? "상시" : fmtDate(c.recruit_end)}</div>
             {(c.experience_start || c.experience_end) && (
-              <div><span className="text-foreground">체험 기간</span> {c.experience_start ? `${fmtSchedule(c.experience_start)} ~ ` : ""}{fmtSchedule(c.experience_end)}{c.experience_start ? "" : "까지"}</div>
+              <div><span className="text-foreground">체험 기간</span> {c.experience_start ? `${fmtDate(c.experience_start)} ~ ` : ""}{fmtDate(c.experience_end)}{c.experience_start ? "" : "까지"}</div>
             )}
             {channels.length > 0 && <div><span className="text-foreground">채널</span> {channels.join(" · ")}</div>}
             <div><span className="text-foreground">크리에이터 보상</span> {c.point_amount.toLocaleString()}P / 인</div>

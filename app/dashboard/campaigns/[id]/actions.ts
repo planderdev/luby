@@ -6,6 +6,7 @@ import { dashboardDict } from "@/lib/i18n/app/dashboard";
 import type { Locale } from "@/lib/i18n/config";
 import { dbErrorMessage } from "@/lib/db-errors";
 import { createClient } from "@/lib/supabase/server";
+import { kstInputToIso } from "@/lib/kst";
 
 export async function applyToCampaign(
   campaignId: string,
@@ -204,9 +205,10 @@ export async function adjustOpenCampaign(
   const patch: { recruit_end?: string; recruit_count?: number } = {};
 
   if (input.recruitEnd) {
-    // datetime-local 값은 빌더와 동일하게 UTC 로 해석한다
-    const next = new Date(input.recruitEnd.length === 16 ? `${input.recruitEnd}:00Z` : input.recruitEnd);
-    if (Number.isNaN(next.getTime())) return { ok: false, error: "마감 일시가 올바르지 않습니다." };
+    // datetime-local 값은 빌더와 동일하게 한국 시간으로 해석한다 (lib/kst.ts)
+    const nextIso = kstInputToIso(input.recruitEnd);
+    if (!nextIso) return { ok: false, error: "마감 일시가 올바르지 않습니다." };
+    const next = new Date(nextIso);
     if (next.getTime() < new Date(camp.recruit_end).getTime()) {
       return { ok: false, error: "모집 마감은 연장만 할 수 있습니다." };
     }

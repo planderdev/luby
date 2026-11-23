@@ -261,7 +261,7 @@ export function InfluencerOverview({
                       <Users className="size-3.5" />
                       {t.recruit(c.recruit_count)}
                     </span>
-                    <span>~{new Date(c.recruit_end).toLocaleDateString(t.dateLocale, { timeZone: "UTC", month: "numeric", day: "numeric" })}</span>
+                    <span>~{new Date(c.recruit_end).toLocaleDateString(t.dateLocale, { timeZone: "Asia/Seoul", month: "numeric", day: "numeric" })}</span>
                     {c.point_amount > 0 && (
                       <span className="ml-auto inline-flex items-center gap-1 font-semibold text-accent-ink">
                         <Coins className="size-3.5" />

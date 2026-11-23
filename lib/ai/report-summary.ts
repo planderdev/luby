@@ -1,6 +1,10 @@
 import { viewSourceRows } from "@/lib/view-sources";
 import { aiErrorMessage } from "@/lib/ai/ai-errors";
 import { trackedCreate, AI_MODEL_FAST, stopReasonError, type AiContext } from "./client";
+import { kstDateValue } from "@/lib/kst";
+
+/** 모집 기간은 한국 시간 날짜로 (빈 값·잘못된 값은 원문 앞 10자) */
+const kstDay = (iso: string) => (iso && !Number.isNaN(new Date(iso).getTime()) ? kstDateValue(iso) : iso.slice(0, 10));
 
 /**
  * 성과 리포트 AI 요약 — 클라이언트 보고서 상단에 들어갈 임원용 요약.
@@ -80,7 +84,7 @@ export async function summarizeCampaignReport(input: ReportSummaryInput, ctx?: O
 브랜드·매장: ${input.businessName} / 운영: ${input.companyName}${input.advertiserKind === "agency" ? " (대행사)" : ""}
 업종: ${input.category ?? "-"} · 홍보 유형: ${input.promotion ?? "-"} · 브리프: ${input.industryBrief ?? "-"}
 채널: ${input.channels.join(", ") || "-"}
-모집: ${input.recruitCount}명 · 보상 ${input.pointAmount.toLocaleString()}P/인 · 기간 ${input.recruitStart.slice(0, 10)} ~ ${input.alwaysOpen ? "상시" : input.recruitEnd.slice(0, 10)} · 상태 ${statusKo}
+모집: ${input.recruitCount}명 · 보상 ${input.pointAmount.toLocaleString()}P/인 · 기간 ${kstDay(input.recruitStart)} ~ ${input.alwaysOpen ? "상시" : kstDay(input.recruitEnd)} · 상태 ${statusKo}
 
 [집계]
 응모 ${m.applied}명 (경쟁률 ${input.recruitCount > 0 ? (m.applied / input.recruitCount).toFixed(1) : "0"}:1)

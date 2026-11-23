@@ -5,6 +5,7 @@ import { fetchUICatalog } from "@/lib/cache/ui-catalog";
 import { CampaignBuilder } from "../../new/CampaignBuilder";
 import { parseGuide } from "@/lib/campaign-guide";
 import type { CampaignDraft } from "../../new/actions";
+import { kstInputValue } from "@/lib/kst";
 
 export const metadata = { title: "캠페인 수정 — 루비AI" };
 export const maxDuration = 60;
@@ -38,9 +39,8 @@ export default async function EditCampaignPage({ params }: { params: Promise<{ i
     supabase.from("campaign_schedules").select("day_of_week, start_time, end_time").eq("campaign_id", id),
     fetchUICatalog(),
   ]);
-  // datetime-local 값 (YYYY-MM-DDTHH:mm). 생성 시 입력 문자열을 그대로 timestamptz 로 저장하므로
-  // 같은 방식(UTC 기준 슬라이스)으로 되돌려야 수정 저장 시 시각이 밀리지 않는다.
-  const toLocal = (iso: string | null) => (iso ? new Date(iso).toISOString().slice(0, 16) : "");
+  // datetime-local 값 (YYYY-MM-DDTHH:mm) — 저장할 때 한국 시간으로 해석하므로 한국 시간으로 되돌려 채운다
+  const toLocal = (iso: string | null) => (iso ? kstInputValue(iso) : "");
   const initial: Partial<CampaignDraft> = {
     title: src.title,
     business_name: src.business_name,

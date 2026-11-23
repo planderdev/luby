@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { ImageUpload } from "@/components/ImageUpload";
 import { createNotice, updateNotice, deleteNotice, type NoticeInput } from "./actions";
+import { kstInputValue } from "@/lib/kst";
 
 export type NoticeRow = {
   id: string;
@@ -16,8 +17,8 @@ export type NoticeRow = {
   sort_order: number;
 };
 
-/** ISO → datetime-local 값 (UTC 로 해석하는 규약을 저장 쪽과 맞춘다) */
-const toLocalValue = (iso: string | null) => (iso ? iso.slice(0, 16) : "");
+/** ISO → datetime-local 값 (한국 시간 — 저장 쪽 kstInputToIso 와 같은 규칙) */
+const toLocalValue = (iso: string | null) => (iso ? kstInputValue(iso) : "");
 
 export function NoticeForm({ notice, onDone }: { notice?: NoticeRow; onDone?: () => void }) {
   const editing = !!notice;

@@ -18,11 +18,11 @@ export type PosterData = {
 /** A4 세로 매장용 포스터 시트 — 화면에서는 카드, 인쇄 시 210×297mm */
 export function PosterSheet({ d }: { d: PosterData }) {
   const c = d;
-  const fmtDate = (iso: string) => new Date(iso).toLocaleDateString("ko-KR", { timeZone: "UTC", month: "long", day: "numeric" });
+  const fmtDate = (iso: string) => new Date(iso).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul", month: "long", day: "numeric" });
   const T = {
     ko: { eyebrow: "체험단 모집 중", scan: "QR을 스캔해 응모하세요", reward: "활동 포인트", offer: "제공 혜택", until: c.alwaysOpen ? "상시 모집" : `${fmtDate(c.recruitEnd)}까지`, recruit: `${c.recruitCount}명 모집`, via: "루비AI 체험단 플랫폼 · luby.im" },
-    en: { eyebrow: "Creators wanted", scan: "Scan to apply", reward: "Reward points", offer: "What you get", until: c.alwaysOpen ? "Always open" : `Until ${new Date(c.recruitEnd).toLocaleDateString("en-US", { timeZone: "UTC", month: "short", day: "numeric" })}`, recruit: `${c.recruitCount} spots`, via: "Luby AI creator campaigns · luby.im" },
-    zh: { eyebrow: "体验官招募中", scan: "扫码报名", reward: "活动积分", offer: "提供内容", until: c.alwaysOpen ? "长期招募" : `截止 ${new Date(c.recruitEnd).toLocaleDateString("zh-CN", { timeZone: "UTC", month: "short", day: "numeric" })}`, recruit: `招募 ${c.recruitCount} 人`, via: "Luby AI 体验官平台 · luby.im" },
+    en: { eyebrow: "Creators wanted", scan: "Scan to apply", reward: "Reward points", offer: "What you get", until: c.alwaysOpen ? "Always open" : `Until ${new Date(c.recruitEnd).toLocaleDateString("en-US", { timeZone: "Asia/Seoul", month: "short", day: "numeric" })}`, recruit: `${c.recruitCount} spots`, via: "Luby AI creator campaigns · luby.im" },
+    zh: { eyebrow: "体验官招募中", scan: "扫码报名", reward: "活动积分", offer: "提供内容", until: c.alwaysOpen ? "长期招募" : `截止 ${new Date(c.recruitEnd).toLocaleDateString("zh-CN", { timeZone: "Asia/Seoul", month: "short", day: "numeric" })}`, recruit: `招募 ${c.recruitCount} 人`, via: "Luby AI 体验官平台 · luby.im" },
   }[d.locale];
 
   return (

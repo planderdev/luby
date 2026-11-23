@@ -8,6 +8,7 @@ import { revalidatePublicCampaign } from "@/lib/cache/public-revalidate";
 import { createClient } from "@/lib/supabase/server";
 import { getEntitlements } from "@/lib/plans/entitlements";
 import { cleanGuide, type CampaignGuide } from "@/lib/campaign-guide";
+import { kstInputToIso } from "@/lib/kst";
 
 export type CampaignDraft = {
   // Step 1
@@ -90,7 +91,10 @@ export async function createCampaign(
 
   // 서버 측 방어 검증: 빈 문자열 날짜가 timestamptz 컬럼에 들어가면
   // Postgres가 "invalid input syntax for type timestamp" 오류를 낸다.
-  if (!draft.recruit_start || !draft.recruit_end) {
+  // 작성 화면의 일시는 한국 시간으로 해석해 저장한다 (lib/kst.ts)
+  const recruitStart = kstInputToIso(draft.recruit_start);
+  const recruitEnd = kstInputToIso(draft.recruit_end);
+  if (!recruitStart || !recruitEnd) {
     return { ok: false, error: "모집 기간(시작일·종료일)을 입력해주세요." };
   }
 
@@ -108,10 +112,10 @@ export async function createCampaign(
       guide: cleanGuide(draft.guide),
       thumbnail_url: draft.thumbnail_url || null,
       contact_phone: draft.contact_phone || null,
-      recruit_start: draft.recruit_start,
-      recruit_end: draft.recruit_end,
-      experience_start: draft.experience_start || null,
-      experience_end: draft.experience_end || null,
+      recruit_start: recruitStart,
+      recruit_end: recruitEnd,
+      experience_start: kstInputToIso(draft.experience_start),
+      experience_end: kstInputToIso(draft.experience_end),
       same_day_reservation: draft.same_day_reservation,
       always_open: draft.always_open,
       recruit_count: draft.recruit_count,
@@ -255,7 +259,10 @@ export async function updateCampaign(
       error: isOperatorEdit ? "마감·완료된 캠페인은 수정할 수 없습니다." : "모집이 시작된 캠페인은 수정할 수 없습니다. 복제해서 새로 만드세요.",
     };
   }
-  if (!draft.recruit_start || !draft.recruit_end) {
+  // 작성 화면의 일시는 한국 시간으로 해석해 저장한다 (lib/kst.ts)
+  const recruitStart = kstInputToIso(draft.recruit_start);
+  const recruitEnd = kstInputToIso(draft.recruit_end);
+  if (!recruitStart || !recruitEnd) {
     return { ok: false, error: "모집 기간(시작일·종료일)을 입력해주세요." };
   }
 
@@ -271,10 +278,10 @@ export async function updateCampaign(
       guide: cleanGuide(draft.guide),
       thumbnail_url: draft.thumbnail_url || null,
       contact_phone: draft.contact_phone || null,
-      recruit_start: draft.recruit_start,
-      recruit_end: draft.recruit_end,
-      experience_start: draft.experience_start || null,
-      experience_end: draft.experience_end || null,
+      recruit_start: recruitStart,
+      recruit_end: recruitEnd,
+      experience_start: kstInputToIso(draft.experience_start),
+      experience_end: kstInputToIso(draft.experience_end),
       same_day_reservation: draft.same_day_reservation,
       always_open: draft.always_open,
       recruit_count: draft.recruit_count,

@@ -4,13 +4,15 @@ import { Plus, Trash2 } from "lucide-react";
 import type { CampaignDraft } from "../actions";
 import type { PromotionType } from "../CampaignBuilder";
 import { StepHeader, Field, TextInput, NumberInput, Checkbox } from "./_shared";
+import { kstInputValue } from "@/lib/kst";
 
 const DAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
 
-/** datetime-local 값(YYYY-MM-DDTHH:mm) — 사용자의 현지 시각 그대로 */
-function localValue(d: Date) {
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+/** datetime-local 값(YYYY-MM-DDTHH:mm)의 날짜 부분에 days 를 더한다 */
+function addDays(date: string, days: number) {
+  const d = new Date(`${date}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
 }
 
 const RECRUIT_PRESETS = [
@@ -34,14 +36,11 @@ export function StepOffer({
   function patchOffering(idx: number, patch: Partial<CampaignDraft["offerings"][number]>) {
     update("offerings", offerings.map((o, i) => (i === idx ? { ...o, ...patch } : o)));
   }
+  // 일시 입력은 한국 시간 기준이다(저장 시 kstInputToIso) — 해외 브라우저에서도 프리셋은 한국 시간 '지금'부터
   function setRecruitPreset(days: number) {
-    const start = new Date();
-    start.setSeconds(0, 0);
-    const end = new Date(start);
-    end.setDate(end.getDate() + days);
-    end.setHours(23, 59, 0, 0);
-    update("recruit_start", localValue(start));
-    update("recruit_end", localValue(end));
+    const start = kstInputValue(new Date());
+    update("recruit_start", start);
+    update("recruit_end", `${addDays(start.slice(0, 10), days)}T23:59`);
   }
   function patchSchedule(idx: number, patch: Partial<CampaignDraft["schedules"][number]>) {
     update("schedules", draft.schedules.map((s, i) => (i === idx ? { ...s, ...patch } : s)));

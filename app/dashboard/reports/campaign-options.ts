@@ -1,5 +1,6 @@
 import type { createClient } from "@/lib/supabase/server";
 import type { ReviewReportInput } from "./actions";
+import { kstDateValue } from "@/lib/kst";
 
 /** 보고서 편집기의 '캠페인 연결' 선택지 — 광고주는 내 캠페인, 운영자는 전체(최근 200) */
 export type CampaignOption = {
@@ -34,7 +35,8 @@ export async function loadCampaignOptions(
 
 /** 캠페인에서 보고서 기본값 채우기 — 체험 기간이 있으면 그것, 없으면 모집 기간 */
 export function prefillFromCampaign(c: CampaignOption): ReviewReportInput {
-  const d = (iso: string | null) => (iso ? iso.slice(0, 10) : null);
+  // 한국 시간 날짜 — UTC 문자열을 잘라 쓰면 한국 시간 00~09시 일정이 하루 앞 날짜가 된다
+  const d = (iso: string | null) => (iso ? kstDateValue(iso) : null);
   return {
     title: c.title,
     business_name: c.business_name,

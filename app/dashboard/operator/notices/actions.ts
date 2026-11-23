@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { dbErrorMessage } from "@/lib/db-errors";
+import { kstInputToIso } from "@/lib/kst";
 
 type Result = { ok: true } | { ok: false; error: string };
 
@@ -17,13 +18,8 @@ async function ensureOperator() {
   return { ok: true as const, supabase, user };
 }
 
-/** datetime-local 값은 캠페인 빌더와 동일하게 UTC 로 해석한다 */
-function toIso(v: string | null | undefined): string | null {
-  const raw = (v ?? "").trim();
-  if (!raw) return null;
-  const d = new Date(raw.length === 16 ? `${raw}:00Z` : raw);
-  return Number.isNaN(d.getTime()) ? null : d.toISOString();
-}
+/** datetime-local 값은 캠페인 빌더와 동일하게 한국 시간으로 해석한다 (lib/kst.ts) */
+const toIso = kstInputToIso;
 
 function validate(input: NoticeInput): string | null {
   if (!input.title.trim()) return "제목을 입력해주세요. 목록에서 구분하는 이름이자 이미지 대체 텍스트로 쓰입니다.";

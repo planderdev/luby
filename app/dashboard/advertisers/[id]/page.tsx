@@ -190,7 +190,7 @@ export default async function AdvertiserProfilePage({
                   <Users className="size-3.5" />
                   {c.recruit_count}명
                 </span>
-                <span>~{new Date(c.recruit_end).toLocaleDateString("ko-KR", { timeZone: "UTC", month: "numeric", day: "numeric" })}</span>
+                <span>~{new Date(c.recruit_end).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric" })}</span>
                 {c.point_amount > 0 && (
                   <span className="ml-auto inline-flex items-center gap-1 font-semibold text-accent-ink">
                     <Coins className="size-3.5" />

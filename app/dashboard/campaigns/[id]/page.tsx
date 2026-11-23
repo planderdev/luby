@@ -22,7 +22,7 @@ import { getAppLocale } from "@/lib/i18n/app-locale";
 import { dashboardDict } from "@/lib/i18n/app/dashboard";
 import { categoryLabel, regionLabel, promotionTypeLabel } from "@/lib/i18n/app/catalog";
 import { getTranslationMap, translateGuideList } from "@/lib/i18n/campaign-translations";
-import { scheduleParts } from "@/lib/kst";
+import { kstParts } from "@/lib/kst";
 
 const STATUS_TONE: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
@@ -35,7 +35,7 @@ const STATUS_TONE: Record<string, string> = {
 };
 
 function fmtDateTime(iso: string) {
-  const d = scheduleParts(iso);
+  const d = kstParts(iso);
   return `${d.year}.${d.month}.${d.day} ${String(d.hours).padStart(2, "0")}:${String(d.minutes).padStart(2, "0")}`;
 }
 

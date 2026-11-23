@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { CalendarPlus, Check, Loader2, UserPlus } from "lucide-react";
 import { adjustOpenCampaign } from "./actions";
+import { kstInputValue } from "@/lib/kst";
 
 /** 모집중 캠페인: 마감 연장·인원 증원 패널 (그 외 필드는 모집중에는 잠금) */
 export function AdjustOpenCampaign({
@@ -16,7 +17,8 @@ export function AdjustOpenCampaign({
   recruitCount: number;
   alwaysOpen: boolean;
 }) {
-  const currentEndLocal = new Date(recruitEnd).toISOString().slice(0, 16);
+  // 한국 시간 datetime-local 값 — 저장 쪽(adjustOpenCampaign)과 같은 규칙
+  const currentEndLocal = kstInputValue(recruitEnd);
   const [open, setOpen] = useState(false);
   const [end, setEnd] = useState(currentEndLocal);
   const [count, setCount] = useState(recruitCount);

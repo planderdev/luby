@@ -46,7 +46,7 @@ export async function CreatorLanding({ locale }: { locale: Locale }) {
   const fmtP = (n: number | null) => (n === null ? "-" : Math.round(n).toLocaleString());
   const signupHref = withLang(`/signup?role=influencer&redirect=${encodeURIComponent("/dashboard/campaigns")}`, locale);
   const icons = [Globe, Sparkles, BellRing, IdCard];
-  const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(tc.dateFmt, { timeZone: "UTC", month: "short", day: "numeric" });
+  const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(tc.dateFmt, { timeZone: "Asia/Seoul", month: "short", day: "numeric" });
 
   return (
     <main lang={locale === "zh" ? "zh-CN" : locale} className="lre-offset min-h-dvh bg-canvas">

@@ -5,10 +5,10 @@ import Link from "next/link";
 import { Check, X, Loader2, ExternalLink, ShieldCheck, ShieldAlert, ShieldX, Sparkles, RotateCcw } from "lucide-react";
 import { decideCampaign, precheckCampaignAction } from "../actions";
 import type { Precheck } from "@/lib/ai/campaign-precheck";
-import { scheduleParts } from "@/lib/kst";
+import { kstParts } from "@/lib/kst";
 
 function fmtDate(iso: string) {
-  const d = scheduleParts(iso);
+  const d = kstParts(iso);
   return `${d.month}/${d.day}`;
 }
 
