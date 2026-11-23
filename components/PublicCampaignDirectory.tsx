@@ -101,7 +101,7 @@ export async function PublicCampaignDirectory({ locale, params }: { locale: Loca
   // /en, /zh 는 카드 제목·상호를 AI 번역본으로 (없으면 원문)
   dir.items = translateCards(dir.items, await getTranslationMap(dir.items.map((c) => c.id), locale));
   const totalPages = Math.max(1, Math.ceil(dir.total / PAGE_SIZE));
-  const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(t.dateFmt, { month: "short", day: "numeric" });
+  const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(t.dateFmt, { timeZone: "UTC", month: "short", day: "numeric" });
 
   const qs = (over: Partial<DirectoryParams>) => {
     const n = new URLSearchParams();

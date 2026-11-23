@@ -1,5 +1,6 @@
 import type { Locale } from "@/lib/i18n/config";
 import { EMAIL_CATEGORY_LABEL } from "@/lib/notification-categories";
+import { kstParts } from "@/lib/kst";
 
 /**
  * 대시보드 다국어 2단계(2026-10-07): 셸 내비 + 크리에이터 캠페인 상세·응모·내 응모. ko 가 원본 타입.
@@ -395,7 +396,7 @@ const ko = {
     placeholder: "메시지를 입력하세요 (Enter 전송, Shift+Enter 줄바꿈)",
     send: "메시지 보내기",
     timeLocale: "ko-KR",
-    day: (d: Date) => `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`,
+    day: (d: Date) => { const k = kstParts(d); return `${k.year}년 ${k.month}월 ${k.day}일`; },
     errEmpty: "메시지를 입력해주세요.",
     errLong: "메시지는 2,000자 이내로 입력해주세요.",
     errSend: "메시지를 보낼 수 없습니다. 선정된 체험단과의 대화만 가능해요.",
@@ -855,7 +856,7 @@ const en: DashboardDict = {
     placeholder: "Type a message (Enter to send, Shift+Enter for a new line)",
     send: "Send message",
     timeLocale: "en-US",
-    day: (d: Date) => d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }),
+    day: (d: Date) => d.toLocaleDateString("en-US", { timeZone: "Asia/Seoul", year: "numeric", month: "short", day: "numeric" }),
     errEmpty: "Enter a message.",
     errLong: "Messages must be 2,000 characters or fewer.",
     errSend: "Could not send. Messaging is only available for campaigns you were selected for.",
@@ -1313,7 +1314,7 @@ const zh: DashboardDict = {
     placeholder: "输入消息（Enter 发送，Shift+Enter 换行）",
     send: "发送消息",
     timeLocale: "zh-CN",
-    day: (d: Date) => `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`,
+    day: (d: Date) => { const k = kstParts(d); return `${k.year}年${k.month}月${k.day}日`; },
     errEmpty: "请输入消息。",
     errLong: "消息不能超过 2,000 字。",
     errSend: "无法发送。仅可与已入选活动的广告主对话。",

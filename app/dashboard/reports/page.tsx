@@ -37,7 +37,7 @@ export default async function ReviewReportsPage() {
     owners = new Map((ps ?? []).map((p) => [p.id, p.name ?? ""]));
   }
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://luby.im").replace(/\/$/, "");
-  const fmtDate = (iso: string) => new Date(iso).toLocaleDateString("ko-KR", { year: "numeric", month: "short", day: "numeric" });
+  const fmtDate = (iso: string) => new Date(iso).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "short", day: "numeric" });
 
   return (
     <div>

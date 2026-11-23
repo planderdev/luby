@@ -163,7 +163,7 @@ export default async function AiUsagePage({ searchParams }: { searchParams: Prom
           <ul className="mt-3 space-y-1.5 text-xs">
             {s.recent_errors.map((e, i) => (
               <li key={i} className="flex flex-wrap gap-x-3 gap-y-0.5">
-                <span className="tabular-nums text-muted-foreground">{new Date(e.at).toLocaleString("ko-KR")}</span>
+                <span className="tabular-nums text-muted-foreground">{new Date(e.at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })}</span>
                 <span className="font-medium">{FEATURE_LABEL[e.feature] ?? e.feature}</span>
                 <span className="text-muted-foreground">{e.error}</span>
               </li>

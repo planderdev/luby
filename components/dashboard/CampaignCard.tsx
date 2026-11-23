@@ -4,6 +4,7 @@ import { dashboardDict } from "@/lib/i18n/app/dashboard";
 import { withLang } from "@/lib/i18n/app-locale-shared";
 import type { Locale } from "@/lib/i18n/config";
 import { ShareLinkButton } from "@/app/dashboard/campaigns/[id]/ShareLinkButton";
+import { scheduleParts } from "@/lib/kst";
 
 const STATUS_TONE: Record<string, "success" | "warning" | "danger" | "muted" | "ink"> = {
   draft: "muted",
@@ -24,8 +25,8 @@ const TONE_CLASS: Record<string, string> = {
 };
 
 function fmtDate(iso: string) {
-  const d = new Date(iso);
-  return `${d.getMonth() + 1}/${d.getDate()}`;
+  const d = scheduleParts(iso);
+  return `${d.month}/${d.day}`;
 }
 
 export function CampaignCard({

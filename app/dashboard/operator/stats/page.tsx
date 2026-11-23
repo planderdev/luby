@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { getCurrentProfile } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
+import { kstParts } from "@/lib/kst";
 
 export const metadata = { title: "통계 — 루비AI" };
 
@@ -381,7 +382,7 @@ export default async function OperatorStatsPage() {
               {docFb.comments.length === 0 && <li className="text-xs text-muted-foreground">남겨진 의견이 없어요.</li>}
               {docFb.comments.slice(0, 8).map((c, i) => (
                 <li key={i} className="rounded-xl border border-border px-3 py-2">
-                  <div className="text-[11px] text-muted-foreground"><Link href={c.path} target="_blank" className="font-mono hover:underline">{c.path}</Link> · {new Date(c.created_at).toLocaleDateString("ko-KR")}</div>
+                  <div className="text-[11px] text-muted-foreground"><Link href={c.path} target="_blank" className="font-mono hover:underline">{c.path}</Link> · {new Date(c.created_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })}</div>
                   <p className="mt-0.5 text-xs leading-relaxed">{c.comment}</p>
                 </li>
               ))}
@@ -582,8 +583,8 @@ function TrendCard({
 }) {
   const max = Math.max(1, ...series.flatMap((s) => s.values));
   const fmtWeek = (iso: string) => {
-    const d = new Date(iso);
-    return `${d.getMonth() + 1}/${d.getDate()}`;
+    const d = kstParts(iso);
+    return `${d.month}/${d.day}`;
   };
   return (
     <div className="rounded-3xl glass-card p-6">

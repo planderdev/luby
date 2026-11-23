@@ -6,7 +6,7 @@ import { NoticeForm, type NoticeRow } from "./NoticeForm";
 import { setNoticeActive } from "./actions";
 
 const fmt = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleString("ko-KR", { year: "2-digit", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "무기한";
+  iso ? new Date(iso).toLocaleString("ko-KR", { timeZone: "UTC", year: "2-digit", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "무기한";
 
 /** 지금 실제로 랜딩에 뜨는 상태인지 */
 function liveState(n: NoticeRow): { label: string; tone: string } {

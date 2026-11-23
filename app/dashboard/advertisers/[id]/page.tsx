@@ -120,7 +120,7 @@ export default async function AdvertiserProfilePage({
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1">
                 <CalendarDays className="size-3.5" />
-                {new Date(p.joined_at).toLocaleDateString("ko-KR")} 가입
+                {new Date(p.joined_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })} 가입
               </span>
               {website && (
                 <a
@@ -190,7 +190,7 @@ export default async function AdvertiserProfilePage({
                   <Users className="size-3.5" />
                   {c.recruit_count}명
                 </span>
-                <span>~{new Date(c.recruit_end).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" })}</span>
+                <span>~{new Date(c.recruit_end).toLocaleDateString("ko-KR", { timeZone: "UTC", month: "numeric", day: "numeric" })}</span>
                 {c.point_amount > 0 && (
                   <span className="ml-auto inline-flex items-center gap-1 font-semibold text-accent-ink">
                     <Coins className="size-3.5" />
@@ -221,7 +221,7 @@ export default async function AdvertiserProfilePage({
               >
                 <span className="truncate text-sm font-medium">{c.title}</span>
                 <span className="shrink-0 text-[11px] text-muted-foreground">
-                  {c.status === "completed" ? "완료" : "마감"} · {new Date(c.completed_at).toLocaleDateString("ko-KR")}
+                  {c.status === "completed" ? "완료" : "마감"} · {new Date(c.completed_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })}
                 </span>
               </Link>
             ))}

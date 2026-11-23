@@ -59,7 +59,7 @@ export default async function PaymentSuccessPage({
   if (result.status === "waiting") {
     const d = result.deposit;
     const due = d?.dueDate
-      ? new Date(d.dueDate).toLocaleString("ko-KR", { month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })
+      ? new Date(d.dueDate).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })
       : "";
     return (
       <ResultShell
@@ -87,6 +87,7 @@ export default async function PaymentSuccessPage({
 
   const expires = result.expiresAt
     ? new Date(result.expiresAt).toLocaleDateString("ko-KR", {
+        timeZone: "Asia/Seoul",
         year: "numeric",
         month: "long",
         day: "numeric",

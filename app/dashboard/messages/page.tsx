@@ -8,6 +8,7 @@ import { getAppLocale } from "@/lib/i18n/app-locale";
 import { dashboardDict } from "@/lib/i18n/app/dashboard";
 import { getTranslationMap, translateCards } from "@/lib/i18n/campaign-translations";
 import type { Locale } from "@/lib/i18n/config";
+import { kstParts } from "@/lib/kst";
 
 export async function generateMetadata() {
   const locale = await getAppLocale();
@@ -16,13 +17,13 @@ export async function generateMetadata() {
 }
 
 function fmtTime(iso: string, timeLocale = "ko-KR") {
-  const d = new Date(iso);
-  const now = new Date();
-  const sameDay = d.toDateString() === now.toDateString();
+  const d = kstParts(iso);
+  const now = kstParts(Date.now());
+  const sameDay = d.year === now.year && d.month === now.month && d.day === now.day;
   if (sameDay) {
-    return d.toLocaleTimeString(timeLocale, { hour: "2-digit", minute: "2-digit" });
+    return new Date(iso).toLocaleTimeString(timeLocale, { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit" });
   }
-  return `${d.getMonth() + 1}/${d.getDate()}`;
+  return `${d.month}/${d.day}`;
 }
 
 export default async function MessagesPage() {

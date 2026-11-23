@@ -24,7 +24,7 @@ function timeAgo(iso: string, t: T): string {
   if (hr < 24) return t.hoursAgo(hr);
   const day = Math.floor(hr / 24);
   if (day < 7) return t.daysAgo(day);
-  return new Date(iso).toLocaleDateString(t.dateLocale);
+  return new Date(iso).toLocaleDateString(t.dateLocale, { timeZone: "Asia/Seoul" });
 }
 
 export default async function NotificationsPage() {

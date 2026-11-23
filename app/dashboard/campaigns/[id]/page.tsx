@@ -22,6 +22,7 @@ import { getAppLocale } from "@/lib/i18n/app-locale";
 import { dashboardDict } from "@/lib/i18n/app/dashboard";
 import { categoryLabel, regionLabel, promotionTypeLabel } from "@/lib/i18n/app/catalog";
 import { getTranslationMap, translateGuideList } from "@/lib/i18n/campaign-translations";
+import { scheduleParts } from "@/lib/kst";
 
 const STATUS_TONE: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
@@ -34,11 +35,8 @@ const STATUS_TONE: Record<string, string> = {
 };
 
 function fmtDateTime(iso: string) {
-  const d = new Date(iso);
-  return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} ${d
-    .getHours()
-    .toString()
-    .padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
+  const d = scheduleParts(iso);
+  return `${d.year}.${d.month}.${d.day} ${String(d.hours).padStart(2, "0")}:${String(d.minutes).padStart(2, "0")}`;
 }
 
 // AI 인플루언서 매칭 액션은 풀 분석에 수십 초가 걸릴 수 있다.
@@ -264,7 +262,7 @@ export default async function CampaignDetailPage({
             <div>
               <div className="text-xs font-semibold uppercase tracking-wider text-danger">검수 반려 · 수정 요청{campaign.review_round > 1 ? ` (${campaign.review_round}차 검수)` : ""}</div>
               <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">{campaign.review_note}</p>
-              {campaign.reviewed_at && <p className="mt-2 text-[11px] text-muted-foreground">{new Date(campaign.reviewed_at).toLocaleString("ko-KR")} 운영팀</p>}
+              {campaign.reviewed_at && <p className="mt-2 text-[11px] text-muted-foreground">{new Date(campaign.reviewed_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })} 운영팀</p>}
             </div>
             {isOwner && (
               <Link href={`/dashboard/campaigns/${id}/edit`} className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background">

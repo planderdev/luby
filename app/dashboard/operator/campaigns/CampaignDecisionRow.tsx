@@ -5,10 +5,11 @@ import Link from "next/link";
 import { Check, X, Loader2, ExternalLink, ShieldCheck, ShieldAlert, ShieldX, Sparkles, RotateCcw } from "lucide-react";
 import { decideCampaign, precheckCampaignAction } from "../actions";
 import type { Precheck } from "@/lib/ai/campaign-precheck";
+import { scheduleParts } from "@/lib/kst";
 
 function fmtDate(iso: string) {
-  const d = new Date(iso);
-  return `${d.getMonth() + 1}/${d.getDate()}`;
+  const d = scheduleParts(iso);
+  return `${d.month}/${d.day}`;
 }
 
 export function CampaignDecisionRow({
@@ -186,7 +187,7 @@ export function CampaignDecisionRow({
         {precheck && (
           <>
             <span className="text-[11px] text-muted-foreground">
-              {checkedAt ? new Date(checkedAt).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }) : ""}
+              {checkedAt ? new Date(checkedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }) : ""}
             </span>
             <button
               type="button"

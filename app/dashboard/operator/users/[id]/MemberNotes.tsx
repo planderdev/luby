@@ -98,7 +98,7 @@ export function MemberNotes({
                   <p className="whitespace-pre-wrap leading-relaxed">{n.pinned && <Pin className="mr-1 inline size-3.5 text-accent-ink" />}{n.body}</p>
                   <button type="button" onClick={() => remove(n.id)} aria-label="삭제" className="shrink-0 text-muted-foreground hover:text-danger"><Trash2 className="size-3.5" /></button>
                 </div>
-                <div className="mt-1 text-[11px] text-muted-foreground">{n.author_name ?? "운영자"} · {new Date(n.created_at).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
+                <div className="mt-1 text-[11px] text-muted-foreground">{n.author_name ?? "운영자"} · {new Date(n.created_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
               </li>
             ))}
             {notes.length === 0 && <li className="text-xs text-muted-foreground">메모가 없어요.</li>}

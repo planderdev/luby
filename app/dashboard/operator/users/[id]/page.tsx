@@ -13,7 +13,7 @@ import { AUDIT_ACTION_LABEL, auditExtra } from "@/lib/audit-labels";
 export const metadata = { title: "회원 상세 — 루비AI" };
 
 const fmtN = (n: number) => (n >= 10000 ? `${(n / 10000).toFixed(1).replace(/\.0$/, "")}만` : n.toLocaleString());
-const d = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleDateString("ko-KR") : "—");
+const d = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" }) : "—");
 
 export default async function OperatorMemberDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -183,14 +183,14 @@ export default async function OperatorMemberDetailPage({ params }: { params: Pro
             <div>
               <h2 className="flex items-center gap-2 text-sm font-semibold"><ScrollText className="size-4" /> 이 회원에 대한 운영 기록</h2>
               <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
-                {(auditRes.data ?? []).map((a) => <li key={a.id}>{new Date(a.created_at).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })} · {actorName.get(a.actor_id ?? "") ?? "시스템"} · {AUDIT_ACTION_LABEL[a.action]?.label ?? a.action}{(() => { const x = auditExtra(a.action, (a.meta ?? {}) as Record<string, unknown>); return x ? ` · ${x}` : ""; })()}</li>)}
+                {(auditRes.data ?? []).map((a) => <li key={a.id}>{new Date(a.created_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })} · {actorName.get(a.actor_id ?? "") ?? "시스템"} · {AUDIT_ACTION_LABEL[a.action]?.label ?? a.action}{(() => { const x = auditExtra(a.action, (a.meta ?? {}) as Record<string, unknown>); return x ? ` · ${x}` : ""; })()}</li>)}
                 {(auditRes.data ?? []).length === 0 && <li>기록 없음</li>}
               </ul>
             </div>
             <div>
               <h2 className="flex items-center gap-2 text-sm font-semibold"><Sparkles className="size-4" /> 최근 받은 알림</h2>
               <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
-                {(notiRes.data ?? []).map((n, i) => <li key={i} className={n.read_at ? "" : "text-foreground"}>{new Date(n.created_at).toLocaleDateString("ko-KR")} · {n.title}</li>)}
+                {(notiRes.data ?? []).map((n, i) => <li key={i} className={n.read_at ? "" : "text-foreground"}>{new Date(n.created_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })} · {n.title}</li>)}
                 {(notiRes.data ?? []).length === 0 && <li>알림 없음</li>}
               </ul>
             </div>

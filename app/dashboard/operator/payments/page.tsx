@@ -20,6 +20,7 @@ const STATUS_META: Record<string, { label: string; tone: string }> = {
 function fmtDateTime(iso: string) {
   const d = new Date(iso);
   return d.toLocaleString("ko-KR", {
+    timeZone: "Asia/Seoul",
     year: "2-digit",
     month: "numeric",
     day: "numeric",

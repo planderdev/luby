@@ -111,9 +111,9 @@ export default async function BillingPage() {
             </div>
             {subActive && currentTier !== "free" && subscription?.started_at && (
               <p className="mt-2 text-xs text-muted-foreground">
-                시작일: {new Date(subscription.started_at).toLocaleDateString("ko-KR")}
+                시작일: {new Date(subscription.started_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })}
                 {subscription.expires_at &&
-                  ` · 만료일: ${new Date(subscription.expires_at).toLocaleDateString("ko-KR")}`}
+                  ` · 만료일: ${new Date(subscription.expires_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })}`}
               </p>
             )}
             <div className="mt-3">
@@ -290,7 +290,7 @@ export default async function BillingPage() {
                 <div className="min-w-0">
                   <div className="font-medium">{p.order_name}</div>
                   <div className="text-xs text-muted-foreground">
-                    {new Date(p.approved_at ?? p.created_at).toLocaleDateString("ko-KR")} · {p.status === "paid" ? "결제 완료" : p.status === "failed" ? "실패" : p.status === "cancelled" ? "취소(환불)" : p.kind !== "one_time" ? "확인 중" : "입금 대기"}{p.kind !== "one_time" ? " · 자동결제" : ""}
+                    {new Date(p.approved_at ?? p.created_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })} · {p.status === "paid" ? "결제 완료" : p.status === "failed" ? "실패" : p.status === "cancelled" ? "취소(환불)" : p.kind !== "one_time" ? "확인 중" : "입금 대기"}{p.kind !== "one_time" ? " · 자동결제" : ""}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">

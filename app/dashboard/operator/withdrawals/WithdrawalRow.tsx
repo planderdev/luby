@@ -74,7 +74,7 @@ export function WithdrawalRow({
             {bankName} · {accountNumber} · 예금주 {accountHolder}
           </div>
           <div className="mt-0.5 text-[11px] text-muted-foreground">
-            신청일 {new Date(requestedAt).toLocaleString("ko-KR")}
+            신청일 {new Date(requestedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })}
           </div>
           {currentStatus === "rejected" && currentReason && (
             <div className="mt-1 text-xs text-accent-ink">반려 사유: {currentReason}</div>

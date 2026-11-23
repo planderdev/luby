@@ -49,7 +49,7 @@ export default async function EditReviewReportPage({
       </Link>
       <h1 className="display mt-3 break-keep text-3xl font-semibold lg:text-4xl">{report.title}</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        {report.business_name ? `${report.business_name} · ` : ""}리뷰 {rows?.length ?? 0}건 · {new Date(report.updated_at).toLocaleDateString("ko-KR")} 갱신
+        {report.business_name ? `${report.business_name} · ` : ""}리뷰 {rows?.length ?? 0}건 · {new Date(report.updated_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })} 갱신
       </p>
       <ReviewReportEditor
         mode="edit"

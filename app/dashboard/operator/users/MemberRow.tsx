@@ -81,6 +81,7 @@ export function MemberRow({
   }
 
   const joined = new Date(createdAt).toLocaleDateString("ko-KR", {
+    timeZone: "Asia/Seoul",
     year: "2-digit",
     month: "numeric",
     day: "numeric",

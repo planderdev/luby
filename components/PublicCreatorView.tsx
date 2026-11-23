@@ -186,7 +186,7 @@ export async function PublicCreatorView({ id, locale = "ko", ownerPreview = fals
                 <li key={i} className="rounded-2xl glass-card p-4">
                   <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{r.category_emoji} {r.category_name} · {r.business_name}</div>
                   <div className="mt-1 line-clamp-2 text-sm font-medium">{r.title}</div>
-                  <div className="mt-1 text-[11px] text-muted-foreground">{t.completedAt(new Date(r.completed_at).toLocaleDateString(t.dateLocale, { year: "numeric", month: "long" }))}</div>
+                  <div className="mt-1 text-[11px] text-muted-foreground">{t.completedAt(new Date(r.completed_at).toLocaleDateString(t.dateLocale, { timeZone: "Asia/Seoul", year: "numeric", month: "long" }))}</div>
                 </li>
               ))}
             </ul>

@@ -126,7 +126,7 @@ export default async function CreatorProfilePage({
               )}
               <span className="inline-flex items-center gap-1">
                 <CalendarDays className="size-3.5" />
-                {new Date(portfolio.joined_at).toLocaleDateString("ko-KR")} 가입
+                {new Date(portfolio.joined_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })} 가입
               </span>
               {hasPublic && (
                 <a href={`/p/${id}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 underline underline-offset-2 hover:text-foreground">
@@ -190,7 +190,7 @@ export default async function CreatorProfilePage({
                 <span>팔로워 {fmtFollowers(c.followers ?? 0)}</span>
                 {c.trust === "api" ? (
                   <span className="font-medium text-success">
-                    · 자동 확인{c.stats_updated_at ? ` (${new Date(c.stats_updated_at).toLocaleDateString("ko-KR")} 기준)` : ""}
+                    · 자동 확인{c.stats_updated_at ? ` (${new Date(c.stats_updated_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })} 기준)` : ""}
                   </span>
                 ) : c.trust === "operator" || c.verified ? (
                   <span className="font-medium text-success">· 운영자 확인</span>
@@ -246,7 +246,7 @@ export default async function CreatorProfilePage({
               </div>
             </div>
             <span className="shrink-0 text-[11px] text-muted-foreground">
-              {new Date(c.completed_at).toLocaleDateString("ko-KR")} 완료
+              {new Date(c.completed_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })} 완료
             </span>
           </div>
         ))}

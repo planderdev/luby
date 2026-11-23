@@ -60,7 +60,7 @@ export async function ChannelVerifyQueue() {
               </div>
               <div className="mt-1 text-xs text-muted-foreground">
                 인증 코드 <code className="rounded bg-muted px-1.5 py-0.5 font-mono font-semibold text-foreground">{r.verify_code}</code> · 신고 팔로워{" "}
-                {r.followers.toLocaleString("ko-KR")} · 요청 {r.verify_requested_at ? new Date(r.verify_requested_at).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "-"}
+                {r.followers.toLocaleString("ko-KR")} · 요청 {r.verify_requested_at ? new Date(r.verify_requested_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "-"}
               </div>
               <ChannelVerifyItem channelId={r.id} claimed={r.followers} />
             </div>

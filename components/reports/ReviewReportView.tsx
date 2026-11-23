@@ -62,7 +62,7 @@ export type ReviewReportData = {
 };
 
 const fmtDate = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" }) : "—";
+  iso ? new Date(iso).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric" }) : "—";
 const fmtShort = (iso: string | null) => (iso ? iso.slice(0, 10).replace(/-/g, ".") : "—");
 const fmtNum = (n: number) =>
   n >= 10000 ? `${(n / 10000).toFixed(1).replace(/\.0$/, "")}만` : n.toLocaleString();

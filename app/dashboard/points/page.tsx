@@ -115,7 +115,7 @@ export default async function PointsPage() {
                       <span className="truncate text-sm font-medium">{r.title}</span>
                     </div>
                     <div className="mt-0.5 text-xs text-muted-foreground">
-                      {r.detail} · {new Date(r.occurred_at).toLocaleDateString(t.dateLocale, { year: "numeric", month: "numeric", day: "numeric" })}
+                      {r.detail} · {new Date(r.occurred_at).toLocaleDateString(t.dateLocale, { timeZone: "Asia/Seoul", year: "numeric", month: "numeric", day: "numeric" })}
                     </div>
                   </div>
                   <div className={`shrink-0 text-sm font-semibold ${positive ? "text-success" : r.amount < 0 ? "text-foreground" : "text-muted-foreground"}`}>
@@ -156,7 +156,7 @@ export default async function PointsPage() {
                     <div className="text-sm font-semibold">{w.amount.toLocaleString()}P</div>
                     <div className="mt-0.5 text-xs text-muted-foreground">
                       {w.bank_name} {w.account_number} ·{" "}
-                      {new Date(w.requested_at).toLocaleDateString(t.dateLocale)}
+                      {new Date(w.requested_at).toLocaleDateString(t.dateLocale, { timeZone: "Asia/Seoul" })}
                     </div>
                     {w.status === "rejected" && w.reject_reason && (
                       <div className="mt-1 text-xs text-accent-ink">

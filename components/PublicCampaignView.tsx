@@ -67,7 +67,7 @@ export async function fetchPublicCampaign(id: string): Promise<PublicCampaign | 
   return getPublicCampaign(id);
 }
 
-const fmtFor = (locale: Locale) => (iso: string) => new Date(iso).toLocaleDateString(locale === "ko" ? "ko-KR" : locale === "zh" ? "zh-CN" : "en-US", { month: "long", day: "numeric" });
+const fmtFor = (locale: Locale) => (iso: string) => new Date(iso).toLocaleDateString(locale === "ko" ? "ko-KR" : locale === "zh" ? "zh-CN" : "en-US", { timeZone: "UTC", month: "long", day: "numeric" });
 
 /** 데모(profiles.is_demo) 광고주 캠페인 — 링크로는 열리되 목록·검색엔진에는 노출하지 않는다 */
 const isDemoAccount = unstable_cache(

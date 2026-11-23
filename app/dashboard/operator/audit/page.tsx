@@ -54,7 +54,7 @@ export default async function OperatorAuditPage({ searchParams }: { searchParams
           const extra = auditExtra(r.action, meta);
           return (
             <li key={r.id} className="flex flex-wrap items-center gap-3 px-5 py-3 text-sm">
-              <span className="w-36 shrink-0 text-xs text-muted-foreground">{new Date(r.created_at).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+              <span className="w-36 shrink-0 text-xs text-muted-foreground">{new Date(r.created_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
               <span className="w-20 shrink-0 truncate font-medium">{r.actor_name ?? "시스템"}</span>
               <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${a.tone}`}>{a.label}</span>
               <span className="min-w-0 flex-1 truncate">

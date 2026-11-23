@@ -246,7 +246,7 @@ function TrustBadge({ ch, locale }: { ch: ChannelRow; locale: Locale }) {
   const v = dashboardDict[locale].settings.channels.verify;
   const level = trustLevel(ch);
   if (level === "api") {
-    const d = ch.stats_updated_at ? new Date(ch.stats_updated_at).toLocaleDateString(locale === "ko" ? "ko-KR" : locale === "zh" ? "zh-CN" : "en-US") : null;
+    const d = ch.stats_updated_at ? new Date(ch.stats_updated_at).toLocaleDateString(locale === "ko" ? "ko-KR" : locale === "zh" ? "zh-CN" : "en-US", { timeZone: "Asia/Seoul" }) : null;
     return <span className="font-medium text-success">{v.api}{d ? ` · ${v.asOf(d)}` : ""}</span>;
   }
   if (level === "operator") return <span className="font-medium text-success">{v.operator}</span>;

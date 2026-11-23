@@ -65,7 +65,7 @@ export function InvitationCard({
             >
               {businessName}
             </Link>{" "}
-            · {pointAmount.toLocaleString()}P · {t.deadline(end.toLocaleDateString(t.dateLocale))}
+            · {pointAmount.toLocaleString()}P · {t.deadline(end.toLocaleDateString(t.dateLocale, { timeZone: "UTC" }))}
           </div>
           {message && (
             <p className="mt-3 rounded-xl bg-muted/50 px-3 py-2 text-xs text-foreground">

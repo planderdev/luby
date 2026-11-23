@@ -19,7 +19,7 @@ type Message = {
 const POLL_MS = 30000;
 
 function fmtTime(iso: string, timeLocale: string) {
-  return new Date(iso).toLocaleTimeString(timeLocale, { hour: "2-digit", minute: "2-digit" });
+  return new Date(iso).toLocaleTimeString(timeLocale, { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit" });
 }
 
 export function ChatThread({
