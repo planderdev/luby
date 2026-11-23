@@ -39,6 +39,7 @@ export const COMPANY = {
   name: "주식회사 플랜더 (Plander Corp.)",
   address: "제주특별자치도 제주시 관덕로 44, 제주소통협력센터 404호",
   email: "contact@plander.io",
+  phone: "010-2852-8248",
   bizNo: "432-81-02903",
   ceo: "이동욱",
   mailOrder: "2023-제주연동-0223",
@@ -62,6 +63,7 @@ const ko: LegalContent = {
       { label: "사업자등록번호", value: COMPANY.bizNo },
       { label: "통신판매업 신고번호", value: COMPANY.mailOrder },
       { label: "주소", value: COMPANY.address },
+      { label: "전화", value: COMPANY.phone },
       { label: "이메일", value: COMPANY.email },
     ],
     sections: [
@@ -208,6 +210,7 @@ const ko: LegalContent = {
     company: [
       { label: "책임자", value: COMPANY.ceo },
       { label: "문의", value: COMPANY.email },
+      { label: "전화", value: COMPANY.phone },
       { label: "상호", value: COMPANY.name },
       { label: "주소", value: COMPANY.address },
     ],
@@ -297,6 +300,7 @@ const ko: LegalContent = {
         body: [
           "개인정보 처리에 관한 문의·불만·피해구제는 아래로 연락 주시기 바랍니다.",
           `이메일: ${COMPANY.email}`,
+          `전화: ${COMPANY.phone}`,
           "또한 개인정보 침해에 대한 상담은 개인정보분쟁조정위원회(1833-6972), 개인정보침해신고센터(118) 등에 문의할 수 있습니다.",
         ],
       },
@@ -323,6 +327,7 @@ const en: LegalContent = {
       { label: "Business registration no.", value: COMPANY.bizNo },
       { label: "Mail-order business report no.", value: COMPANY.mailOrder },
       { label: "Address", value: "#404 Jeju Communication & Collaboration Center, 44 Gwandeok-ro, Jeju-si, Jeju, Republic of Korea" },
+      { label: "Phone", value: COMPANY.phone },
       { label: "Email", value: COMPANY.email },
     ],
     sections: [
@@ -457,6 +462,7 @@ const en: LegalContent = {
     companyLabel: "Privacy officer",
     company: [
       { label: "Contact", value: COMPANY.email },
+      { label: "Phone", value: COMPANY.phone },
       { label: "Company", value: "Plander Corp." },
       { label: "Address", value: "#404 Jeju Communication & Collaboration Center, 44 Gwandeok-ro, Jeju-si, Jeju, Republic of Korea" },
     ],
@@ -528,6 +534,7 @@ const en: LegalContent = {
         body: [
           "For inquiries, complaints or remedies regarding personal information processing, contact:",
           `Email: ${COMPANY.email}`,
+          `Phone: ${COMPANY.phone}`,
         ],
       },
     ],
@@ -553,6 +560,7 @@ const zh: LegalContent = {
       { label: "营业执照号", value: COMPANY.bizNo },
       { label: "通信销售业申报号", value: COMPANY.mailOrder },
       { label: "地址", value: "韩国济州特别自治道济州市观德路44号 济州沟通协力中心404室" },
+      { label: "电话", value: COMPANY.phone },
       { label: "邮箱", value: COMPANY.email },
     ],
     sections: [
@@ -687,6 +695,7 @@ const zh: LegalContent = {
     companyLabel: "个人信息保护负责人",
     company: [
       { label: "联系", value: COMPANY.email },
+      { label: "电话", value: COMPANY.phone },
       { label: "公司", value: "Plander Corp." },
       { label: "地址", value: "韩国济州特别自治道济州市观德路44号 济州沟通协力中心404室" },
     ],
@@ -758,6 +767,7 @@ const zh: LegalContent = {
         body: [
           "关于个人信息处理的咨询、投诉或救济，请联系：",
           `邮箱：${COMPANY.email}`,
+          `电话：${COMPANY.phone}`,
         ],
       },
     ],
@@ -775,6 +785,7 @@ export function businessInfo(locale: Locale): { label: string; value: string }[]
       { label: "사업자등록번호", value: COMPANY.bizNo },
       { label: "통신판매업 신고", value: COMPANY.mailOrder },
       { label: "주소", value: COMPANY.address },
+      { label: "전화", value: COMPANY.phone },
       { label: "이메일", value: COMPANY.email },
     ];
   }
@@ -785,6 +796,7 @@ export function businessInfo(locale: Locale): { label: string; value: string }[]
       { label: "营业执照号", value: COMPANY.bizNo },
       { label: "通信销售业申报号", value: COMPANY.mailOrder },
       { label: "地址", value: "韩国济州特别自治道济州市观德路44号 济州沟通协力中心404室" },
+      { label: "电话", value: COMPANY.phone },
       { label: "邮箱", value: COMPANY.email },
     ];
   }
@@ -794,6 +806,7 @@ export function businessInfo(locale: Locale): { label: string; value: string }[]
     { label: "Business Reg. No.", value: COMPANY.bizNo },
     { label: "Mail-order Report No.", value: COMPANY.mailOrder },
     { label: "Address", value: "#404 Jeju Communication & Collaboration Center, 44 Gwandeok-ro, Jeju-si, Jeju, Republic of Korea" },
+    { label: "Phone", value: COMPANY.phone },
     { label: "Email", value: COMPANY.email },
   ];
 }
